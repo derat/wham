@@ -50,21 +50,23 @@ void WindowCriteria::Reset() {
 
 
 bool WindowCriteria::Matches(const WindowProperties& props) const {
-  for (RegexpCriteria::const_iterator it = regexp_criteria_.begin();
-       it != regexp_criteria_.end(); ++it) {
-    CriterionType type = it->first;
-    ref_ptr<pcrecpp::RE> re = it->second;
-    if (!re->PartialMatch(GetPropertyForCriterionType(props, type))) {
-      return false;
-    }
-  }
-
+  // We iterate through the different criteria, trying to find one that
+  // doesn't match.  We check the fastest match types first.
   for (SubstringCriteria::const_iterator it = substr_criteria_.begin();
        it != substr_criteria_.end(); ++it) {
     CriterionType type = it->first;
     const string& pattern = it->second;
     if (GetPropertyForCriterionType(props, type).find(pattern) ==
         string::npos) {
+      return false;
+    }
+  }
+
+  for (RegexpCriteria::const_iterator it = regexp_criteria_.begin();
+       it != regexp_criteria_.end(); ++it) {
+    CriterionType type = it->first;
+    ref_ptr<pcrecpp::RE> re = it->second;
+    if (!re->PartialMatch(GetPropertyForCriterionType(props, type))) {
       return false;
     }
   }

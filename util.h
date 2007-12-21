@@ -93,10 +93,10 @@ class ref_ptr {
  private:
   friend class ::UtilTestSuite;
 
-  void add_ref() {
+  inline void add_ref() {
     if (refs_ != NULL) (*refs_)++;
   }
-  void del_ref() {
+  inline void del_ref() {
     if (refs_ != NULL) {
       (*refs_)--;
       if (*refs_ == 0) {
