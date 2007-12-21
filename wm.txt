@@ -1,0 +1,108 @@
+I find myself typically using just two X applications: urxvt (a terminal
+emulator) and Firefox.  There are other programs that I run occasionally
+(gimp, gnucash, grip, mplayer, etc.), but still few enough total that I
+wouldn't mind if I had to spend a few minutes configuring a window manager
+to display each to my preferences.
+
+I have different window-size requirements for each of the programs.  When
+I'm writing code in a terminal emulator, I'd like it to be exactly eighty
+columns wide and as tall as will fit on the screen; when running vimdiff to
+view code, I'd like the terminal window to be 165 columns; when viewing a
+log file with long lines, I'd like the window to be as wide as possible.  I
+should be able to quickly switch between these different window
+configurations depending on what I'm trying to do at the moment.  I
+envision a configuration format similar to the following:
+
+  window_config {
+    criteria {
+      class_name /.*rxvt/
+    }
+    config {
+      name default
+      width 80u  # 'u' means app-specified units; default is pixels
+      height *
+    }
+    config {
+      name maximized
+      width *
+      height *
+    }
+  }
+
+  # configs are additive unless specified otherwise
+  window_config {
+    criteria {
+      class_name /.*rxvt/
+      title_name vimdiff  # substring match by default
+    }
+    config {
+      name vimdiff
+      width 165h
+      height *
+    }
+  }
+
+  # define a fallback config if no others match
+  window_config {
+    single_match true
+    config {
+      name application-requested
+      width app
+      height app
+    }
+    config {
+      name maximized
+      width *
+      height *
+    }
+  }
+
+While writing code in a terminal window, I may need to view documentation
+and examples from a web page.  At the same time, I could be reading email
+in a Firefox window and composing a message in another window.  I should be
+able to be able to group the windows into two distinct virtual desktops so
+I can quickly switch between them.  If I need to refer to the code while
+composing the message, I should be able to easily add the terminal window
+to the group of email windows (to be more explicit, windows may live in
+multiple virtual desktops).
+
+The windows that I want to display may not all fit onscreen at my desired
+sizes without overlapping.  In this case, I should be able to define which
+window appears on top, and furthermore, possibly which parts of the other
+windows are visible in the remaining space.  I should even be able to
+instruct the window manager to resize the other windows rather than only
+displaying part of their contents.  If Xgl is available, it is perhaps
+reasonable to tell the window manager to scale down the other windows.
+
+Within a desktop, windows are grouped together by their attachment to
+window anchors.  The anchor itself is visualized as the the set of tabbed
+titlebars for the group of windows.  Only a single window attached to each
+anchor can be visible.  Anchors are implemented similarly to Ion's tabbed
+frames -- keyboard commands can be used to select which window is displayed
+and to tag and move windows between anchors.  Anchors can be moved around
+the screen.  It should maybe be possible to control whether the anchor
+appears at the top or bottom of its set of windows.
+
+Anchor configuration is saved to disk and reloaded when the window manager
+is restarted.  It should be possible to quickly define to which anchor new
+windows should be attached, and to toggle whether they should initially be
+focused or instead created as an inactive tab.
+
+
+commands:
+---------
+move focus left/right/up/down
+switch current window to next/prev configs
+execute arbitrary command
+focus nth window in current position
+focus next/prev window in current position
+switch screen between horizontal and vertical layout
+switch screen between overlapping and shared mode
+tag window
+attach tagged windows to current position
+attach tagged windows to current window group
+switch to next/prev window group
+detach tagged windows (or current window if none are tagged?) from current window group
+
+also, command-line program that can do all of this, reconfig, etc.?
+probably just have a console like ion?
