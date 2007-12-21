@@ -82,6 +82,8 @@ class WindowConfigSet {
 // Stores a set of window criteria.
 class WindowCriteria {
  public:
+  WindowCriteria() {}
+
   enum CriterionType {
     CRITERION_TYPE_WINDOW_NAME,
     CRITERION_TYPE_ICON_NAME,
@@ -113,6 +115,8 @@ class WindowCriteria {
 
   typedef vector<pair<CriterionType, string> > SubstringCriteria;
   SubstringCriteria substr_criteria_;
+
+  DISALLOW_EVIL_CONSTRUCTORS(WindowCriteria);
 };
 
 
@@ -133,6 +137,8 @@ class WindowClassifier {
       WindowCriteriaConfigs;
 
   WindowCriteriaConfigs criteria_configs_;
+
+  DISALLOW_EVIL_CONSTRUCTORS(WindowClassifier);
 };
 
 }  // namespace wham

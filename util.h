@@ -20,6 +20,11 @@ using namespace std;
     exit(1); \
   }
 
+#define DISALLOW_EVIL_CONSTRUCTORS(class_name) \
+  class_name(const class_name&); \
+  void operator=(const class_name&)
+
+
 class UtilTestSuite;
 
 namespace wham {
@@ -35,6 +40,8 @@ class Logger {
  private:
   // Has the input so far ended with a newline?
   bool newline_seen_;
+
+  DISALLOW_EVIL_CONSTRUCTORS(Logger);
 };  // class Logger
 
 
