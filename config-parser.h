@@ -47,6 +47,15 @@ class ConfigParser {
 
   static const int kMaxTokenLength;
 
+  enum TokenType {
+    TOKEN_LITERAL,
+    TOKEN_LEFT_BRACE,
+    TOKEN_RIGHT_BRACE,
+    TOKEN_PERIOD,
+    TOKEN_NEWLINE,
+    NUM_TOKEN_TYPES
+  };
+
   // Abstract base class for tokenizing input.
   class Tokenizer {
    public:
@@ -56,7 +65,7 @@ class ConfigParser {
     bool GetNextToken(
         char* token,
         int max_token_length,
-        bool* terminator,
+        TokenType* token_type,
         bool* error);
 
    protected:
@@ -77,6 +86,15 @@ class ConfigParser {
       CHECK(!have_ungetted_char_);
       ungetted_char_ = ch;
       have_ungetted_char_ = true;
+    }
+
+    TokenType GetTokenType(const char* token) {
+      CHECK(token);
+      if (strcmp(token, "\n") == 0) return TOKEN_NEWLINE;
+      if (strcmp(token, "{") == 0) return TOKEN_LEFT_BRACE;
+      if (strcmp(token, "}") == 0) return TOKEN_RIGHT_BRACE;
+      if (strcmp(token, ".") == 0) return TOKEN_PERIOD;
+      return TOKEN_LITERAL;
     }
 
     bool done_;

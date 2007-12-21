@@ -15,48 +15,61 @@ using namespace wham;
 class ConfigParserTestSuite : public CxxTest::TestSuite {
  public:
   void testTokenizer_GetNextToken_simple() {
-    TS_ASSERT(CompareTokens("a b", "a", "b", kTerm, NULL));
-    TS_ASSERT(CompareTokens(" a   b  ", "a", "b", kTerm, NULL));
-    TS_ASSERT(CompareTokens("a b\n c", "a", "b", kTerm, "c", kTerm, NULL));
+    TS_ASSERT(CompareTokens("a b", "a", "b", kNewline, NULL));
+    TS_ASSERT(CompareTokens(" a   b  ", "a", "b", kNewline, NULL));
+    TS_ASSERT(CompareTokens("a b\n c",
+                            "a", "b", kNewline, "c", kNewline, NULL));
+  }
+
+  void testTokenizer_GetNextToken_special() {
+    TS_ASSERT(CompareTokens("a . b", "a", kPeriod, "b", kNewline, NULL));
+    TS_ASSERT(CompareTokens("a { b", "a", kLeftBrace, "b", kNewline, NULL));
+    TS_ASSERT(CompareTokens("a } b", "a", kRightBrace, "b", kNewline, NULL));
   }
 
   void testTokenizer_GetNextToken_commenting() {
-    TS_ASSERT(CompareTokens("# a b c", kTerm, NULL));
-    TS_ASSERT(CompareTokens("a # b c", "a", kTerm, NULL));
-    TS_ASSERT(CompareTokens("a#b", "a", kTerm, NULL));
-    TS_ASSERT(CompareTokens("#a\nb", kTerm, "b", kTerm, NULL));
-    TS_ASSERT(CompareTokens("# a\\nb", kTerm, NULL));
-    TS_ASSERT(CompareTokens("a # b\nc", "a", kTerm, "c", kTerm, NULL));
+    TS_ASSERT(CompareTokens("# a b c", kNewline, NULL));
+    TS_ASSERT(CompareTokens("a # b c", "a", kNewline, NULL));
+    TS_ASSERT(CompareTokens("a#b", "a", kNewline, NULL));
+    TS_ASSERT(CompareTokens("#a\nb", kNewline, "b", kNewline, NULL));
+    TS_ASSERT(CompareTokens("# a\\nb", kNewline, NULL));
+    TS_ASSERT(CompareTokens("a # b\nc", "a", kNewline, "c", kNewline, NULL));
   }
 
   void testTokenizer_GetNextToken_quoting() {
-    TS_ASSERT(CompareTokens("\"a b \"", "a b ", kTerm, NULL));
-    TS_ASSERT(CompareTokens("a \"b'c\" d", "a", "b'c", "d", kTerm, NULL));
-    TS_ASSERT(CompareTokens("a 'b\"c' d", "a", "b\"c", "d", kTerm, NULL));
-    TS_ASSERT(CompareTokens(" '' ", "", kTerm, NULL));
-    TS_ASSERT(CompareTokens(" \"\" ", "", kTerm, NULL));
-    TS_ASSERT(CompareTokens("\"a\"\"b\"", "ab", kTerm, NULL));
-    TS_ASSERT(CompareTokens("\"ab\"'cd'", "abcd", kTerm, NULL));
-    TS_ASSERT(CompareTokens("\" # \"", " # ", kTerm, NULL));
-    TS_ASSERT(CompareTokens("' # '", " # ", kTerm, NULL));
+    TS_ASSERT(CompareTokens("\"a b \"", "a b ", kNewline, NULL));
+    TS_ASSERT(CompareTokens("a \"b'c\" d", "a", "b'c", "d", kNewline, NULL));
+    TS_ASSERT(CompareTokens("a 'b\"c' d", "a", "b\"c", "d", kNewline, NULL));
+    TS_ASSERT(CompareTokens(" '' ", "", kNewline, NULL));
+    TS_ASSERT(CompareTokens(" \"\" ", "", kNewline, NULL));
+    TS_ASSERT(CompareTokens("\"a\"\"b\"", "ab", kNewline, NULL));
+    TS_ASSERT(CompareTokens("\"ab\"'cd'", "abcd", kNewline, NULL));
+    TS_ASSERT(CompareTokens("\" # \"", " # ", kNewline, NULL));
+    TS_ASSERT(CompareTokens("' # '", " # ", kNewline, NULL));
+    TS_ASSERT(CompareTokens(" \"{\" ", "{", kNewline, NULL));
+    TS_ASSERT(CompareTokens(" \'}\' ", "}", kNewline, NULL));
+    TS_ASSERT(CompareTokens(" \".\" ", ".", kNewline, NULL));
+    TS_ASSERT(CompareTokens(" \"\". ", ".", kNewline, NULL));
   }
 
   void testTokenizer_GetNextToken_escaping() {
-    TS_ASSERT(CompareTokens("\"a \\\" b\"", "a \" b", kTerm, NULL));
-    TS_ASSERT(CompareTokens("'a \\' b'", "a ' b", kTerm, NULL));
-    TS_ASSERT(CompareTokens(" \\  ", " ", kTerm, NULL));
-    TS_ASSERT(CompareTokens("\\\\a\\\\", "\\a\\", kTerm, NULL));
-    TS_ASSERT(CompareTokens("\\a", "\\a", kTerm, NULL));
-    TS_ASSERT(CompareTokens("\\.", "\\.", kTerm, NULL));
-    TS_ASSERT(CompareTokens(" \\n ", "\n", kTerm, NULL));
-    TS_ASSERT(CompareTokens(" \\t ", "\t", kTerm, NULL));
-    TS_ASSERT(CompareTokens("a\\nb", "a\nb", kTerm, NULL));
-    TS_ASSERT(CompareTokens("a \\\nb", "a", "b", kTerm, NULL));
-    TS_ASSERT(CompareTokens("a \\\nn", "a", "n", kTerm, NULL));
-    TS_ASSERT(CompareTokens("\\#", "#", kTerm, NULL));
-    TS_ASSERT(CompareTokens("\\'abc\\'", "'abc'", kTerm, NULL));
-    TS_ASSERT(CompareTokens("\\\"abc\\\"", "\"abc\"", kTerm, NULL));
-    TS_ASSERT(CompareTokens("a \\\n b", "a", "b", kTerm, NULL));
+    TS_ASSERT(CompareTokens("\"a \\\" b\"", "a \" b", kNewline, NULL));
+    TS_ASSERT(CompareTokens("'a \\' b'", "a ' b", kNewline, NULL));
+    TS_ASSERT(CompareTokens(" \\  ", " ", kNewline, NULL));
+    TS_ASSERT(CompareTokens("\\\\a\\\\", "\\a\\", kNewline, NULL));
+    TS_ASSERT(CompareTokens("\\a", "a", kNewline, NULL));
+    TS_ASSERT(CompareTokens(" \\n ", "\n", kNewline, NULL));
+    TS_ASSERT(CompareTokens(" \\t ", "\t", kNewline, NULL));
+    TS_ASSERT(CompareTokens("a\\nb", "a\nb", kNewline, NULL));
+    TS_ASSERT(CompareTokens("a \\\nb", "a", "b", kNewline, NULL));
+    TS_ASSERT(CompareTokens("a \\\nn", "a", "n", kNewline, NULL));
+    TS_ASSERT(CompareTokens("\\#", "#", kNewline, NULL));
+    TS_ASSERT(CompareTokens("\\'abc\\'", "'abc'", kNewline, NULL));
+    TS_ASSERT(CompareTokens("\\\"abc\\\"", "\"abc\"", kNewline, NULL));
+    TS_ASSERT(CompareTokens("a \\\n b", "a", "b", kNewline, NULL));
+    TS_ASSERT(CompareTokens("\\.", ".", kNewline, NULL));
+    TS_ASSERT(CompareTokens("\\{", "{", kNewline, NULL));
+    TS_ASSERT(CompareTokens("\\}", "}", kNewline, NULL));
   }
 
   void testConfigParser_parse() {
@@ -67,7 +80,10 @@ class ConfigParserTestSuite : public CxxTest::TestSuite {
   }
 
  private:
-  static const char* kTerm;
+  static const char* kLeftBrace;
+  static const char* kRightBrace;
+  static const char* kPeriod;
+  static const char* kNewline;
 
   bool CompareTokens(const string& input, ...) {
     va_list argp;
@@ -80,15 +96,28 @@ class ConfigParserTestSuite : public CxxTest::TestSuite {
 
     ConfigParser::StringTokenizer tokenizer(input);
     char token[1024];
-    bool term = false;
+    ConfigParser::TokenType token_type = ConfigParser::NUM_TOKEN_TYPES;
     bool error = false;
     size_t num_tokens = 0;
 
     //LOG << "Testing input \"" << input << "\"";
-    while (tokenizer.GetNextToken(token, sizeof(token), &term, &error)) {
+    while (tokenizer.GetNextToken(token, sizeof(token), &token_type, &error)) {
       if (error) return false;
       CHECK(num_tokens < expected_tokens.size());
-      if (term) snprintf(token, sizeof(token), kTerm);
+      switch (token_type) {
+        case ConfigParser::TOKEN_LEFT_BRACE:
+          snprintf(token, sizeof(token), kLeftBrace); break;
+        case ConfigParser::TOKEN_RIGHT_BRACE:
+          snprintf(token, sizeof(token), kRightBrace); break;
+        case ConfigParser::TOKEN_PERIOD:
+          snprintf(token, sizeof(token), kPeriod); break;
+        case ConfigParser::TOKEN_NEWLINE:
+          snprintf(token, sizeof(token), kNewline); break;
+        case ConfigParser::TOKEN_LITERAL: break;
+        default:
+          ERR << "Got unknown token type " << token_type;
+          CHECK(false);
+      }
       TS_ASSERT_EQUALS(token, expected_tokens[num_tokens]);
       num_tokens++;
     }
@@ -97,4 +126,7 @@ class ConfigParserTestSuite : public CxxTest::TestSuite {
   }
 };
 
-const char* ConfigParserTestSuite::kTerm = "__TERM__";
+const char* ConfigParserTestSuite::kLeftBrace = "__LEFT_BRACE__";
+const char* ConfigParserTestSuite::kRightBrace = "__RIGHT_BRACE__";
+const char* ConfigParserTestSuite::kPeriod = "__PERIOD__";
+const char* ConfigParserTestSuite::kNewline = "__NEWLINE__";

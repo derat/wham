@@ -39,14 +39,13 @@ ConfigParser::Tokenizer::Tokenizer()
 
 
 bool ConfigParser::Tokenizer::GetNextToken(
-    char* token, int max_token_length, bool* terminator, bool* error) {
+    char* token, int max_token_length, TokenType* token_type, bool* error) {
   CHECK(token);
   CHECK(max_token_length >= 2);
-  CHECK(terminator);
+  CHECK(token_type);
   CHECK(error);
 
   *error = false;
-  *terminator = false;
   if (done_) return false;
 
   bool in_single_quote = false;
@@ -54,6 +53,7 @@ bool ConfigParser::Tokenizer::GetNextToken(
   bool in_escape = false;
   bool in_comment = false;
   bool in_token = false;
+  bool bare_token = true;
   int token_length = 0;
   int quote_start_line = 0;
 
@@ -81,8 +81,14 @@ bool ConfigParser::Tokenizer::GetNextToken(
       if (in_token) {
         CHECK(token_length < max_token_length);
         token[token_length] = '\0';
+        if (bare_token) {
+          *token_type = GetTokenType(token);
+        } else {
+          *token_type = TOKEN_LITERAL;
+        }
         // These generate their own tokens, so we'll save them for later.
         if ((ch == '\n' && !in_escape) || ch == EOF) UngetChar(ch);
+        bare_token = true;
         return true;
       }
 
@@ -108,7 +114,7 @@ bool ConfigParser::Tokenizer::GetNextToken(
       }
       if (ch == EOF) done_ = true;
       snprintf(token, max_token_length, "\n");
-      *terminator = true;
+      *token_type = TOKEN_NEWLINE;
       return true;
     }
 
@@ -123,13 +129,19 @@ bool ConfigParser::Tokenizer::GetNextToken(
     if (ch == '\'' && !in_escape && !in_double_quote) {
       in_single_quote = !in_single_quote;
       if (!in_token) in_token = true;
-      if (in_single_quote) quote_start_line = line_num_;
+      if (in_single_quote) {
+        quote_start_line = line_num_;
+        if (bare_token) bare_token = false;
+      }
       continue;
     }
     if (ch == '"' && !in_escape && !in_single_quote) {
       in_double_quote = !in_double_quote;;
       if (!in_token) in_token = true;
-      if (in_double_quote) quote_start_line = line_num_;
+      if (in_double_quote) {
+        quote_start_line = line_num_;
+        if (bare_token) bare_token = false;
+      }
       continue;
     }
     if (ch == '\\' && !in_escape) {
@@ -158,18 +170,9 @@ bool ConfigParser::Tokenizer::GetNextToken(
         case 'r': ch = '\r'; break;
         case 't': ch = '\t'; break;
         case 'v': ch = '\v'; break;
-        default:
-          if (isspace(ch) ||
-              ch == '\'' || ch == '"' || ch == '#' || ch == '\\') {
-            // Whitespace, quotes, hashes, and backslashes can be escaped.
-          } else {
-            // For everything else, we want to include the backslash in the
-            // token (so that tokens like "\." will make it through
-            // unscathed).
-            UngetChar(ch);
-            ch = '\\';
-          }
+        // Everything else is left untouched.
       }
+      if (bare_token) bare_token = false;
     }
     CHECK(token_length < max_token_length);
     token[token_length++] = ch;
@@ -191,21 +194,21 @@ bool ConfigParser::Parse(Tokenizer* tokenizer, ParsedConfig* config) {
   bool in_concat = false;
 
   char token[kMaxTokenLength];
-  bool terminator = false;
+  TokenType token_type = NUM_TOKEN_TYPES;
   bool error = false;
-  while (tokenizer->GetNextToken(token, sizeof(token), &terminator, &error)) {
-    if (terminator) {
+  while (tokenizer->GetNextToken(token, sizeof(token), &token_type, &error)) {
+    if (token_type == TOKEN_NEWLINE) {
       // If we're in a concatenation request, we'll ignore the terminator.
       if (in_concat) continue;
       current_node = NULL;
-    } else if (strcmp(token, "{") == 0) {
+    } else if (token_type == TOKEN_LEFT_BRACE) {
       // FIXME: report an error if we're concatenating
       CHECK(!in_concat);
       // FIXME: create empty current_node if NULL
       CHECK(current_node);
       node_stack.push(current_node);
       current_node = NULL;
-    } else if (strcmp(token, "}") == 0) {
+    } else if (token_type == TOKEN_RIGHT_BRACE) {
       // FIXME: report an error if we're concatenating
       CHECK(!in_concat);
       node_stack.pop();
@@ -215,13 +218,9 @@ bool ConfigParser::Parse(Tokenizer* tokenizer, ParsedConfig* config) {
     } else {
       // We treat "." tokens as concatenation requests, unless we're
       // already in a request or are at the begin of a node's tokens.
-      if (strcmp(token, ".") == 0 && !in_concat && current_node) {
+      if (token_type == TOKEN_PERIOD && !in_concat && current_node) {
         in_concat = true;
         continue;
-      }
-      // Convert "\." back to ".".
-      if (strcmp(token, "\\.") == 0) {
-        snprintf(token, sizeof(token), ".");
       }
       if (!current_node) {
         current_node = new ParsedConfig::Node;
