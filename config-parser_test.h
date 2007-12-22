@@ -19,6 +19,9 @@ class ConfigParserTestSuite : public CxxTest::TestSuite {
     TS_ASSERT(CompareTokens(" a   b  ", "a", "b", kNewline, NULL));
     TS_ASSERT(CompareTokens("a b\n c",
                             "a", "b", kNewline, "c", kNewline, NULL));
+    TS_ASSERT(CompareTokens("   ", kNewline, NULL));
+    TS_ASSERT(CompareTokens("\n a \n ",
+                            kNewline, "a", kNewline, kNewline, NULL));
   }
 
   void testTokenizer_GetNextToken_special() {
@@ -73,10 +76,14 @@ class ConfigParserTestSuite : public CxxTest::TestSuite {
   }
 
   void testConfigParser_parse() {
-    ConfigParser::FileTokenizer tokenizer("testdata/config1.cfg");
+    ConfigParser::FileTokenizer tokenizer("testdata/config-parser_test.cfg");
     ParsedConfig config;
     CHECK(ConfigParser::Parse(&tokenizer, &config));
-    config.Dump();
+    string parsed = config.Dump();
+    //LOG << parsed;
+    string golden;
+    CHECK(ReadFileToString("testdata/config-parser_test.golden", &golden));
+    TS_ASSERT_EQUALS(parsed, golden);
   }
 
  private:
@@ -95,25 +102,21 @@ class ConfigParserTestSuite : public CxxTest::TestSuite {
     va_end(argp);
 
     ConfigParser::StringTokenizer tokenizer(input);
-    char token[1024];
+    string token;
     ConfigParser::TokenType token_type = ConfigParser::NUM_TOKEN_TYPES;
     bool error = false;
     size_t num_tokens = 0;
 
     //LOG << "Testing input \"" << input << "\"";
-    while (tokenizer.GetNextToken(token, sizeof(token), &token_type, &error)) {
+    while (tokenizer.GetNextToken(&token, &token_type, &error)) {
       if (error) return false;
       CHECK(num_tokens < expected_tokens.size());
       switch (token_type) {
-        case ConfigParser::TOKEN_LEFT_BRACE:
-          snprintf(token, sizeof(token), kLeftBrace); break;
-        case ConfigParser::TOKEN_RIGHT_BRACE:
-          snprintf(token, sizeof(token), kRightBrace); break;
-        case ConfigParser::TOKEN_PERIOD:
-          snprintf(token, sizeof(token), kPeriod); break;
-        case ConfigParser::TOKEN_NEWLINE:
-          snprintf(token, sizeof(token), kNewline); break;
-        case ConfigParser::TOKEN_LITERAL: break;
+        case ConfigParser::TOKEN_LEFT_BRACE:  token = kLeftBrace; break;
+        case ConfigParser::TOKEN_RIGHT_BRACE: token = kRightBrace; break;
+        case ConfigParser::TOKEN_PERIOD:      token = kPeriod; break;
+        case ConfigParser::TOKEN_NEWLINE:     token = kNewline; break;
+        case ConfigParser::TOKEN_LITERAL:     break;
         default:
           ERR << "Got unknown token type " << token_type;
           CHECK(false);
@@ -124,9 +127,18 @@ class ConfigParserTestSuite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(num_tokens, expected_tokens.size());
     return true;
   }
+
+  bool ReadFileToString(const string& filename, string* out) {
+    FILE* file = fopen(filename.c_str(), "r");
+    if (file == NULL) return false;
+    char buf[1024];
+    while (fgets(buf, sizeof(buf), file)) out->append(buf);
+    fclose(file);
+    return true;
+  }
 };
 
-const char* ConfigParserTestSuite::kLeftBrace = "__LEFT_BRACE__";
+const char* ConfigParserTestSuite::kLeftBrace  = "__LEFT_BRACE__";
 const char* ConfigParserTestSuite::kRightBrace = "__RIGHT_BRACE__";
-const char* ConfigParserTestSuite::kPeriod = "__PERIOD__";
-const char* ConfigParserTestSuite::kNewline = "__NEWLINE__";
+const char* ConfigParserTestSuite::kPeriod     = "__PERIOD__";
+const char* ConfigParserTestSuite::kNewline    = "__NEWLINE__";

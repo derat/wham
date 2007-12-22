@@ -1,0 +1,11 @@
+
+  "top-level" "block"
+    "child.block"
+      "directive" "foo" "bar"
+    "second_block"
+      "concatenation"
+    "this" "is" "a" "long" "line"
+  "second top-level block"
+    "concatenated" "over" "a" "line"
+    "line" "with" "\" "backslashes" "\"
+    "escaped" "." "concatenation" "." "and" "more"

@@ -16,36 +16,45 @@ class ConfigParserTestSuite;
 
 namespace wham {
 
+// A structured representation of the tokens parsed from a config.
 struct ParsedConfig {
   ParsedConfig() {}
 
-  void Dump() {
-    root.Dump(0);
+  // Return the parsed config as a string (for testing).
+  string Dump() {
+    return root.Dump(0);
   }
 
+  // An individual node within a config, possibly containing tokens and
+  // references to sub-nodes.
   struct Node {
     Node() {}
-    void Dump(int level);
+    string Dump(int level);
     vector<string> tokens;
     vector<ref_ptr<Node> > children;
    private:
     DISALLOW_EVIL_CONSTRUCTORS(Node);
   };
 
+  // The top-level node in the config.  Contains only children.
   Node root;
 
  private:
   DISALLOW_EVIL_CONSTRUCTORS(ParsedConfig);
 };
 
+// Parses configurations.
 class ConfigParser {
  public:
-  //bool ParseFile(const string& filename, ParsedConfig* config);
+  // Parse a config from 'filename' into 'config'.
+  // If 'errors' is non-NULL, errors will be logged there.
+  // Returns true on success and false otherwise.
+  static bool ParseFromFile(const string& filename,
+                            ParsedConfig* config,
+                            vector<string>* errors);
 
  private:
   friend class ::ConfigParserTestSuite;
-
-  static const int kMaxTokenLength;
 
   enum TokenType {
     TOKEN_LITERAL,
@@ -62,9 +71,11 @@ class ConfigParser {
     Tokenizer();
     virtual ~Tokenizer() {}
 
+    // Get the next token from the stream.
+    // Returns true if a token was returned and false otherwise.
+    // The token is written to 'token'.
     bool GetNextToken(
-        char* token,
-        int max_token_length,
+        string* token,
         TokenType* token_type,
         bool* error);
 
@@ -88,12 +99,11 @@ class ConfigParser {
       have_ungetted_char_ = true;
     }
 
-    TokenType GetTokenType(const char* token) {
-      CHECK(token);
-      if (strcmp(token, "\n") == 0) return TOKEN_NEWLINE;
-      if (strcmp(token, "{") == 0) return TOKEN_LEFT_BRACE;
-      if (strcmp(token, "}") == 0) return TOKEN_RIGHT_BRACE;
-      if (strcmp(token, ".") == 0) return TOKEN_PERIOD;
+    TokenType GetTokenType(const string& token) {
+      if (token == "\n") return TOKEN_NEWLINE;
+      if (token == "{")  return TOKEN_LEFT_BRACE;
+      if (token == "}")  return TOKEN_RIGHT_BRACE;
+      if (token == ".")  return TOKEN_PERIOD;
       return TOKEN_LITERAL;
     }
 

@@ -4,6 +4,7 @@
 #include "config-parser.h"
 
 #include <iostream>
+#include <sstream>
 #include <stack>
 
 #include "util.h"
@@ -12,21 +13,30 @@ using namespace std;
 
 namespace wham {
 
-const int ConfigParser::kMaxTokenLength = 1024;
-
-
-void ParsedConfig::Node::Dump(int level) {
-  for (int i = 0; i < level; ++i) cout << "  ";
+string ParsedConfig::Node::Dump(int level) {
+  ostringstream out;
+  for (int i = 0; i < level; ++i) out << "  ";
   for (vector<string>::const_iterator token = tokens.begin();
        token != tokens.end(); ++token) {
-    if (token != tokens.begin()) cout << " ";
-    cout << "\"" << *token << "\"";
+    if (token != tokens.begin()) out << " ";
+    // TODO: should be escaping backslashes and doublequotes here
+    out << "\"" << *token << "\"";
   }
-  cout << "\n";
+  out << "\n";
   for (vector<ref_ptr<Node> >::const_iterator child = children.begin();
        child != children.end(); ++child) {
-    (*child)->Dump(level + 1);
+    out << (*child)->Dump(level + 1);
   }
+  return out.str();
+}
+
+
+bool ConfigParser::ParseFromFile(const string& filename,
+                                 ParsedConfig* config,
+                                 vector<string>* errors) {
+  CHECK(config);
+  FileTokenizer tokenizer(filename);
+  return Parse(&tokenizer, config);
 }
 
 
@@ -39,12 +49,12 @@ ConfigParser::Tokenizer::Tokenizer()
 
 
 bool ConfigParser::Tokenizer::GetNextToken(
-    char* token, int max_token_length, TokenType* token_type, bool* error) {
+    string* token, TokenType* token_type, bool* error) {
   CHECK(token);
-  CHECK(max_token_length >= 2);
   CHECK(token_type);
   CHECK(error);
 
+  token->clear();
   *error = false;
   if (done_) return false;
 
@@ -54,7 +64,7 @@ bool ConfigParser::Tokenizer::GetNextToken(
   bool in_comment = false;
   bool in_token = false;
   bool bare_token = true;
-  int token_length = 0;
+
   int quote_start_line = 0;
 
   while (true) {
@@ -79,10 +89,8 @@ bool ConfigParser::Tokenizer::GetNextToken(
     if ((isspace(ch) || ch == EOF) &&
         !in_single_quote && !in_double_quote && !in_escape) {
       if (in_token) {
-        CHECK(token_length < max_token_length);
-        token[token_length] = '\0';
         if (bare_token) {
-          *token_type = GetTokenType(token);
+          *token_type = GetTokenType(*token);
         } else {
           *token_type = TOKEN_LITERAL;
         }
@@ -113,7 +121,7 @@ bool ConfigParser::Tokenizer::GetNextToken(
         }
       }
       if (ch == EOF) done_ = true;
-      snprintf(token, max_token_length, "\n");
+      *token = "\n";
       *token_type = TOKEN_NEWLINE;
       return true;
     }
@@ -155,14 +163,8 @@ bool ConfigParser::Tokenizer::GetNextToken(
 
     // At this point, we have a character that we're going to add to the
     // in-progress token.
-    if (token_length >= kMaxTokenLength) {
-      LOG << "Unable to parse token exceeding " << kMaxTokenLength
-          << " characters on line " << line_num_;
-      *error = true;
-      return false;
-    }
-    // Handle escape sequences.
     if (in_escape) {
+      // Handle escape sequences.
       in_escape = false;
       switch (ch) {
         case 'f': ch = '\f'; break;
@@ -174,8 +176,7 @@ bool ConfigParser::Tokenizer::GetNextToken(
       }
       if (bare_token) bare_token = false;
     }
-    CHECK(token_length < max_token_length);
-    token[token_length++] = ch;
+    *token += static_cast<char>(ch);
     if (!in_token) in_token = true;
   }
   CHECK(false);
@@ -193,10 +194,10 @@ bool ConfigParser::Parse(Tokenizer* tokenizer, ParsedConfig* config) {
 
   bool in_concat = false;
 
-  char token[kMaxTokenLength];
+  string token;
   TokenType token_type = NUM_TOKEN_TYPES;
   bool error = false;
-  while (tokenizer->GetNextToken(token, sizeof(token), &token_type, &error)) {
+  while (tokenizer->GetNextToken(&token, &token_type, &error)) {
     if (token_type == TOKEN_NEWLINE) {
       // If we're in a concatenation request, we'll ignore the terminator.
       if (in_concat) continue;
