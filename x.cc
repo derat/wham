@@ -94,25 +94,22 @@ void XWindow::Clear() {
 }
 
 
-void XWindow::DrawText(int x, int y, const string& text, bool inverse) {
-  XDrawString(server_->display(), id_,
-              inverse ? server_->inverse_gc() : server_->gc(),
-              x, y, text.c_str(), text.size());
+void XWindow::DrawText(int x, int y, const string& text, const string& color) {
+  GC gc = server_->GetGC(color);
+  XDrawString(server_->display(), id_, gc, x, y, text.c_str(), text.size());
 }
 
 
-void XWindow::DrawLine(int x1, int y1, int x2, int y2, bool inverse) {
-  XDrawLine(server_->display(), id_,
-            inverse ? server_->inverse_gc() : server_->gc(),
-            x1, y1, x2, y2);
+void XWindow::DrawLine(int x1, int y1, int x2, int y2, const string& color) {
+  GC gc = server_->GetGC(color);
+  XDrawLine(server_->display(), id_, gc, x1, y1, x2, y2);
 }
 
 
 void XWindow::DrawBox(int x, int y, uint width, uint height,
-                      bool inverse) {
-  XFillRectangle(server_->display(), id_,
-                 inverse ? server_->inverse_gc() : server_->gc(),
-                 x, y, width, height);
+                      const string& color) {
+  GC gc = server_->GetGC(color);
+  XFillRectangle(server_->display(), id_, gc, x, y, width, height);
 }
 
 
@@ -188,11 +185,13 @@ bool XServer::Init() {
 
   root_ = RootWindow(display_, screen_num_);
 
-  gc_ = XCreateGC(display_, root_, 0, NULL);
-  XSetForeground(display_, gc_, BlackPixel(display_, screen_num_));
+  GC gc = XCreateGC(display_, root_, 0, NULL);
+  XSetForeground(display_, gc, BlackPixel(display_, screen_num_));
+  gcs_.insert(make_pair("black", gc));
 
-  inverse_gc_ = XCreateGC(display_, root_, 0, NULL);
-  XSetForeground(display_, inverse_gc_, WhitePixel(display_, screen_num_));
+  gc = XCreateGC(display_, root_, 0, NULL);
+  XSetForeground(display_, gc, WhitePixel(display_, screen_num_));
+  gcs_.insert(make_pair("white", gc));
 
   // debugging
   //XSynchronize(display_, True);
@@ -296,6 +295,13 @@ XWindow* XServer::GetWindow(::Window id, bool create) {
   ref_ptr<XWindow> window(new XWindow(id));
   windows_.insert(make_pair(id, window));
   return window.get();
+}
+
+
+GC XServer::GetGC(const string& name) {
+  map<string, GC>::const_iterator gc = gcs_.find(name);
+  if (gc == gcs_.end()) return default_gc_;
+  return gc->second;
 }
 
 

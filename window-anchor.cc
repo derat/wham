@@ -145,17 +145,17 @@ void WindowAnchor::DrawTitlebar() {
   titlebar_->Resize(titlebar_width_, titlebar_height_);
   //LOG << "after=" << titlebar_height_;
   titlebar_->Clear();
-  titlebar_->DrawLine(0, 0, titlebar_width_ - 1, 0, false);
+  titlebar_->DrawLine(0, 0, titlebar_width_ - 1, 0, "black");
   titlebar_->DrawLine(0, titlebar_height_ - 1,
-                      titlebar_width_ - 1, titlebar_height_ - 1, false);
-  titlebar_->DrawLine(0, 0, 0, titlebar_height_ - 1, false);
+                      titlebar_width_ - 1, titlebar_height_ - 1, "black");
+  titlebar_->DrawLine(0, 0, 0, titlebar_height_ - 1, "black");
   titlebar_->DrawLine(titlebar_width_ - 1, 0,
-                      titlebar_width_ - 1, titlebar_height_ - 1, false);
+                      titlebar_width_ - 1, titlebar_height_ - 1, "black");
 
   if (windows_.empty()) {
     titlebar_->DrawText(config->titlebar_border + config->titlebar_padding,
                         config->titlebar_border + config->titlebar_padding +
-                          font_ascent_, "[" + name_ + "]", false);
+                          font_ascent_, "[" + name_ + "]", "black");
   } else {
     float title_width =
         static_cast<float>(titlebar_width_ - config->titlebar_border) /
@@ -169,13 +169,13 @@ void WindowAnchor::DrawTitlebar() {
       int y = config->titlebar_border + config->titlebar_padding +
               font_ascent_;
       if (active) {
-        titlebar_->DrawBox(x, 0, rounded_width, titlebar_height_ - 1, false);
+        titlebar_->DrawBox(x, 0, rounded_width, titlebar_height_ - 1, "stipple");
       } else {
-        titlebar_->DrawLine(x, 0, x, titlebar_height_ - 1, false);
+        titlebar_->DrawLine(x, 0, x, titlebar_height_ - 1, "black");
       }
       titlebar_->DrawText(
           x + config->titlebar_border + config->titlebar_padding, y,
-          (*window)->title(), active);
+          (*window)->title(), active ? "white" : "black");
     }
   }
 
