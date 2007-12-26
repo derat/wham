@@ -13,8 +13,6 @@ void WindowConfig::Merge(const WindowConfig& config) {
 
 
 void WindowConfigSet::MergeConfig(const WindowConfig& config) {
-  // If this is the first config, make it the active one.
-  if (current_ < 0) current_ = 0;
   // FIXME: store map from config name to config ptr so we don't need to
   // iterate through all of them
   for (WindowConfigVector::iterator it = configs_.begin();

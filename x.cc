@@ -56,6 +56,31 @@ static const char* XEventTypeToName(int type) {
 }
 
 
+static const char* XErrorToName(int error) {
+  switch (error) {
+    case Success: return "Success";
+    case BadRequest: return "BadRequest";
+    case BadValue: return "BadValue";
+    case BadWindow: return "BadWindow";
+    case BadPixmap: return "BadPixmap";
+    case BadAtom: return "BadAtom";
+    case BadCursor: return "BadCursor";
+    case BadFont: return "BadFont";
+    case BadMatch: return "BadMatch";
+    case BadDrawable: return "BadDrawable";
+    case BadAccess: return "BadAccess";
+    case BadAlloc: return "BadAlloc";
+    case BadColor: return "BadColor";
+    case BadGC: return "BadGC";
+    case BadIDChoice: return "BadIDChoice";
+    case BadName: return "BadName";
+    case BadLength: return "BadLength";
+    case BadImplementation: return "BadImplementation";
+    default: return "Unknown error";
+  }
+}
+
+
 bool XWindow::GetProperties(WindowProperties* props) {
   char* window_name = NULL;
   if (!XFetchName(server_->display(), id_, &window_name)) {
@@ -95,8 +120,41 @@ bool XWindow::GetProperties(WindowProperties* props) {
 }
 
 
-bool XWindow::Resize(int width, int height) {
-  return XResizeWindow(server_->display(), id_, width, height) == Success;
+bool XWindow::Move(int x, int y) {
+  int result = XMoveWindow(server_->display(), id_, x, y);
+  if (result == Success) return true;
+  ERROR << "XMoveWindow() for 0x" << hex << id_ << dec
+        << " to (" << x << ", " << y << ") returned "
+        << XErrorToName(result);
+  return false;
+}
+
+
+bool XWindow::Resize(unsigned int width, unsigned int height) {
+  int result = XResizeWindow(server_->display(), id_, width, height);
+  if (result == Success) return true;
+  ERROR << "XResizeWindow() for 0x" << hex << id_ << dec
+        << " to (" << width << ", " << height << ") returned "
+        << XErrorToName(result);
+  return false;
+}
+
+
+bool XWindow::Unmap() {
+  int result = XUnmapWindow(server_->display(), id_);
+  if (result == Success) return true;
+  ERROR << "XUnmapWindow() for 0x" << hex << id_ << dec
+        << " returned " << XErrorToName(result);
+  return false;
+}
+
+
+bool XWindow::Map() {
+  int result = XMapWindow(server_->display(), id_);
+  if (result == Success) return true;
+  ERROR << "XMapWindow() for 0x" << hex << id_ << dec
+        << " returned " << XErrorToName(result);
+  return false;
 }
 
 
@@ -134,12 +192,11 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
   XEvent event;
   while (true) {
     XNextEvent(display_, &event);
-    LOG << XEventTypeToName(event.type);
     switch (event.type) {
       case CreateNotify:
         {
           XCreateWindowEvent& e = event.xcreatewindow;
-          LOG << "  window=0x" << hex << e.window
+          LOG << "CreateNotify: window=0x" << hex << e.window
               << " parent=0x" << e.parent << dec
               << " x=" << e.x << " y=" << e.y
               << " width=" << e.width << " height=" << e.height
@@ -152,7 +209,7 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
       case DestroyNotify:
         {
           XDestroyWindowEvent& e = event.xdestroywindow;
-          LOG << "  window=0x" << hex << e.window;
+          LOG << "DestroyNotify: window=0x" << hex << e.window;
           XWindow* x_window = GetWindow(e.window, false);
           CHECK(x_window);
           window_manager->RemoveWindow(x_window);
@@ -161,7 +218,7 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
       case ConfigureNotify:
         {
           XConfigureEvent& e = event.xconfigure;
-          LOG << "  window=0x" << hex << e.window << dec
+          LOG << "ConfigureNotify: window=0x" << hex << e.window << dec
               << " x=" << e.x << " y=" << e.y
               << " width=" << e.width << " height=" << e.height
               << " border=" << e.border_width
@@ -169,6 +226,8 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
               << " override=" << e.override_redirect;
         }
         break;
+      default:
+        LOG << XEventTypeToName(event.type);
     }
   }
 }

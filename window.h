@@ -19,17 +19,23 @@ class Window {
 
   bool Classify(const WindowClassifier& classifier);
 
-  const WindowConfig* GetCurrentConfig() const {
-    return configs_.GetCurrentConfig();
+  const WindowConfig* GetActiveConfig() const {
+    return configs_.GetActiveConfig();
   }
+
+  bool Move(int x, int y);
+  bool Resize(unsigned int width, unsigned int height);
+  bool Unmap();
+  bool Map();
 
  private:
   bool ApplyConfig();
 
-  bool Resize(int width, int height);
-
+  // Update 'props_' with this window's properties.
   bool UpdateProperties();
 
+  // A pointer to information about the X window; used for interacting with
+  // the server
   XWindow* x_window_;  // not owned
 
   WindowProperties props_;

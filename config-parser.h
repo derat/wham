@@ -73,18 +73,24 @@ class ConfigParser {
 
     // Get the next token from the stream.
     // Returns true if a token was returned and false otherwise.
-    // The token is written to 'token'.
+    // The token is written to 'token', its type (relevant in the case of a
+    // bare token) is written to token_type, and 'error' is set if an error
+    // was encountered.  'error' only needs to be checked when false is
+    // returned.
     bool GetNextToken(
         string* token,
         TokenType* token_type,
         bool* error);
 
    protected:
+    // Can the input source be read from?  Returns false if there was an
+    // error in its initialization.
     virtual bool Valid() = 0;
 
     virtual int GetCharImpl() = 0;
 
    private:
+    // Get the next character from the input source.
     int GetChar() {
       if (have_ungetted_char_) {
         have_ungetted_char_ = false;
@@ -93,6 +99,9 @@ class ConfigParser {
       return GetCharImpl();
     }
 
+    // Push a character that was already read into a temporary buffer such
+    // that it will be the next character returned by GetChar().  This
+    // buffer can only hold a single character.
     void UngetChar(int ch) {
       CHECK(!have_ungetted_char_);
       ungetted_char_ = ch;
@@ -167,6 +176,7 @@ class ConfigParser {
   };
 
   // Parse a config.
+  // Returns true on success and false otherwise.
   static bool Parse(Tokenizer* tokenizer, ParsedConfig* config);
 
   DISALLOW_EVIL_CONSTRUCTORS(ConfigParser);

@@ -60,33 +60,38 @@ class WindowConfigSet {
  public:
   WindowConfigSet()
       : configs_(),
-        current_(-1) {
+        active_(0) {
   }
 
   // Remove all configs from the set.
   void Clear() {
     configs_.clear();
+    active_ = 0;
   }
 
   // Merge a window config into the set, either adding it or updating an
   // existing config.
   void MergeConfig(const WindowConfig& config);
 
-  const WindowConfig* GetCurrentConfig() const {
-    // FIXME: casting size_t to int seems gross
-    CHECK(current_ < static_cast<int>(configs_.size()));
+  // Get the currently-active config, or NULL if no configs are present.
+  const WindowConfig* GetActiveConfig() const {
     if (configs_.empty()) return NULL;
-    return configs_[current_].get();
+    CHECK(active_ < configs_.size());
+    return configs_[active_].get();
   }
 
-  int NumConfigs() const { return configs_.size(); }
+  // Get the number of configs in this set.
+  size_t NumConfigs() const { return configs_.size(); }
 
  private:
   friend class ::WindowClassifierTestSuite;
 
+  // Configs contained in the set
   WindowConfigVector configs_;
 
-  int current_;
+  // Index into 'configs_' of the currently-active config, or -1 if
+  // 'configs_' is empty
+  size_t active_;
 
   DISALLOW_EVIL_CONSTRUCTORS(WindowConfigSet);
 };

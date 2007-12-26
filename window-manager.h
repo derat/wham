@@ -10,6 +10,7 @@
 
 #include "util.h"
 #include "window.h"
+#include "window-anchor.h"
 #include "window-classifier.h"
 
 using namespace std;
@@ -26,9 +27,15 @@ class WindowManager {
  private:
   WindowClassifier window_classifier_;
 
-  map<XWindow*, ref_ptr<Window> > windows_;
+  typedef map<XWindow*, ref_ptr<Window> > WindowMap;
+  WindowMap windows_;
 
- DISALLOW_EVIL_CONSTRUCTORS(WindowManager);
+  typedef vector<ref_ptr<WindowAnchor> > WindowAnchorVector;
+  WindowAnchorVector anchors_;
+
+  size_t active_anchor_;
+
+  DISALLOW_EVIL_CONSTRUCTORS(WindowManager);
 };
 
 }  // namespace wham

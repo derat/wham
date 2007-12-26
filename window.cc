@@ -23,13 +23,28 @@ bool Window::Classify(const WindowClassifier& classifier) {
 }
 
 
-bool Window::Resize(int width, int height) {
+bool Window::Move(int x, int y) {
+  return x_window_->Move(x, y);
+}
+
+
+bool Window::Resize(unsigned int width, unsigned int height) {
   return x_window_->Resize(width, height);
 }
 
 
+bool Window::Unmap() {
+  return x_window_->Unmap();
+}
+
+
+bool Window::Map() {
+  return x_window_->Map();
+}
+
+
 bool Window::ApplyConfig() {
-  const WindowConfig* config = GetCurrentConfig();
+  const WindowConfig* config = GetActiveConfig();
   CHECK(config);
   if (!Resize(config->width, config->height)) return false;
   return true;

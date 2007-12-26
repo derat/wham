@@ -26,7 +26,10 @@ class XWindow {
 
   bool GetProperties(WindowProperties* props);
 
-  bool Resize(int width, int height);
+  bool Move(int x, int y);
+  bool Resize(unsigned int width, unsigned int height);
+  bool Unmap();
+  bool Map();
 
   bool operator<(const XWindow& o) const {
     return id_ < o.id_;
