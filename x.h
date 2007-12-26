@@ -26,18 +26,18 @@ class XWindow {
 
   static XWindow* Create(int x, int y, uint width, uint height);
 
-  static bool GetTextSize(const string& font, const string& text,
+  static void GetTextSize(const string& font, const string& text,
                           int* width, int* ascent, int* descent);
-  bool Clear();
-  bool DrawText(int x, int y, const string& text);
-  bool DrawLine(int x1, int y1, int x2, int y2);
+  void Clear();
+  void DrawText(int x, int y, const string& text);
+  void DrawLine(int x1, int y1, int x2, int y2);
 
   bool GetProperties(WindowProperties* props);
 
-  bool Move(int x, int y);
-  bool Resize(uint width, uint height);
-  bool Unmap();
-  bool Map();
+  void Move(int x, int y);
+  void Resize(uint width, uint height);
+  void Unmap();
+  void Map();
 
   bool operator<(const XWindow& o) const {
     return id_ < o.id_;
@@ -55,12 +55,14 @@ class XWindow {
 class XServer {
  public:
   XServer();
+  // FIXME: free fonts_ and gc_ in d'tor
 
   bool Init();
   void RunEventLoop(WindowManager* window_manager);
 
   Display* display() { return display_; }
   int screen_num() { return screen_num_; }
+  GC gc() { return gc_; }
 
   XWindow* GetWindow(::Window id, bool create);
 
@@ -76,6 +78,8 @@ class XServer {
   XWindowMap windows_;
 
   map<string, XFontStruct* > fonts_;
+
+  GC gc_;
 
   DISALLOW_EVIL_CONSTRUCTORS(XServer);
 };

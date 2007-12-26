@@ -20,35 +20,35 @@ bool Window::Classify(const WindowClassifier& classifier) {
     ERROR << "Unable to classify window";
     return false;
   }
-  return ApplyConfig();
+  ApplyConfig();
+  return true;
 }
 
 
-bool Window::Move(int x, int y) {
-  return x_window_->Move(x, y);
+void Window::Move(int x, int y) {
+  x_window_->Move(x, y);
 }
 
 
-bool Window::Resize(uint width, uint height) {
-  return x_window_->Resize(width, height);
+void Window::Resize(uint width, uint height) {
+  x_window_->Resize(width, height);
 }
 
 
-bool Window::Unmap() {
-  return x_window_->Unmap();
+void Window::Unmap() {
+  x_window_->Unmap();
 }
 
 
-bool Window::Map() {
-  return x_window_->Map();
+void Window::Map() {
+  x_window_->Map();
 }
 
 
-bool Window::ApplyConfig() {
+void Window::ApplyConfig() {
   const WindowConfig* config = GetActiveConfig();
   CHECK(config);
-  if (!Resize(config->width, config->height)) return false;
-  return true;
+  Resize(config->width, config->height);
 }
 
 

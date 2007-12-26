@@ -56,31 +56,6 @@ static const char* XEventTypeToName(int type) {
 }
 
 
-static const char* XErrorToName(int error) {
-  switch (error) {
-    case Success: return "Success";
-    case BadRequest: return "BadRequest";
-    case BadValue: return "BadValue";
-    case BadWindow: return "BadWindow";
-    case BadPixmap: return "BadPixmap";
-    case BadAtom: return "BadAtom";
-    case BadCursor: return "BadCursor";
-    case BadFont: return "BadFont";
-    case BadMatch: return "BadMatch";
-    case BadDrawable: return "BadDrawable";
-    case BadAccess: return "BadAccess";
-    case BadAlloc: return "BadAlloc";
-    case BadColor: return "BadColor";
-    case BadGC: return "BadGC";
-    case BadIDChoice: return "BadIDChoice";
-    case BadName: return "BadName";
-    case BadLength: return "BadLength";
-    case BadImplementation: return "BadImplementation";
-    default: return "Unknown error";
-  }
-}
-
-
 XWindow* XWindow::Create(int x, int y, uint width, uint height) {
   ::Window win =
       XCreateSimpleWindow(server_->display(),
@@ -95,7 +70,7 @@ XWindow* XWindow::Create(int x, int y, uint width, uint height) {
 }
 
 
-bool XWindow::GetTextSize(const string& font, const string& text,
+void XWindow::GetTextSize(const string& font, const string& text,
                           int* width, int* ascent, int* descent) {
   XFontStruct* font_info = server_->GetFontInfo(font);
   int tmp_dir, tmp_ascent, tmp_descent;
@@ -105,38 +80,22 @@ bool XWindow::GetTextSize(const string& font, const string& text,
   if (width) *width = overall.width;
   if (ascent) *ascent = overall.ascent;
   if (descent) *descent = overall.descent;
-  return true;
 }
 
 
-bool XWindow::Clear() {
+void XWindow::Clear() {
   XClearWindow(server_->display(), id_);
-  return true;
 }
 
 
-bool XWindow::DrawText(int x, int y, const string& text) {
-  LOG << "Drawing " << text << " at (" << x << ", " << y << ")";
-  GC gc = XCreateGC(server_->display(),
-                    RootWindow(server_->display(), server_->screen_num()),
-                    0, NULL);
-  XSetForeground(server_->display(), gc,
-                 BlackPixel(server_->display(), server_->screen_num()));
-  XDrawString(server_->display(), id_, gc, x, y, text.c_str(), text.size());
-  XFreeGC(server_->display(), gc);
-  return true;
+void XWindow::DrawText(int x, int y, const string& text) {
+  XDrawString(server_->display(), id_, server_->gc(), x, y,
+              text.c_str(), text.size());
 }
 
 
-bool XWindow::DrawLine(int x1, int y1, int x2, int y2) {
-  GC gc = XCreateGC(server_->display(),
-                    RootWindow(server_->display(), server_->screen_num()),
-                    0, NULL);
-  XSetForeground(server_->display(), gc,
-                 BlackPixel(server_->display(), server_->screen_num()));
-  XDrawLine(server_->display(), id_, gc, x1, y1, x2, y2);
-  XFreeGC(server_->display(), gc);
-  return true;
+void XWindow::DrawLine(int x1, int y1, int x2, int y2) {
+  XDrawLine(server_->display(), id_, server_->gc(), x1, y1, x2, y2);
 }
 
 
@@ -169,51 +128,27 @@ bool XWindow::GetProperties(WindowProperties* props) {
   if (class_hint.res_name) XFree(class_hint.res_name);
   if (class_hint.res_class) XFree(class_hint.res_class);
 
-  //LOG << " props: window_name=" << props->window_name
-  //    << " icon_name=" << props->icon_name
-  //    << " command=" << props->command
-  //    << " app_name=" << props->app_name
-  //    << " app_class=" << props->app_class;
-
   return true;
 }
 
 
-bool XWindow::Move(int x, int y) {
-  int result = XMoveWindow(server_->display(), id_, x, y);
-  if (result == Success) return true;
-  ERROR << "XMoveWindow() for 0x" << hex << id_ << dec
-        << " to (" << x << ", " << y << ") returned "
-        << XErrorToName(result);
-  return false;
+void XWindow::Move(int x, int y) {
+  XMoveWindow(server_->display(), id_, x, y);
 }
 
 
-bool XWindow::Resize(uint width, uint height) {
-  int result = XResizeWindow(server_->display(), id_, width, height);
-  if (result == Success) return true;
-  ERROR << "XResizeWindow() for 0x" << hex << id_ << dec
-        << " to (" << width << ", " << height << ") returned "
-        << XErrorToName(result);
-  return false;
+void XWindow::Resize(uint width, uint height) {
+  XResizeWindow(server_->display(), id_, width, height);
 }
 
 
-bool XWindow::Unmap() {
-  int result = XUnmapWindow(server_->display(), id_);
-  if (result == Success) return true;
-  ERROR << "XUnmapWindow() for 0x" << hex << id_ << dec
-        << " returned " << XErrorToName(result);
-  return false;
+void XWindow::Unmap() {
+  XUnmapWindow(server_->display(), id_);
 }
 
 
-bool XWindow::Map() {
-  int result = XMapWindow(server_->display(), id_);
-  if (result == Success) return true;
-  ERROR << "XMapWindow() for 0x" << hex << id_ << dec
-        << " returned " << XErrorToName(result);
-  return false;
+void XWindow::Map() {
+  XMapWindow(server_->display(), id_);
 }
 
 
@@ -234,31 +169,18 @@ bool XServer::Init() {
   }
   screen_num_ = DefaultScreen(display_);
 
-  // FIXME: debugging
-  XSynchronize(display_, True);
-#if 0
+  gc_ = XCreateGC(display_, RootWindow(display_, screen_num_), 0, NULL);
+  XSetForeground(display_, gc_, BlackPixel(display_, screen_num_));
 
-  // FIXME
-  ::Window window =
-      XCreateSimpleWindow(display_, RootWindow(display_, screen_num_),
-          100, 100, 200, 200, 0 /* border */,
-          BlackPixel(display_, screen_num_),
-          WhitePixel(display_, screen_num_));
-  LOG << "map: " << XErrorToName(XMapWindow(display_, window));
-  XFlush(display_);
-  sleep(2);
-  LOG << "move: " << XErrorToName(XMoveWindow(display_, window, 200, 200));
-  XFlush(display_);
-  sleep(10);
-  exit(0);
-#endif
+  // debugging
+  //XSynchronize(display_, True);
 
   XSelectInput(display_,
                RootWindow(display_, screen_num_),
                SubstructureNotifyMask);
 
-  initialized_ = true;
   XWindow::server_ = this;
+  initialized_ = true;
   return true;
 }
 
@@ -324,7 +246,7 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
       case Expose:
         {
           XExposeEvent& e = event.xexpose;
-          LOG << "Expose: window=0x" << hex << e.window;
+          //LOG << "Expose: window=0x" << hex << e.window;
           XWindow* x_window = GetWindow(e.window, false);
           CHECK(x_window);
           window_manager->HandleExposeWindow(x_window);
@@ -333,8 +255,8 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
       case MotionNotify:
         {
           XMotionEvent& e = event.xmotion;
-          LOG << "MotionNotify: window=0x" << hex << e.window << dec
-              << " x=" << e.x_root << " y=" << e.y_root;
+          //LOG << "MotionNotify: window=0x" << hex << e.window << dec
+          //    << " x=" << e.x_root << " y=" << e.y_root;
           XWindow* x_window = GetWindow(e.window, false);
           window_manager->HandleMotion(x_window, e.x_root, e.y_root);
         }

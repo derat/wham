@@ -26,16 +26,16 @@ class Window {
     return configs_.GetActiveConfig();
   }
 
-  bool Move(int x, int y);
-  bool Resize(uint width, uint height);
-  bool Unmap();
-  bool Map();
+  void Move(int x, int y);
+  void Resize(uint width, uint height);
+  void Unmap();
+  void Map();
 
   string title() const { return props_.window_name; }
   int title_width() const { return title_width_; }
 
  private:
-  bool ApplyConfig();
+  void ApplyConfig();
 
   // Update 'props_' with this window's properties.
   bool UpdateProperties();
