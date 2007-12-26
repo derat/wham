@@ -56,6 +56,12 @@ static const char* XEventTypeToName(int type) {
 }
 
 
+XWindow::XWindow(::Window id)
+    : id_(id) {
+  XSetWindowBorderWidth(server_->display(), id_, 0);
+}
+
+
 XWindow* XWindow::Create(int x, int y, uint width, uint height) {
   ::Window win =
       XCreateSimpleWindow(server_->display(),
@@ -64,8 +70,8 @@ XWindow* XWindow::Create(int x, int y, uint width, uint height) {
           BlackPixel(server_->display(), server_->screen_num()),
           WhitePixel(server_->display(), server_->screen_num()));
   XSelectInput(server_->display(), win,
-               ButtonPressMask | ButtonReleaseMask | PointerMotionMask |
-               ExposureMask);
+               ButtonPressMask | ButtonReleaseMask | ExposureMask |
+               PointerMotionMask | PropertyChangeMask);
   return server_->GetWindow(win, true);
 }
 

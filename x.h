@@ -20,9 +20,7 @@ class XServer;
 
 class XWindow {
  public:
-  XWindow(::Window id)
-      : id_(id) {
-  }
+  XWindow(::Window id);
 
   static XWindow* Create(int x, int y, uint width, uint height);
 
