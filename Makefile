@@ -22,20 +22,22 @@ config-parser.o: config-parser.cc config-parser.h util.h
 util.o: util.cc util.h
 	$(CC) -c util.cc
 
-window.o: window.cc window.h util.h
+window.o: window.cc window.h \
+  config.h util.h window-classifier.h x.h
 	$(CC) -c window.cc
 
-window-anchor.o: window-anchor.cc window-anchor.h util.h
+window-anchor.o: window-anchor.cc window-anchor.h \
+  config.h util.h window.h x.h
 	$(CC) -c window-anchor.cc
 
 window-classifier.o: window-classifier.cc window-classifier.h util.h
 	$(CC) -c window-classifier.cc
 
 window-manager.o: window-manager.cc window-manager.h \
-  util.h window-classifier.h
+  util.h window.h window-anchor.h window-classifier.h
 	$(CC) -c window-manager.cc
 
-x.o: x.cc x.h window-classifier.h
+x.o: x.cc x.h util.h window-classifier.h window-manager.h
 	$(CC) -c x.cc
 
 clean:
