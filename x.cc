@@ -102,9 +102,9 @@ bool XWindow::GetTextSize(const string& font, const string& text,
   XCharStruct overall;
   XTextExtents(font_info, text.c_str(), text.size(),
                &tmp_dir, &tmp_ascent, &tmp_descent, &overall);
-  *width = overall.width;
-  *ascent = overall.ascent;
-  *descent = overall.descent;
+  if (width) *width = overall.width;
+  if (ascent) *ascent = overall.ascent;
+  if (descent) *descent = overall.descent;
   return true;
 }
 

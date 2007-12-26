@@ -17,6 +17,10 @@ DEFINE_int(titlebar_padding, 2);
 DEFINE_int(titlebar_border, 1);
 
 
+int WindowAnchor::font_ascent_ = 0;
+int WindowAnchor::font_descent_ = 0;
+
+
 WindowAnchor::WindowAnchor(const string& name, int x, int y)
     : name_(),
       x_(x),
@@ -30,6 +34,10 @@ WindowAnchor::WindowAnchor(const string& name, int x, int y)
       name_ascent_(0),
       name_descent_(0) {
   CHECK(titlebar_);
+  // FIXME: move this somewhere else; it needs to be done whenever the font
+  // changes
+  XWindow::GetTextSize(config->titlebar_font, "X[yj",
+                       NULL, &font_ascent_, &font_descent_);
   SetName(name);
   DrawTitlebar();
   Move(x, y);
@@ -47,7 +55,7 @@ void WindowAnchor::SetName(const string& name) {
   if (name_ == name) return;
   name_ = name;
   titlebar_->GetTextSize(config->titlebar_font, "[" + name_ + "]",
-                         &name_width_, &name_ascent_, &name_descent_);
+                         &name_width_, NULL, NULL);
 }
 
 
@@ -112,41 +120,23 @@ bool WindowAnchor::SetActive(uint index) {
 
 
 void WindowAnchor::DrawTitlebar() {
-  int ascent = 0;
-
+  titlebar_height_ = font_ascent_ + font_descent_ +
+      2 * config->titlebar_padding + 2 * config->titlebar_border;
   if (windows_.empty()) {
     titlebar_width_ = name_width_ + 2 * config->titlebar_padding +
                       2 * config->titlebar_border;
-    titlebar_width_ = min(max(titlebar_width_, config->titlebar_min_width),
-                          config->titlebar_max_width);
-    titlebar_height_ = name_ascent_ + name_descent_ +
-                       2 * config->titlebar_padding +
-                       2 * config->titlebar_border;
-    LOG << "name_ascent_=" << name_ascent_
-        << " name_descent_=" << name_descent_;
-    ascent = name_ascent_;
   } else {
     int max_title_width = 0;
-    int max_title_ascent = 0;
-    int max_title_descent = 0;
     for (WindowVector::const_iterator window = windows_.begin();
          window != windows_.end(); ++window) {
       max_title_width = max(max_title_width, (*window)->title_width());
-      max_title_ascent = max(max_title_ascent, (*window)->title_ascent());
-      max_title_descent = max(max_title_descent, (*window)->title_descent());
     }
     titlebar_width_ = max_title_width * windows_.size() +
-                      2 * config->titlebar_padding * windows_.size() +
-                      config->titlebar_border * (windows_.size() + 1);
-    titlebar_width_ = min(max(titlebar_width_, config->titlebar_min_width),
-                          config->titlebar_max_width);
-    titlebar_height_ = max_title_ascent + max_title_descent +
-                       2 * config->titlebar_padding +
-                       2 * config->titlebar_border;
-    LOG << "max_title_ascent=" << max_title_ascent
-        << " max_title_descent=" << max_title_descent;
-    ascent = max_title_ascent;
+        2 * config->titlebar_padding * windows_.size() +
+        config->titlebar_border * (windows_.size() + 1);
   }
+  titlebar_width_ = min(max(titlebar_width_, config->titlebar_min_width),
+                        config->titlebar_max_width);
 
   //LOG << "before=" << titlebar_height_;
   titlebar_->Resize(titlebar_width_, titlebar_height_);
@@ -162,7 +152,7 @@ void WindowAnchor::DrawTitlebar() {
   if (windows_.empty()) {
     titlebar_->DrawText(config->titlebar_border + config->titlebar_padding,
                         config->titlebar_border + config->titlebar_padding +
-                          ascent, "[" + name_ + "]");
+                          font_ascent_, "[" + name_ + "]");
   } else {
     int title_width = (titlebar_width_ - config->titlebar_border) /
                       windows_.size();
@@ -171,7 +161,7 @@ void WindowAnchor::DrawTitlebar() {
          window != windows_.end(); ++window, ++i) {
       int x = i * title_width;
       int y = config->titlebar_border + config->titlebar_padding +
-              ascent;
+              font_ascent_;
       titlebar_->DrawLine(x, 0, x, titlebar_height_ - 1);
       titlebar_->DrawText(
           x + config->titlebar_border + config->titlebar_padding, y,

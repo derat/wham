@@ -67,6 +67,10 @@ class WindowAnchor {
   int titlebar_width_;
   int titlebar_height_;
 
+  // FIXME: update these when the font changes
+  static int font_ascent_;
+  static int font_descent_;
+
   // Information about the size of the anchor's name
   int name_width_;
   int name_ascent_;
