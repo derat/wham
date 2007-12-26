@@ -12,13 +12,21 @@ using namespace std;
 
 namespace wham {
 
-class Window;  // from window.h
+class Window;   // from window.h
+class XWindow;  // from x.h
 
 // A collection of windows, exactly one of which is visible at any given
 // time.
 class WindowAnchor {
  public:
-  WindowAnchor(const string& name);
+  const static int kTitlebarHeight;
+
+  WindowAnchor(const string& name, int x, int y);
+
+  string name() const { return name_; }
+  int x() const { return x_; }
+  int y() const { return y_; }
+  XWindow* titlebar() { return titlebar_; }
 
   // Add a window to the anchor.
   void AddWindow(Window* window);
@@ -29,15 +37,12 @@ class WindowAnchor {
   // Move the anchor to a new position.
   bool Move(int x, int y);
 
-  int x() const { return x_; }
-  int y() const { return y_; }
-
   // Set which (zero-indexed) window should be currently displayed.
   // 'index' must be >= 0 and less than the number of windows in the
   // anchor.
-  bool SetActive(unsigned int index);
+  bool SetActive(uint index);
 
-  unsigned int NumWindows() const { return windows_.size(); }
+  uint NumWindows() const { return windows_.size(); }
 
  private:
   string name_;
@@ -50,8 +55,10 @@ class WindowAnchor {
 
   // Index into 'windows_' of the currently-active window, and a pointer to
   // the window itself
-  unsigned int active_index_;
+  uint active_index_;
   Window* active_window_;
+
+  XWindow* titlebar_;
 
   DISALLOW_EVIL_CONSTRUCTORS(WindowAnchor);
 };

@@ -4,15 +4,24 @@
 #include "window-anchor.h"
 
 #include "window.h"
+#include "x.h"
 
 namespace wham {
 
-WindowAnchor::WindowAnchor(const string& name)
+
+const int WindowAnchor::kTitlebarHeight = 20;
+
+
+WindowAnchor::WindowAnchor(const string& name, int x, int y)
     : name_(name),
-      x_(0),
-      y_(0),
+      x_(x),
+      y_(y),
       active_index_(0),
-      active_window_(NULL) {
+      active_window_(NULL),
+      titlebar_(XWindow::Create(x, y, 300, kTitlebarHeight)) {
+  CHECK(titlebar_);
+  Move(x, y);
+  titlebar_->Map();
 }
 
 
@@ -39,13 +48,13 @@ void WindowAnchor::RemoveWindow(Window* window) {
 bool WindowAnchor::Move(int x, int y) {
   x_ = x;
   y_ = y;
-  // FIXME: move anchor
+  titlebar_->Move(x, y - kTitlebarHeight);
   if (active_window_) active_window_->Move(x, y);
   return true;
 }
 
 
-bool WindowAnchor::SetActive(unsigned int index) {
+bool WindowAnchor::SetActive(uint index) {
   CHECK(index >= 0);
   CHECK(index <= windows_.size());
 

@@ -21,8 +21,13 @@ class WindowManager {
  public:
   WindowManager();
 
-  void AddWindow(XWindow* x_window);
-  void RemoveWindow(XWindow* x_window);
+  void CreateAnchor(const string& name, int x, int y);
+
+  void HandleButtonPress(XWindow* x_window, int x, int y);
+  void HandleButtonRelease(XWindow* x_window);
+  void HandleCreateWindow(XWindow* x_window);
+  void HandleDestroyWindow(XWindow* x_window);
+  void HandleMotion(XWindow* x_window, int x, int y);
 
  private:
   WindowClassifier window_classifier_;
@@ -30,10 +35,16 @@ class WindowManager {
   typedef map<XWindow*, ref_ptr<Window> > WindowMap;
   WindowMap windows_;
 
+  typedef map<XWindow*, WindowAnchor*> WindowAnchorTitlebarMap;
+  WindowAnchorTitlebarMap anchor_titlebars_;
+
   typedef vector<ref_ptr<WindowAnchor> > WindowAnchorVector;
   WindowAnchorVector anchors_;
 
   size_t active_anchor_;
+  bool in_drag_;
+  int drag_offset_x_;
+  int drag_offset_y_;
 
   DISALLOW_EVIL_CONSTRUCTORS(WindowManager);
 };

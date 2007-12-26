@@ -28,7 +28,7 @@ bool Window::Move(int x, int y) {
 }
 
 
-bool Window::Resize(unsigned int width, unsigned int height) {
+bool Window::Resize(uint width, uint height) {
   return x_window_->Resize(width, height);
 }
 

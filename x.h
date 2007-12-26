@@ -24,10 +24,12 @@ class XWindow {
       : id_(id) {
   }
 
+  static XWindow* Create(int x, int y, uint width, uint height);
+
   bool GetProperties(WindowProperties* props);
 
   bool Move(int x, int y);
-  bool Resize(unsigned int width, unsigned int height);
+  bool Resize(uint width, uint height);
   bool Unmap();
   bool Map();
 
@@ -54,9 +56,9 @@ class XServer {
   Display* display() { return display_; }
   int screen_num() { return screen_num_; }
 
- private:
   XWindow* GetWindow(::Window id, bool create);
 
+ private:
   Display* display_;
   int screen_num_;
 

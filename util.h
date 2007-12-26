@@ -4,6 +4,7 @@
 #ifndef __UTIL_H__
 #define __UTIL_H__
 
+#include <iostream>
 #include <string>
 
 using namespace std;
@@ -26,6 +27,9 @@ using namespace std;
   void operator=(const class_name&)
 
 
+typedef unsigned int uint;
+
+
 class UtilTestSuite;
 
 namespace wham {
@@ -42,6 +46,9 @@ class Logger {
  private:
   // Has the input so far ended with a newline?
   bool newline_seen_;
+
+  // Format flags at the time we were instatiated
+  ios_base::fmtflags orig_format_flags_;
 
   DISALLOW_EVIL_CONSTRUCTORS(Logger);
 };  // class Logger

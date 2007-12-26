@@ -24,7 +24,7 @@ class Window {
   }
 
   bool Move(int x, int y);
-  bool Resize(unsigned int width, unsigned int height);
+  bool Resize(uint width, uint height);
   bool Unmap();
   bool Map();
 

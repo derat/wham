@@ -4,12 +4,13 @@
 #include "util.h"
 
 #include <ctime>
-#include <iostream>
+#include <iomanip>
 
 namespace wham {
 
 Logger::Logger(const string& filename, int line_num)
-    : newline_seen_(false) {
+    : newline_seen_(false),
+      orig_format_flags_(cerr.flags()) {
   time_t now = time(NULL);
   struct tm tm;
   localtime_r(&now, &tm);
@@ -20,7 +21,7 @@ Logger::Logger(const string& filename, int line_num)
 
 Logger::~Logger() {
   if (!newline_seen_) cerr << "\n";
-  // FIXME: reset state of cerr
+  cerr.flags(orig_format_flags_);
 }
 
 Logger& Logger::operator<<(const string& msg) {

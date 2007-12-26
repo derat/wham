@@ -81,6 +81,19 @@ static const char* XErrorToName(int error) {
 }
 
 
+XWindow* XWindow::Create(int x, int y, uint width, uint height) {
+  ::Window win =
+      XCreateSimpleWindow(server_->display(),
+          RootWindow(server_->display(), server_->screen_num()),
+          x, y, width, height, 0 /* border */,
+          BlackPixel(server_->display(), server_->screen_num()),
+          WhitePixel(server_->display(), server_->screen_num()));
+  XSelectInput(server_->display(), win,
+               ButtonPressMask | ButtonReleaseMask | PointerMotionMask);
+  return server_->GetWindow(win, true);
+}
+
+
 bool XWindow::GetProperties(WindowProperties* props) {
   char* window_name = NULL;
   if (!XFetchName(server_->display(), id_, &window_name)) {
@@ -130,7 +143,7 @@ bool XWindow::Move(int x, int y) {
 }
 
 
-bool XWindow::Resize(unsigned int width, unsigned int height) {
+bool XWindow::Resize(uint width, uint height) {
   int result = XResizeWindow(server_->display(), id_, width, height);
   if (result == Success) return true;
   ERROR << "XResizeWindow() for 0x" << hex << id_ << dec
@@ -193,26 +206,20 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
   while (true) {
     XNextEvent(display_, &event);
     switch (event.type) {
-      case CreateNotify:
+      case ButtonPress:
         {
-          XCreateWindowEvent& e = event.xcreatewindow;
-          LOG << "CreateNotify: window=0x" << hex << e.window
-              << " parent=0x" << e.parent << dec
-              << " x=" << e.x << " y=" << e.y
-              << " width=" << e.width << " height=" << e.height
-              << " border=" << e.border_width
-              << " override=" << e.override_redirect;
-          XWindow* x_window = GetWindow(e.window, true);
-          window_manager->AddWindow(x_window);
+          XButtonEvent& e = event.xbutton;
+          LOG << "ButtonPress: window=0x" << hex << e.window;
+          XWindow* x_window = GetWindow(e.window, false);
+          window_manager->HandleButtonPress(x_window, e.x_root, e.y_root);
         }
         break;
-      case DestroyNotify:
+      case ButtonRelease:
         {
-          XDestroyWindowEvent& e = event.xdestroywindow;
-          LOG << "DestroyNotify: window=0x" << hex << e.window;
+          XButtonEvent& e = event.xbutton;
+          LOG << "ButtonRelease: window=0x" << hex << e.window;
           XWindow* x_window = GetWindow(e.window, false);
-          CHECK(x_window);
-          window_manager->RemoveWindow(x_window);
+          window_manager->HandleButtonRelease(x_window);
         }
         break;
       case ConfigureNotify:
@@ -224,6 +231,37 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
               << " border=" << e.border_width
               << " above=" << static_cast<int>(e.above)
               << " override=" << e.override_redirect;
+        }
+        break;
+      case CreateNotify:
+        {
+          XCreateWindowEvent& e = event.xcreatewindow;
+          LOG << "CreateNotify: window=0x" << hex << e.window
+              << " parent=0x" << e.parent << dec
+              << " x=" << e.x << " y=" << e.y
+              << " width=" << e.width << " height=" << e.height
+              << " border=" << e.border_width
+              << " override=" << e.override_redirect;
+          XWindow* x_window = GetWindow(e.window, true);
+          window_manager->HandleCreateWindow(x_window);
+        }
+        break;
+      case DestroyNotify:
+        {
+          XDestroyWindowEvent& e = event.xdestroywindow;
+          LOG << "DestroyNotify: window=0x" << hex << e.window;
+          XWindow* x_window = GetWindow(e.window, false);
+          CHECK(x_window);
+          window_manager->HandleDestroyWindow(x_window);
+        }
+        break;
+      case MotionNotify:
+        {
+          XMotionEvent& e = event.xmotion;
+          LOG << "MotionNotify: window=0x" << hex << e.window << dec
+              << " x=" << e.x_root << " y=" << e.y_root;
+          XWindow* x_window = GetWindow(e.window, false);
+          window_manager->HandleMotion(x_window, e.x_root, e.y_root);
         }
         break;
       default:
