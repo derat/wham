@@ -28,6 +28,8 @@ class Window {
   bool Unmap();
   bool Map();
 
+  string title() const { return props_.window_name; }
+
  private:
   bool ApplyConfig();
 

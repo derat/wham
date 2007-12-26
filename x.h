@@ -26,6 +26,11 @@ class XWindow {
 
   static XWindow* Create(int x, int y, uint width, uint height);
 
+  static bool GetTextSize(const string& font, const string& text,
+                          int* width, int* ascent, int* descent);
+  bool Clear();
+  bool DrawText(int x, int y, const string& text);
+
   bool GetProperties(WindowProperties* props);
 
   bool Move(int x, int y);
@@ -58,6 +63,8 @@ class XServer {
 
   XWindow* GetWindow(::Window id, bool create);
 
+  XFontStruct* GetFontInfo(const string& font);
+
  private:
   Display* display_;
   int screen_num_;
@@ -66,6 +73,8 @@ class XServer {
 
   typedef map< ::Window, ref_ptr<XWindow> > XWindowMap;
   XWindowMap windows_;
+
+  map<string, XFontStruct* > fonts_;
 
   DISALLOW_EVIL_CONSTRUCTORS(XServer);
 };

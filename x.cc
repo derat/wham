@@ -94,6 +94,38 @@ XWindow* XWindow::Create(int x, int y, uint width, uint height) {
 }
 
 
+bool XWindow::GetTextSize(const string& font, const string& text,
+                          int* width, int* ascent, int* descent) {
+  XFontStruct* font_info = server_->GetFontInfo(font);
+  int tmp_dir, tmp_ascent, tmp_descent;
+  XCharStruct overall;
+  XTextExtents(font_info, text.c_str(), text.size(),
+               &tmp_dir, &tmp_ascent, &tmp_descent, &overall);
+  *width = overall.width;
+  *ascent = overall.ascent;
+  *descent = overall.descent;
+  return true;
+}
+
+
+bool XWindow::Clear() {
+  XClearWindow(server_->display(), id_);
+  return true;
+}
+
+
+bool XWindow::DrawText(int x, int y, const string& text) {
+  GC gc = XCreateGC(server_->display(),
+                    RootWindow(server_->display(), server_->screen_num()),
+                    0, NULL);
+  XSetForeground(server_->display(), gc,
+                 BlackPixel(server_->display(), server_->screen_num()));
+  XDrawString(server_->display(), id_, gc, x, y, text.c_str(), text.size());
+  XFreeGC(server_->display(), gc);
+  return true;
+}
+
+
 bool XWindow::GetProperties(WindowProperties* props) {
   char* window_name = NULL;
   if (!XFetchName(server_->display(), id_, &window_name)) {
@@ -175,7 +207,6 @@ XServer::XServer()
     : display_(NULL),
       screen_num_(-1),
       initialized_(false) {
-  XWindow::server_ = this;
 }
 
 
@@ -185,9 +216,28 @@ bool XServer::Init() {
   display_ = XOpenDisplay(NULL);
   if (display_ == NULL) {
     LOG << "Can't open display " << XDisplayName(NULL);
-    return 1;
+    return false;
   }
   screen_num_ = DefaultScreen(display_);
+
+  // FIXME: debugging
+  XSynchronize(display_, True);
+#if 0
+
+  // FIXME
+  ::Window window =
+      XCreateSimpleWindow(display_, RootWindow(display_, screen_num_),
+          100, 100, 200, 200, 0 /* border */,
+          BlackPixel(display_, screen_num_),
+          WhitePixel(display_, screen_num_));
+  LOG << "map: " << XErrorToName(XMapWindow(display_, window));
+  XFlush(display_);
+  sleep(2);
+  LOG << "move: " << XErrorToName(XMoveWindow(display_, window, 200, 200));
+  XFlush(display_);
+  sleep(10);
+  exit(0);
+#endif
 
   XSelectInput(display_,
                RootWindow(display_, screen_num_),
@@ -278,6 +328,16 @@ XWindow* XServer::GetWindow(::Window id, bool create) {
   ref_ptr<XWindow> window(new XWindow(id));
   windows_.insert(make_pair(id, window));
   return window.get();
+}
+
+
+XFontStruct* XServer::GetFontInfo(const string& font) {
+  map<string, XFontStruct*>::const_iterator it = fonts_.find(font);
+  if (it != fonts_.end()) return it->second;
+  XFontStruct* font_info = XLoadQueryFont(display_, font.c_str());
+  CHECK(font_info);
+  fonts_.insert(make_pair(font, font_info));
+  return font_info;
 }
 
 }  // namespace wham

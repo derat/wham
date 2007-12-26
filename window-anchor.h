@@ -45,6 +45,8 @@ class WindowAnchor {
   uint NumWindows() const { return windows_.size(); }
 
  private:
+  void DrawTitlebar();
+
   string name_;
 
   int x_;
@@ -59,6 +61,8 @@ class WindowAnchor {
   Window* active_window_;
 
   XWindow* titlebar_;
+  uint titlebar_width_;
+  uint titlebar_height_;
 
   DISALLOW_EVIL_CONSTRUCTORS(WindowAnchor);
 };
