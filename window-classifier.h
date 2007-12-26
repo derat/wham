@@ -58,7 +58,10 @@ typedef vector<ref_ptr<WindowConfig> > WindowConfigVector;
 // A set of WindowConfigs.
 class WindowConfigSet {
  public:
-  WindowConfigSet() {}
+  WindowConfigSet()
+      : configs_(),
+        current_(-1) {
+  }
 
   // Remove all configs from the set.
   void Clear() {
@@ -69,19 +72,21 @@ class WindowConfigSet {
   // existing config.
   void MergeConfig(const WindowConfig& config);
 
-  // Merge all configs from another set into this one.
-  void Merge(const WindowConfigSet& configs);
-
-  const WindowConfig* GetDefaultConfig() const {
+  const WindowConfig* GetCurrentConfig() const {
+    // FIXME: casting size_t to int seems gross
+    CHECK(current_ < static_cast<int>(configs_.size()));
     if (configs_.empty()) return NULL;
-    return configs_[0].get();
+    return configs_[current_].get();
   }
 
   int NumConfigs() const { return configs_.size(); }
 
  private:
   friend class ::WindowClassifierTestSuite;
+
   WindowConfigVector configs_;
+
+  int current_;
 
   DISALLOW_EVIL_CONSTRUCTORS(WindowConfigSet);
 };

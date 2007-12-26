@@ -18,20 +18,15 @@ namespace wham {
 
 class WindowManager {
  public:
-  WindowManager(::Display* display);
+  WindowManager();
 
-  void AddWindow(::Window x_window);
-
-  void RemoveWindow(::Window x_window);
+  void AddWindow(XWindow* x_window);
+  void RemoveWindow(XWindow* x_window);
 
  private:
-  bool GetWindowProperties(::Window x_window, WindowProperties* props);
-
-  ::Display* display_;
-
   WindowClassifier window_classifier_;
 
-  map< ::Window, ref_ptr<Window> > windows_;
+  map<XWindow*, ref_ptr<Window> > windows_;
 
  DISALLOW_EVIL_CONSTRUCTORS(WindowManager);
 };

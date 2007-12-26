@@ -118,7 +118,7 @@ class ConfigParserTestSuite : public CxxTest::TestSuite {
         case ConfigParser::TOKEN_NEWLINE:     token = kNewline; break;
         case ConfigParser::TOKEN_LITERAL:     break;
         default:
-          ERR << "Got unknown token type " << token_type;
+          ERROR << "Got unknown token type " << token_type;
           CHECK(false);
       }
       TS_ASSERT_EQUALS(token, expected_tokens[num_tokens]);

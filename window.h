@@ -4,25 +4,39 @@
 #ifndef __WINDOW_H__
 #define __WINDOW_H__
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-
 #include "util.h"
+#include "window-classifier.h"
 
 using namespace std;
 
 namespace wham {
 
+class XWindow;
+
 class Window {
  public:
-  Window(::Window x_window)
-      : x_window_(x_window) {
+  Window(XWindow* x_window);
+
+  bool Classify(const WindowClassifier& classifier);
+
+  const WindowConfig* GetCurrentConfig() const {
+    return configs_.GetCurrentConfig();
   }
 
  private:
-  ::Window x_window_;
+  bool ApplyConfig();
 
- DISALLOW_EVIL_CONSTRUCTORS(Window);
+  bool Resize(int width, int height);
+
+  bool UpdateProperties();
+
+  XWindow* x_window_;  // not owned
+
+  WindowProperties props_;
+
+  WindowConfigSet configs_;
+
+  DISALLOW_EVIL_CONSTRUCTORS(Window);
 };
 
 }  // namespace wham

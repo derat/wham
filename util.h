@@ -11,7 +11,8 @@ using namespace std;
 #define LOG wham::Logger(__FILE__, __LINE__)
 
 // FIXME: do something extra here
-#define ERR wham::Logger(__FILE__, __LINE__)
+#define ERROR wham::Logger(__FILE__, __LINE__)
+#define DEBUG wham::Logger(__FILE__, __LINE__)
 
 #define CHECK(x) \
   if (!(x)) { \
@@ -36,6 +37,7 @@ class Logger {
 
   Logger& operator<<(const string& msg);
   Logger& operator<<(int num);
+  Logger& operator<<(ios_base& (*f)(ios_base&));
 
  private:
   // Has the input so far ended with a newline?

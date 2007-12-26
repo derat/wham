@@ -72,7 +72,7 @@ bool ConfigParser::Tokenizer::GetNextToken(
 
     // First, handle unterminated quoted strings.
     if ((ch == '\n' || ch == EOF) && (in_single_quote || in_double_quote)) {
-      ERR << "Unclosed quoted string started on line " << quote_start_line;
+      ERROR << "Unclosed quoted string started on line " << quote_start_line;
       *error = true;
       return false;
     }

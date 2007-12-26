@@ -13,6 +13,8 @@ void WindowConfig::Merge(const WindowConfig& config) {
 
 
 void WindowConfigSet::MergeConfig(const WindowConfig& config) {
+  // If this is the first config, make it the active one.
+  if (current_ < 0) current_ = 0;
   // FIXME: store map from config name to config ptr so we don't need to
   // iterate through all of them
   for (WindowConfigVector::iterator it = configs_.begin();
@@ -23,14 +25,6 @@ void WindowConfigSet::MergeConfig(const WindowConfig& config) {
     }
   }
   configs_.push_back(ref_ptr<WindowConfig>(new WindowConfig(config)));
-}
-
-
-void WindowConfigSet::Merge(const WindowConfigSet& configs) {
-  for (WindowConfigVector::const_iterator it = configs.configs_.begin();
-       it != configs.configs_.end(); ++it) {
-    MergeConfig(*(it->get()));
-  }
 }
 
 
@@ -94,7 +88,7 @@ const string& WindowCriteria::GetPropertyForCriterionType(
     case CRITERION_TYPE_APP_CLASS:
       return props.app_class;
     default:
-      ERR << "Window property requested for unknown criterion type " << type;
+      ERROR << "Window property requested for unknown criterion type " << type;
       CHECK(false);
   }
 }

@@ -20,6 +20,7 @@ Logger::Logger(const string& filename, int line_num)
 
 Logger::~Logger() {
   if (!newline_seen_) cerr << "\n";
+  // FIXME: reset state of cerr
 }
 
 Logger& Logger::operator<<(const string& msg) {
@@ -30,6 +31,11 @@ Logger& Logger::operator<<(const string& msg) {
 
 Logger& Logger::operator<<(int num) {
   cerr << num;
+  return *this;
+}
+
+Logger& Logger::operator<<(ios_base& (*f)(ios_base&)) {
+  cerr << f;
   return *this;
 }
 
