@@ -169,7 +169,7 @@ void WindowAnchor::DrawTitlebar() {
       int y = config->titlebar_border + config->titlebar_padding +
               font_ascent_;
       if (active) {
-        titlebar_->DrawBox(x, 0, rounded_width, titlebar_height_ - 1, "stipple");
+        titlebar_->DrawBox(x, 0, rounded_width, titlebar_height_ - 1, "black");
       } else {
         titlebar_->DrawLine(x, 0, x, titlebar_height_ - 1, "black");
       }
