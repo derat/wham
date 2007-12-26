@@ -20,30 +20,24 @@ namespace wham {
 // manager hints (window and icon name, etc.) and is used to
 // classify the window.
 struct WindowProperties {
-  WindowProperties(const string& window_name,
-                   const string& icon_name,
-                   const string& command)
-      : window_name(window_name),
-        icon_name(icon_name),
-        command(command) {
-  }
+  WindowProperties() {}
 
-  string window_name;  // from XGetWMName()
-  string icon_name;    // from XGetWMIconName()
+  string window_name;  // from XFetchName()
+  string icon_name;    // from XGetIconName()
   string command;      // from XGetCommand()
+  string app_name;     // from XGetClassHint()
+  string app_class;    // from XGetClassHint()
 };
 
 
 // Information about how a given window should be displayed.
 struct WindowConfig {
   WindowConfig(const string& name,
-               bool dimensions_are_in_pixels,
-               int desired_width,
-               int desired_height)
+               int width,
+               int height)
       : name(name),
-        dimensions_are_in_pixels(dimensions_are_in_pixels),
-        desired_width(desired_width),
-        desired_height(desired_height) {
+        width(width),
+        height(height) {
   }
 
   // Merge another config into this one.
@@ -52,30 +46,44 @@ struct WindowConfig {
   // This config's name.
   string name;
 
-  // Are window dimensions given in pixels, rather than in terms of the
-  // size increments supplied by the window?
-  bool dimensions_are_in_pixels;
-
-  // Desired dimensions of the window.  (These are also the maximum
-  // dimensions of the window.)  -1 indicates that the window should be
-  // maximized.
-  int desired_width;
-  int desired_height;
+  // Desired dimensions of the window.  -1 indicates that the window should
+  // be maximized.
+  int width;
+  int height;
 };
 
+typedef vector<ref_ptr<WindowConfig> > WindowConfigVector;
 
-// A set of WindowConfig objects.
+
+// A set of WindowConfigs.
 class WindowConfigSet {
  public:
+  WindowConfigSet() {}
+
   // Remove all configs from the set.
-  void Clear();
+  void Clear() {
+    configs_.clear();
+  }
 
   // Merge a window config into the set, either adding it or updating an
   // existing config.
   void MergeConfig(const WindowConfig& config);
 
+  // Merge all configs from another set into this one.
+  void Merge(const WindowConfigSet& configs);
+
+  const WindowConfig* GetDefaultConfig() const {
+    if (configs_.empty()) return NULL;
+    return configs_[0].get();
+  }
+
+  int NumConfigs() const { return configs_.size(); }
+
  private:
-  vector<WindowConfig> configs_;
+  friend class ::WindowClassifierTestSuite;
+  WindowConfigVector configs_;
+
+  DISALLOW_EVIL_CONSTRUCTORS(WindowConfigSet);
 };
 
 
@@ -88,6 +96,8 @@ class WindowCriteria {
     CRITERION_TYPE_WINDOW_NAME,
     CRITERION_TYPE_ICON_NAME,
     CRITERION_TYPE_COMMAND,
+    CRITERION_TYPE_APP_NAME,
+    CRITERION_TYPE_APP_CLASS,
     NUM_CRITERION_TYPES
   };
 
@@ -119,21 +129,25 @@ class WindowCriteria {
   DISALLOW_EVIL_CONSTRUCTORS(WindowCriteria);
 };
 
+typedef vector<ref_ptr<WindowCriteria> > WindowCriteriaVector;
+
 
 // Stores window criteria and associated WindowConfig objects.
 class WindowClassifier {
  public:
-  void AddConfig(vector<ref_ptr<WindowCriteria> >& criteria,
-                 const WindowConfig& config);
+  WindowClassifier() {}
 
-  // Classify a WindowProperties object into a WindowConfigSet.
-  bool ClassifyWindow(
-      const WindowProperties& props,
-      WindowConfigSet* config_set) const;
+  void AddConfig(ref_ptr<WindowCriteriaVector> criteria,
+                 ref_ptr<WindowConfigVector> configs);
+
+  // Classify a WindowProperties object into list of configs.
+  bool ClassifyWindow(const WindowProperties& props,
+                      WindowConfigSet* configs) const;
 
  private:
-  typedef vector<ref_ptr<WindowCriteria> > WindowCriteriaSet;
-  typedef vector<pair<WindowCriteriaSet, WindowConfig> >
+
+  typedef vector<pair<ref_ptr<WindowCriteriaVector>,
+                      ref_ptr<WindowConfigVector> > >
       WindowCriteriaConfigs;
 
   WindowCriteriaConfigs criteria_configs_;

@@ -17,6 +17,9 @@ envision a configuration format similar to the following:
     criteria {
       class_name /.*rxvt/
     }
+    criteria {
+      window_name "rxvt"
+    }
     config {
       name default
       width 80u  # 'u' means app-specified units; default is pixels

@@ -6,30 +6,35 @@
 namespace wham {
 
 void WindowConfig::Merge(const WindowConfig& config) {
-  // FIXME: write this
-}
-
-
-void WindowConfigSet::Clear() {
-  configs_.clear();
+  name = config.name;
+  width = config.width;
+  height = config.height;
 }
 
 
 void WindowConfigSet::MergeConfig(const WindowConfig& config) {
-  for (vector<WindowConfig>::iterator it = configs_.begin();
+  // FIXME: store map from config name to config ptr so we don't need to
+  // iterate through all of them
+  for (WindowConfigVector::iterator it = configs_.begin();
        it != configs_.end(); ++it) {
-    if (config.name == it->name) {
-      it->Merge(config);
+    if (config.name == (*it)->name) {
+      (*it)->Merge(config);
       return;
     }
   }
-  configs_.push_back(config);
+  configs_.push_back(ref_ptr<WindowConfig>(new WindowConfig(config)));
 }
 
 
-bool WindowCriteria::AddCriterion(
-    CriterionType type,
-    const string& pattern) {
+void WindowConfigSet::Merge(const WindowConfigSet& configs) {
+  for (WindowConfigVector::const_iterator it = configs.configs_.begin();
+       it != configs.configs_.end(); ++it) {
+    MergeConfig(*(it->get()));
+  }
+}
+
+
+bool WindowCriteria::AddCriterion(CriterionType type, const string& pattern) {
   if (pattern.size() >= 2 &&
       pattern[0] == '/' &&
       pattern[pattern.size()-1] == '/') {
@@ -84,6 +89,10 @@ const string& WindowCriteria::GetPropertyForCriterionType(
       return props.icon_name;
     case CRITERION_TYPE_COMMAND:
       return props.command;
+    case CRITERION_TYPE_APP_NAME:
+      return props.app_name;
+    case CRITERION_TYPE_APP_CLASS:
+      return props.app_class;
     default:
       ERR << "Window property requested for unknown criterion type " << type;
       CHECK(false);
@@ -91,26 +100,40 @@ const string& WindowCriteria::GetPropertyForCriterionType(
 }
 
 
+void WindowClassifier::AddConfig(ref_ptr<WindowCriteriaVector> criteria,
+                                 ref_ptr<WindowConfigVector> configs) {
+  criteria_configs_.push_back(make_pair(criteria, configs));
+}
+
+
 bool WindowClassifier::ClassifyWindow(
     const WindowProperties& props,
-    WindowConfigSet* config_set) const {
-  CHECK(config_set);
-  config_set->Clear();
+    WindowConfigSet* configs) const {
+  CHECK(configs);
+  configs->Clear();
 
-  bool got_match = false;
+  bool classified = false;
   for (WindowCriteriaConfigs::const_iterator it =
          criteria_configs_.begin(); it != criteria_configs_.end(); ++it) {
-    for (WindowCriteriaSet::const_iterator criteria = it->first.begin();
-         criteria != it->first.end(); ++criteria) {
+    bool got_match = false;
+    for (WindowCriteriaVector::const_iterator criteria = it->first->begin();
+         criteria != it->first->end(); ++criteria) {
       if ((*criteria)->Matches(props)) {
-        config_set->MergeConfig(it->second);
         got_match = true;
         break;
       }
     }
+    // Pairs with empty criteria sets should match everything.
+    if (got_match || it->first->empty()) {
+      for (WindowConfigVector::const_iterator config = it->second->begin();
+           config != it->second->end(); ++config) {
+        configs->MergeConfig(*(config->get()));
+      }
+      classified = true;
+    }
   }
 
-  return got_match;
+  return classified;
 }
 
 }  // namespace wham
