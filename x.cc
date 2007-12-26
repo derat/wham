@@ -89,7 +89,8 @@ XWindow* XWindow::Create(int x, int y, uint width, uint height) {
           BlackPixel(server_->display(), server_->screen_num()),
           WhitePixel(server_->display(), server_->screen_num()));
   XSelectInput(server_->display(), win,
-               ButtonPressMask | ButtonReleaseMask | PointerMotionMask);
+               ButtonPressMask | ButtonReleaseMask | PointerMotionMask |
+               ExposureMask);
   return server_->GetWindow(win, true);
 }
 
@@ -115,12 +116,25 @@ bool XWindow::Clear() {
 
 
 bool XWindow::DrawText(int x, int y, const string& text) {
+  LOG << "Drawing " << text << " at (" << x << ", " << y << ")";
   GC gc = XCreateGC(server_->display(),
                     RootWindow(server_->display(), server_->screen_num()),
                     0, NULL);
   XSetForeground(server_->display(), gc,
                  BlackPixel(server_->display(), server_->screen_num()));
   XDrawString(server_->display(), id_, gc, x, y, text.c_str(), text.size());
+  XFreeGC(server_->display(), gc);
+  return true;
+}
+
+
+bool XWindow::DrawLine(int x1, int y1, int x2, int y2) {
+  GC gc = XCreateGC(server_->display(),
+                    RootWindow(server_->display(), server_->screen_num()),
+                    0, NULL);
+  XSetForeground(server_->display(), gc,
+                 BlackPixel(server_->display(), server_->screen_num()));
+  XDrawLine(server_->display(), id_, gc, x1, y1, x2, y2);
   XFreeGC(server_->display(), gc);
   return true;
 }
@@ -274,6 +288,7 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
         break;
       case ConfigureNotify:
         {
+          /*
           XConfigureEvent& e = event.xconfigure;
           LOG << "ConfigureNotify: window=0x" << hex << e.window << dec
               << " x=" << e.x << " y=" << e.y
@@ -281,6 +296,7 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
               << " border=" << e.border_width
               << " above=" << static_cast<int>(e.above)
               << " override=" << e.override_redirect;
+              */
         }
         break;
       case CreateNotify:
@@ -303,6 +319,15 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
           XWindow* x_window = GetWindow(e.window, false);
           CHECK(x_window);
           window_manager->HandleDestroyWindow(x_window);
+        }
+        break;
+      case Expose:
+        {
+          XExposeEvent& e = event.xexpose;
+          LOG << "Expose: window=0x" << hex << e.window;
+          XWindow* x_window = GetWindow(e.window, false);
+          CHECK(x_window);
+          window_manager->HandleExposeWindow(x_window);
         }
         break;
       case MotionNotify:

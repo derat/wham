@@ -134,7 +134,10 @@ class ConfigParser {
     }
 
     ~FileTokenizer() {
-      if (file_) fclose(file_);
+      if (file_) {
+        fclose(file_);
+        file_ = NULL;
+      }
     }
 
    protected:

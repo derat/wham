@@ -30,6 +30,7 @@ class XWindow {
                           int* width, int* ascent, int* descent);
   bool Clear();
   bool DrawText(int x, int y, const string& text);
+  bool DrawLine(int x1, int y1, int x2, int y2);
 
   bool GetProperties(WindowProperties* props);
 

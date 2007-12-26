@@ -39,5 +39,15 @@ class UtilTestSuite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(ptr3.ptr_, i);
     TS_ASSERT_EQUALS(ptr2.refs_, ptr3.refs_);
     TS_ASSERT_EQUALS(*ptr2.refs_, 2);
+
+    int* i2 = new int(5);
+    ref_ptr<int> ptr4(i2);
+    ptr4.swap(ptr2);
+    TS_ASSERT_EQUALS(ptr2.ptr_, i2);
+    TS_ASSERT_EQUALS(ptr3.ptr_, i);
+    TS_ASSERT_EQUALS(ptr4.ptr_, i);
+    TS_ASSERT_EQUALS(ptr3.refs_, ptr4.refs_);
+    TS_ASSERT_EQUALS(*ptr2.refs_, 1);
+    TS_ASSERT_EQUALS(*ptr3.refs_, 2);
   }
 };

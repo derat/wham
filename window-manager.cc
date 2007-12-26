@@ -83,6 +83,14 @@ void WindowManager::HandleDestroyWindow(XWindow* x_window) {
 }
 
 
+void WindowManager::HandleExposeWindow(XWindow* x_window) {
+  CHECK(anchor_titlebars_.count(x_window));
+  WindowAnchor* anchor = anchor_titlebars_[x_window];
+  CHECK(anchor);
+  anchor->DrawTitlebar();
+}
+
+
 void WindowManager::HandleMotion(XWindow* x_window, int x, int y) {
   if (!in_drag_) return;
   WindowAnchor* anchor = anchors_[active_anchor_].get();

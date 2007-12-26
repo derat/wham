@@ -16,6 +16,9 @@ class XWindow;
 class Window {
  public:
   Window(XWindow* x_window);
+  ~Window() {
+    x_window_ = NULL;
+  }
 
   bool Classify(const WindowClassifier& classifier);
 
@@ -29,6 +32,10 @@ class Window {
   bool Map();
 
   string title() const { return props_.window_name; }
+  int title_width() const { return title_width_; }
+  int title_height() const { return title_ascent_ + title_descent_; }
+  int title_ascent() const { return title_ascent_; }
+  int title_descent() const { return title_descent_; }
 
  private:
   bool ApplyConfig();
@@ -41,6 +48,11 @@ class Window {
   XWindow* x_window_;  // not owned
 
   WindowProperties props_;
+
+  // Information about the size of the window's title
+  int title_width_;
+  int title_ascent_;
+  int title_descent_;
 
   WindowConfigSet configs_;
 

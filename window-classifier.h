@@ -89,8 +89,7 @@ class WindowConfigSet {
   // Configs contained in the set
   WindowConfigVector configs_;
 
-  // Index into 'configs_' of the currently-active config, or -1 if
-  // 'configs_' is empty
+  // Index into 'configs_' of the currently-active config
   size_t active_;
 
   DISALLOW_EVIL_CONSTRUCTORS(WindowConfigSet);
@@ -120,8 +119,7 @@ class WindowCriteria {
   // Clear all criteria from this set.
   void Reset();
 
-  // Returns true if the passed-in WindowProperties object satisfies this
-  // criteria and false otherwise.
+  // Does 'props' satisfy all of these criteria?
   bool Matches(const WindowProperties& props) const;
 
  private:
@@ -155,11 +153,9 @@ class WindowClassifier {
                       WindowConfigSet* configs) const;
 
  private:
-
   typedef vector<pair<ref_ptr<WindowCriteriaVector>,
                       ref_ptr<WindowConfigVector> > >
       WindowCriteriaConfigs;
-
   WindowCriteriaConfigs criteria_configs_;
 
   DISALLOW_EVIL_CONSTRUCTORS(WindowClassifier);

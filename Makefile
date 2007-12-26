@@ -7,11 +7,14 @@ CXXTESTINCLUDE=-I/home/derat/local/include
 PROGNAME=wham
 
 $(PROGNAME): \
-  main.cc config-parser.o util.o window.o window-anchor.o window-classifier.o \
-  window-manager.o x.o
+  main.cc config.o config-parser.o util.o window.o window-anchor.o \
+  window-classifier.o window-manager.o x.o
 	$(CC) -o $@ $(LIBS) main.cc \
-	  config-parser.o util.o window.o window-anchor.o window-classifier.o \
-	  window-manager.o x.o
+	  config.o config-parser.o util.o window.o window-anchor.o \
+	  window-classifier.o window-manager.o x.o
+
+config.o: config.cc config.h util.h
+	$(CC) -c config.cc
 
 config-parser.o: config-parser.cc config-parser.h util.h
 	$(CC) -c config-parser.cc
@@ -36,7 +39,7 @@ x.o: x.cc x.h window-classifier.h
 	$(CC) -c x.cc
 
 clean:
-	rm -f $(PROGNAME) config-parser.o util.o window.o \
+	rm -f $(PROGNAME) config.o config-parser.o util.o window.o \
 	  window-anchor.o window-classifier.o window-manager.o x.o \
 	  config-parser_test config-parser_test.cc \
 	  util_test util_test.cc \

@@ -1,6 +1,7 @@
 // Copyright 2007, Daniel Erat <dan@erat.org>
 // All rights reserved.
 
+#include "config.h"
 #include "window.h"
 #include "x.h"
 
@@ -54,6 +55,8 @@ bool Window::ApplyConfig() {
 bool Window::UpdateProperties() {
   CHECK(x_window_);
   if (!x_window_->GetProperties(&props_)) return false;
+  x_window_->GetTextSize(config->titlebar_font, props_.window_name,
+                         &title_width_, &title_ascent_, &title_descent_);
   return true;
 }
 

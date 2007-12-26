@@ -22,11 +22,14 @@ class WindowAnchor {
   const static int kTitlebarHeight;
 
   WindowAnchor(const string& name, int x, int y);
+  ~WindowAnchor();
 
   string name() const { return name_; }
   int x() const { return x_; }
   int y() const { return y_; }
   XWindow* titlebar() { return titlebar_; }
+
+  void SetName(const string& name);
 
   // Add a window to the anchor.
   void AddWindow(Window* window);
@@ -44,9 +47,9 @@ class WindowAnchor {
 
   uint NumWindows() const { return windows_.size(); }
 
- private:
   void DrawTitlebar();
 
+ private:
   string name_;
 
   int x_;
@@ -61,8 +64,13 @@ class WindowAnchor {
   Window* active_window_;
 
   XWindow* titlebar_;
-  uint titlebar_width_;
-  uint titlebar_height_;
+  int titlebar_width_;
+  int titlebar_height_;
+
+  // Information about the size of the anchor's name
+  int name_width_;
+  int name_ascent_;
+  int name_descent_;
 
   DISALLOW_EVIL_CONSTRUCTORS(WindowAnchor);
 };
