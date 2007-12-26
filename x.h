@@ -27,8 +27,9 @@ class XWindow {
   static void GetTextSize(const string& font, const string& text,
                           int* width, int* ascent, int* descent);
   void Clear();
-  void DrawText(int x, int y, const string& text);
-  void DrawLine(int x1, int y1, int x2, int y2);
+  void DrawText(int x, int y, const string& text, bool inverse);
+  void DrawLine(int x1, int y1, int x2, int y2, bool inverse);
+  void DrawBox(int x, int y, uint width, uint height, bool inverse);
 
   bool GetProperties(WindowProperties* props);
 
@@ -60,7 +61,9 @@ class XServer {
 
   Display* display() { return display_; }
   int screen_num() { return screen_num_; }
+  ::Window root() { return root_; }
   GC gc() { return gc_; }
+  GC inverse_gc() { return inverse_gc_; }
 
   XWindow* GetWindow(::Window id, bool create);
 
@@ -70,6 +73,8 @@ class XServer {
   Display* display_;
   int screen_num_;
 
+  ::Window root_;
+
   bool initialized_;
 
   typedef map< ::Window, ref_ptr<XWindow> > XWindowMap;
@@ -78,6 +83,7 @@ class XServer {
   map<string, XFontStruct* > fonts_;
 
   GC gc_;
+  GC inverse_gc_;
 
   DISALLOW_EVIL_CONSTRUCTORS(XServer);
 };

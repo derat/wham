@@ -3,6 +3,7 @@
 
 #include "window-anchor.h"
 
+#include <cmath>
 #include <limits>
 
 #include "config.h"
@@ -75,7 +76,9 @@ void WindowAnchor::RemoveWindow(Window* window) {
   if (window == active_window_) {
     active_window_ = NULL;
     if (!windows_.empty()) {
-      SetActive(0);
+      size_t new_index = active_index_;
+      if (new_index >= windows_.size()) new_index = windows_.size() - 1;
+      SetActive(new_index);
     } else {
       DrawTitlebar();
     }
@@ -142,30 +145,37 @@ void WindowAnchor::DrawTitlebar() {
   titlebar_->Resize(titlebar_width_, titlebar_height_);
   //LOG << "after=" << titlebar_height_;
   titlebar_->Clear();
-  titlebar_->DrawLine(0, 0, titlebar_width_ - 1, 0);
+  titlebar_->DrawLine(0, 0, titlebar_width_ - 1, 0, false);
   titlebar_->DrawLine(0, titlebar_height_ - 1,
-                      titlebar_width_ - 1, titlebar_height_ - 1);
-  titlebar_->DrawLine(0, 0, 0, titlebar_height_ - 1);
+                      titlebar_width_ - 1, titlebar_height_ - 1, false);
+  titlebar_->DrawLine(0, 0, 0, titlebar_height_ - 1, false);
   titlebar_->DrawLine(titlebar_width_ - 1, 0,
-                      titlebar_width_ - 1, titlebar_height_ - 1);
+                      titlebar_width_ - 1, titlebar_height_ - 1, false);
 
   if (windows_.empty()) {
     titlebar_->DrawText(config->titlebar_border + config->titlebar_padding,
                         config->titlebar_border + config->titlebar_padding +
-                          font_ascent_, "[" + name_ + "]");
+                          font_ascent_, "[" + name_ + "]", false);
   } else {
-    int title_width = (titlebar_width_ - config->titlebar_border) /
-                      windows_.size();
+    float title_width =
+        static_cast<float>(titlebar_width_ - config->titlebar_border) /
+        windows_.size();
+    int rounded_width = static_cast<int>(roundf(title_width));
     int i = 0;
     for (WindowVector::const_iterator window = windows_.begin();
          window != windows_.end(); ++window, ++i) {
-      int x = i * title_width;
+      bool active = (active_window_ == *window);
+      int x = static_cast<int>(roundf(i * title_width));
       int y = config->titlebar_border + config->titlebar_padding +
               font_ascent_;
-      titlebar_->DrawLine(x, 0, x, titlebar_height_ - 1);
+      if (active) {
+        titlebar_->DrawBox(x, 0, rounded_width, titlebar_height_ - 1, false);
+      } else {
+        titlebar_->DrawLine(x, 0, x, titlebar_height_ - 1, false);
+      }
       titlebar_->DrawText(
           x + config->titlebar_border + config->titlebar_padding, y,
-          (*window)->title());
+          (*window)->title(), active);
     }
   }
 

@@ -64,8 +64,8 @@ XWindow::XWindow(::Window id)
 
 XWindow* XWindow::Create(int x, int y, uint width, uint height) {
   ::Window win =
-      XCreateSimpleWindow(server_->display(),
-          RootWindow(server_->display(), server_->screen_num()),
+      XCreateSimpleWindow(
+          server_->display(), server_->root(),
           x, y, width, height, 0 /* border */,
           BlackPixel(server_->display(), server_->screen_num()),
           WhitePixel(server_->display(), server_->screen_num()));
@@ -94,14 +94,25 @@ void XWindow::Clear() {
 }
 
 
-void XWindow::DrawText(int x, int y, const string& text) {
-  XDrawString(server_->display(), id_, server_->gc(), x, y,
-              text.c_str(), text.size());
+void XWindow::DrawText(int x, int y, const string& text, bool inverse) {
+  XDrawString(server_->display(), id_,
+              inverse ? server_->inverse_gc() : server_->gc(),
+              x, y, text.c_str(), text.size());
 }
 
 
-void XWindow::DrawLine(int x1, int y1, int x2, int y2) {
-  XDrawLine(server_->display(), id_, server_->gc(), x1, y1, x2, y2);
+void XWindow::DrawLine(int x1, int y1, int x2, int y2, bool inverse) {
+  XDrawLine(server_->display(), id_,
+            inverse ? server_->inverse_gc() : server_->gc(),
+            x1, y1, x2, y2);
+}
+
+
+void XWindow::DrawBox(int x, int y, uint width, uint height,
+                      bool inverse) {
+  XFillRectangle(server_->display(), id_,
+                 inverse ? server_->inverse_gc() : server_->gc(),
+                 x, y, width, height);
 }
 
 
@@ -175,14 +186,18 @@ bool XServer::Init() {
   }
   screen_num_ = DefaultScreen(display_);
 
-  gc_ = XCreateGC(display_, RootWindow(display_, screen_num_), 0, NULL);
+  root_ = RootWindow(display_, screen_num_);
+
+  gc_ = XCreateGC(display_, root_, 0, NULL);
   XSetForeground(display_, gc_, BlackPixel(display_, screen_num_));
+
+  inverse_gc_ = XCreateGC(display_, root_, 0, NULL);
+  XSetForeground(display_, inverse_gc_, WhitePixel(display_, screen_num_));
 
   // debugging
   //XSynchronize(display_, True);
 
-  XSelectInput(display_,
-               RootWindow(display_, screen_num_),
+  XSelectInput(display_, root_,
                SubstructureNotifyMask);
 
   XWindow::server_ = this;
