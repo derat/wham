@@ -27,7 +27,8 @@ WindowManager::WindowManager()
   configs->push_back(new WindowConfig("foo", 300, 300));
   window_classifier_.AddConfig(criteria, configs);
 
-  CreateAnchor("first", 50, 50);
+  CreateAnchor("anchor1", 50, 50);
+  CreateAnchor("anchor2", 300, 300);
   active_anchor_ = 0;
 }
 
@@ -48,6 +49,14 @@ void WindowManager::HandleButtonPress(XWindow* x_window, int x, int y) {
   WindowAnchor* anchor = it->second;
   CHECK(anchor);
   LOG << "Got button press for anchor " << anchor->name();
+
+  // Make this the active anchor.
+  for (uint i = 0; i < anchors_.size(); ++i) {
+    if (anchor == anchors_[i].get()) {
+      active_anchor_ = i;
+      break;
+    }
+  }
   in_drag_ = true;
   drag_offset_x_ = x - anchor->x();
   drag_offset_y_ = y - anchor->y();
@@ -70,6 +79,7 @@ void WindowManager::HandleCreateWindow(XWindow* x_window) {
 
   WindowAnchor* anchor = anchors_[active_anchor_].get();
   anchor->AddWindow(window.get());
+  windows_to_anchors_[window.get()].push_back(anchor);
   anchor->SetActive(anchor->NumWindows()-1);
 }
 
@@ -78,7 +88,12 @@ void WindowManager::HandleDestroyWindow(XWindow* x_window) {
   CHECK(windows_.count(x_window) == 1);
   Window* window = windows_[x_window].get();
   CHECK(window);
-  anchors_[active_anchor_]->RemoveWindow(window);
+  WindowAnchorPtrVector& anchors = windows_to_anchors_[window];
+  for (WindowAnchorPtrVector::iterator anchor = anchors.begin();
+       anchor != anchors.end(); ++anchor) {
+    (*anchor)->RemoveWindow(window);
+  }
+  windows_to_anchors_.erase(window);
   windows_.erase(x_window);
 }
 

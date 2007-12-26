@@ -42,6 +42,9 @@ class WindowManager {
   typedef vector<ref_ptr<WindowAnchor> > WindowAnchorVector;
   WindowAnchorVector anchors_;
 
+  typedef vector<WindowAnchor*> WindowAnchorPtrVector;
+  map<Window*, WindowAnchorPtrVector> windows_to_anchors_;
+
   size_t active_anchor_;
   bool in_drag_;
   int drag_offset_x_;
