@@ -5,6 +5,7 @@
 #define __UTIL_H__
 
 #include <iostream>
+#include <map>
 #include <string>
 
 using namespace std;
@@ -131,6 +132,18 @@ class ref_ptr {
   T* ptr_;
   int* refs_;
 };
+
+
+template<class K, class V>
+V FindWithDefault(const map<K, V>& the_map, const K& key, V def) {
+  // FIXME: It's dumb that I'm doing two lookups here.  I'm too dense to
+  // figure out the syntax for declaring a const_iterator of the templated
+  // map class -- the obvious "map<K, V>::const_iterator it" yields
+  // "expected `;' before 'it'".
+  if (the_map.find(key) == the_map.end()) return def;
+  return the_map.find(key)->second;
+}
+
 
 }  // namespace wham
 

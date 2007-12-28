@@ -299,9 +299,7 @@ XWindow* XServer::GetWindow(::Window id, bool create) {
 
 
 GC XServer::GetGC(const string& name) {
-  map<string, GC>::const_iterator gc = gcs_.find(name);
-  if (gc == gcs_.end()) return default_gc_;
-  return gc->second;
+  return FindWithDefault(gcs_, name, default_gc_);
 }
 
 

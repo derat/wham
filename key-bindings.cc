@@ -8,10 +8,38 @@
 
 namespace wham {
 
-bool KeyBindings::ParseSequence(const string& str,
-                                KeyBindingSequence* bindings,
-                                string* error) {
-  CHECK(bindings);
+KeyBindings::CommandMapping KeyBindings::command_mappings_[] = {
+  { "create_anchor", CMD_CREATE_ANCHOR },
+  { "TERMINATOR", CMD_UNKNOWN },
+};
+
+map<string, KeyBindings::Command> KeyBindings::commands_;
+
+bool KeyBindings::commands_initialized_ = false;
+
+
+bool KeyBindings::AddBinding(const string& combos_str,
+                             const string& command_str,
+                             string* error) {
+  if (error) *error = "";
+
+  KeyBinding binding;
+  if (!ParseCombos(combos_str, &(binding.combos), error)) return false;
+
+  binding.command = LookupCommand(command_str);
+  if (binding.command == CMD_UNKNOWN) {
+    if (error) *error = "Unknown command \"" + command_str + "\"";
+    return false;
+  }
+
+  return true;
+}
+
+
+bool KeyBindings::ParseCombos(const string& str,
+                              vector<Combo>* combos,
+                              string* error) {
+  CHECK(combos);
   if (error) *error = "";
 
   static pcrecpp::RE mod_re("\\s*((\\w+)\\s*\\+)");  // modifier and plus
@@ -21,16 +49,16 @@ bool KeyBindings::ParseSequence(const string& str,
   pcrecpp::StringPiece input(str);
 
   do {
-    KeyBinding binding;
+    Combo combo;
 
     string modifier;
     while (mod_re.Consume(&input, static_cast<void*>(NULL), &modifier)) {
-      KeyBinding::Modifier mod_bit = KeyBinding::StrToModifier(modifier);
-      if (mod_bit == KeyBinding::MOD_INVALID) {
+      Combo::Modifier mod_bit = Combo::StrToModifier(modifier);
+      if (mod_bit == Combo::MOD_INVALID) {
         if (error) *error = "Got invalid modifier \"" + modifier + "\"";
         return false;
       }
-      binding.mods |= mod_bit;
+      combo.mods |= mod_bit;
     }
     string key;
     if (!key_re.Consume(&input, &key)) {
@@ -40,11 +68,23 @@ bool KeyBindings::ParseSequence(const string& str,
       }
       return false;
     }
-    binding.key = key;
-    bindings->push_back(binding);
+    combo.key = key;
+    combos->push_back(combo);
   } while (comma_re.Consume(&input));
 
   return true;
+}
+
+
+KeyBindings::Command KeyBindings::LookupCommand(const string& str) {
+  if (!commands_initialized_) {
+    for (int i = 0; command_mappings_[i].cmd != CMD_UNKNOWN; ++i) {
+      commands_.insert(
+          make_pair(command_mappings_[i].str, command_mappings_[i].cmd));
+    }
+    commands_initialized_ = true;
+  }
+  return FindWithDefault(commands_, str, CMD_UNKNOWN);
 }
 
 }  // namespace wham

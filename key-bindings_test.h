@@ -9,17 +9,18 @@
 
 using namespace wham;
 
-#define MOD_CONTROL KeyBindings::KeyBinding::MOD_CONTROL
-#define MOD_MOD1 KeyBindings::KeyBinding::MOD_MOD1
-#define MOD_SHIFT KeyBindings::KeyBinding::MOD_SHIFT
+// Save some typing later.
+#define MOD_CONTROL KeyBindings::Combo::MOD_CONTROL
+#define MOD_MOD1    KeyBindings::Combo::MOD_MOD1
+#define MOD_SHIFT   KeyBindings::Combo::MOD_SHIFT
 
 namespace CxxTest {
 
-// Make KeyBinding classes get pretty-printed by CxxTest.
+// Make Combo structs get pretty-printed by CxxTest.
 CXXTEST_TEMPLATE_INSTANTIATION
-class ValueTraits<KeyBindings::KeyBinding> {
+class ValueTraits<KeyBindings::Combo> {
  public:
-  ValueTraits(const KeyBindings::KeyBinding& value)
+  ValueTraits(const KeyBindings::Combo& value)
       : value_(value) {
   }
   const char *asString() {
@@ -32,7 +33,7 @@ class ValueTraits<KeyBindings::KeyBinding> {
     return str_.c_str();
   }
  private:
-  KeyBindings::KeyBinding value_;
+  KeyBindings::Combo value_;
   string str_;
 };
 
@@ -41,38 +42,43 @@ class ValueTraits<KeyBindings::KeyBinding> {
 
 class KeyBindingsTestSuite : public CxxTest::TestSuite {
  public:
-  void testKeyBindings_ParseSequence() {
+  void testKeyBindings_ParseCombos() {
     // Test a sequence of two bindings, each of which has modifiers.
-    KeyBindings::KeyBindingSequence expected_seq;
+    vector<KeyBindings::Combo> expected_seq;
     expected_seq.push_back(
-        KeyBindings::KeyBinding(MOD_CONTROL | MOD_SHIFT, "U"));
+        KeyBindings::Combo(MOD_CONTROL | MOD_SHIFT, "U"));
     expected_seq.push_back(
-        KeyBindings::KeyBinding(MOD_MOD1, "M"));
-    KeyBindings::KeyBindingSequence seq;
-    TS_ASSERT(KeyBindings::ParseSequence("Ctrl+Shift+U, Alt+M", &seq, NULL));
+        KeyBindings::Combo(MOD_MOD1, "M"));
+    vector<KeyBindings::Combo> seq;
+    TS_ASSERT(KeyBindings::ParseCombos("Ctrl+Shift+U, Alt+M", &seq, NULL));
     TS_ASSERT_EQUALS(seq, expected_seq);
 
     // Test a single binding with lots of whitespace.
     expected_seq.clear();
     expected_seq.push_back(
-        KeyBindings::KeyBinding(MOD_CONTROL | MOD_MOD1, "Foo"));
+        KeyBindings::Combo(MOD_CONTROL | MOD_MOD1, "Foo"));
     seq.clear();
-    TS_ASSERT(KeyBindings::ParseSequence(" Control + Mod1 + Foo ", &seq, NULL));
+    TS_ASSERT(KeyBindings::ParseCombos(" Control + Mod1 + Foo ", &seq, NULL));
     TS_ASSERT_EQUALS(seq, expected_seq);
 
     // Test a sequence that doesn't have any modifiers.
     expected_seq.clear();
-    expected_seq.push_back(KeyBindings::KeyBinding("b"));
-    expected_seq.push_back(KeyBindings::KeyBinding("c"));
+    expected_seq.push_back(KeyBindings::Combo("b"));
+    expected_seq.push_back(KeyBindings::Combo("c"));
     seq.clear();
-    TS_ASSERT(KeyBindings::ParseSequence("b, c", &seq, NULL));
+    TS_ASSERT(KeyBindings::ParseCombos("b, c", &seq, NULL));
     TS_ASSERT_EQUALS(seq, expected_seq);
 
     // Test a couple of malformed sequences.
-    TS_ASSERT(!KeyBindings::ParseSequence("+R", &seq, NULL));
-    TS_ASSERT(!KeyBindings::ParseSequence("Foo+J", &seq, NULL));
-    TS_ASSERT(!KeyBindings::ParseSequence("Ctrl+", &seq, NULL));
+    TS_ASSERT(!KeyBindings::ParseCombos("+R", &seq, NULL));
+    TS_ASSERT(!KeyBindings::ParseCombos("Foo+J", &seq, NULL));
+    TS_ASSERT(!KeyBindings::ParseCombos("Ctrl+", &seq, NULL));
   }
 
- private:
+  void testKeyBindings_LookupCommand() {
+    TS_ASSERT_EQUALS(KeyBindings::LookupCommand("create_anchor"),
+                     KeyBindings::CMD_CREATE_ANCHOR);
+    TS_ASSERT_EQUALS(KeyBindings::LookupCommand("bogus"),
+                     KeyBindings::CMD_UNKNOWN);
+  }
 };

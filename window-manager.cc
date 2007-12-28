@@ -41,13 +41,12 @@ void WindowManager::CreateAnchor(const string& name, int x, int y) {
 
 
 void WindowManager::HandleButtonPress(XWindow* x_window, int x, int y) {
-  WindowAnchorTitlebarMap::iterator it = anchor_titlebars_.find(x_window);
-  if (it == anchor_titlebars_.end()) {
+  WindowAnchor* anchor = FindWithDefault(anchor_titlebars_, x_window,
+                                         static_cast<WindowAnchor*>(NULL));
+  if (anchor == NULL) {
     ERROR << "Ignoring button press for unknown window";
     return;
   }
-  WindowAnchor* anchor = it->second;
-  CHECK(anchor);
   LOG << "Got button press for anchor " << anchor->name();
 
   // Make this the active anchor.
