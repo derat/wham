@@ -17,10 +17,21 @@ class KeyBindings {
   // e.g. "Alt+Shift+U, Ctrl+C"
   void AddBinding(const string& binding);
 
- private:
-  friend class ::KeyBindingsTestSuite;
-
   struct KeyBinding {
+    KeyBinding()
+        : mods(0),
+          key("") {}
+    KeyBinding(const string& key)
+        : mods(0),
+          key(key) {}
+    KeyBinding(uint mods, const string& key)
+        : mods(mods),
+          key(key) {}
+
+    bool operator==(const KeyBinding& o) const {
+      return mods == o.mods && key == o.key;
+    }
+
     enum Modifier {
       MOD_INVALID = 0,
       MOD_SHIFT   = 1 << 0,
@@ -35,14 +46,22 @@ class KeyBindings {
       return MOD_INVALID;
     }
 
-    uint mod_mask;
+    uint mods;
     string key;
   };
 
+ private:
+  friend class ::KeyBindingsTestSuite;
+
   typedef vector<KeyBinding> KeyBindingSequence;
 
+  // Parse a string describing a sequence of key bindings (e.g.
+  // "Ctrl+Alt+M, Shift+J").  The resulting sequence is stored in
+  // 'bindings'.  False is returned on failure, in which case an error is
+  // also logged to 'error' if it is non-NULL.
   static bool ParseSequence(const string& str,
-                            KeyBindingSequence* bindings);
+                            KeyBindingSequence* bindings,
+                            string* error);
 };
 
 }  // namespace wham
