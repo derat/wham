@@ -35,20 +35,25 @@ class KeyBindings {
     }
 
     enum Modifier {
-      MOD_INVALID = 0,
+      MOD_UNKNOWN = 0,
       MOD_SHIFT   = 1 << 0,
       MOD_CONTROL = 1 << 1,
       MOD_MOD1    = 1 << 2,
     };
 
+    // Look up a modifier from its string representation.
+    // Returns MOD_UNKNOWN for invalid strings.
     static Modifier StrToModifier(const string& str) {
       if (str == "Shift") return MOD_SHIFT;
       if (str == "Control" || str == "Ctrl") return MOD_CONTROL;
       if (str == "Mod1" || str == "Alt") return MOD_MOD1;
-      return MOD_INVALID;
+      return MOD_UNKNOWN;
     }
 
+    // Bitmap containing Modifiers required for this combo
     uint mods;
+
+    // A string representation of the key's name
     string key;
   };
 
@@ -77,14 +82,20 @@ class KeyBindings {
                           vector<Combo>* combos,
                           string* error);
 
-  static Command LookupCommand(const string& str);
+  // Look up a command from its string representation.
+  // Returns CMD_UNKNOWN for invalid strings.
+  static Command StrToCommand(const string& str);
 
+  // An array containing string representations of commands and the
+  // corresponding enum values
   struct CommandMapping {
     string str;
     Command cmd;
   };
-
   static CommandMapping command_mappings_[];
+
+  // A map generated from command_mappings_ and a bool to track whether
+  // it's been initialized yet or not
   static map<string, Command> commands_;
   static bool commands_initialized_;
 };

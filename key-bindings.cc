@@ -26,7 +26,7 @@ bool KeyBindings::AddBinding(const string& combos_str,
   KeyBinding binding;
   if (!ParseCombos(combos_str, &(binding.combos), error)) return false;
 
-  binding.command = LookupCommand(command_str);
+  binding.command = StrToCommand(command_str);
   if (binding.command == CMD_UNKNOWN) {
     if (error) *error = "Unknown command \"" + command_str + "\"";
     return false;
@@ -54,8 +54,8 @@ bool KeyBindings::ParseCombos(const string& str,
     string modifier;
     while (mod_re.Consume(&input, static_cast<void*>(NULL), &modifier)) {
       Combo::Modifier mod_bit = Combo::StrToModifier(modifier);
-      if (mod_bit == Combo::MOD_INVALID) {
-        if (error) *error = "Got invalid modifier \"" + modifier + "\"";
+      if (mod_bit == Combo::MOD_UNKNOWN) {
+        if (error) *error = "Got unknown modifier \"" + modifier + "\"";
         return false;
       }
       combo.mods |= mod_bit;
@@ -76,7 +76,7 @@ bool KeyBindings::ParseCombos(const string& str,
 }
 
 
-KeyBindings::Command KeyBindings::LookupCommand(const string& str) {
+KeyBindings::Command KeyBindings::StrToCommand(const string& str) {
   if (!commands_initialized_) {
     for (int i = 0; command_mappings_[i].cmd != CMD_UNKNOWN; ++i) {
       commands_.insert(
