@@ -16,7 +16,7 @@ class WindowClassifierTestSuite : public CxxTest::TestSuite {
     // Merge a single config.
     WindowConfig config1("default", 10, 20);
     configs.MergeConfig(config1);
-    TS_ASSERT_EQUALS(configs.configs_.size(), 1);
+    TS_ASSERT_EQUALS(configs.configs_.size(), 1U);
     WindowConfig stored_config = *(configs.configs_[0].get());
     TS_ASSERT_EQUALS(stored_config.name, config1.name);
     TS_ASSERT_EQUALS(stored_config.width, config1.width);
@@ -26,7 +26,7 @@ class WindowClassifierTestSuite : public CxxTest::TestSuite {
     // appended.
     WindowConfig config2("foo", 30, 40);
     configs.MergeConfig(config2);
-    TS_ASSERT_EQUALS(configs.configs_.size(), 2);
+    TS_ASSERT_EQUALS(configs.configs_.size(), 2U);
     stored_config = *(configs.configs_[0].get());
     TS_ASSERT_EQUALS(stored_config.name, config1.name);
     TS_ASSERT_EQUALS(stored_config.width, config1.width);
@@ -40,7 +40,7 @@ class WindowClassifierTestSuite : public CxxTest::TestSuite {
     // should replace the first config.
     WindowConfig config3("default", 50, 60);
     configs.MergeConfig(config3);
-    TS_ASSERT_EQUALS(configs.configs_.size(), 2);
+    TS_ASSERT_EQUALS(configs.configs_.size(), 2U);
     stored_config = *(configs.configs_[0].get());
     TS_ASSERT_EQUALS(stored_config.name, config3.name);
     TS_ASSERT_EQUALS(stored_config.width, config3.width);
@@ -57,18 +57,18 @@ class WindowClassifierTestSuite : public CxxTest::TestSuite {
 
   void testWindowConfigSet_misc() {
     WindowConfigSet configs;
-    TS_ASSERT_EQUALS(configs.NumConfigs(), 0);
+    TS_ASSERT_EQUALS(configs.NumConfigs(), 0U);
 
     WindowConfig config("default", 100, 100);
     configs.MergeConfig(config);
-    TS_ASSERT_EQUALS(configs.NumConfigs(), 1);
+    TS_ASSERT_EQUALS(configs.NumConfigs(), 1U);
 
     WindowConfig config2("foo", 100, 100);
     configs.MergeConfig(config2);
-    TS_ASSERT_EQUALS(configs.NumConfigs(), 2);
+    TS_ASSERT_EQUALS(configs.NumConfigs(), 2U);
 
     configs.Clear();
-    TS_ASSERT_EQUALS(configs.NumConfigs(), 0);
+    TS_ASSERT_EQUALS(configs.NumConfigs(), 0U);
   }
 
   void testWindowCriteria_Matches() {
@@ -156,16 +156,16 @@ class WindowClassifierTestSuite : public CxxTest::TestSuite {
     props.app_name = "rxvt";
     WindowConfigSet matched_configs;
     TS_ASSERT(classifier.ClassifyWindow(props, &matched_configs));
-    TS_ASSERT_EQUALS(matched_configs.NumConfigs(), 2);
+    TS_ASSERT_EQUALS(matched_configs.NumConfigs(), 2U);
 
     props.app_name = "xterm";
     matched_configs.Clear();
     TS_ASSERT(classifier.ClassifyWindow(props, &matched_configs));
-    TS_ASSERT_EQUALS(matched_configs.NumConfigs(), 2);
+    TS_ASSERT_EQUALS(matched_configs.NumConfigs(), 2U);
 
     props.app_name = "blah";
     matched_configs.Clear();
     TS_ASSERT(classifier.ClassifyWindow(props, &matched_configs));
-    TS_ASSERT_EQUALS(matched_configs.NumConfigs(), 1);
+    TS_ASSERT_EQUALS(matched_configs.NumConfigs(), 1U);
   }
 };
