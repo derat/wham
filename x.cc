@@ -381,7 +381,7 @@ void XServer::UpdateKeyBindingMap(
          bindings.bindings().begin();
        binding != bindings.bindings().end(); ++binding) {
     if (binding->combos.empty()) {
-      ERROR << "Skipping empty keybinding for command " << binding->command;
+      ERROR << "Skipping empty key binding for command " << binding->command;
       continue;
     }
 
@@ -391,6 +391,7 @@ void XServer::UpdateKeyBindingMap(
     for (vector<KeyBindings::Combo>::const_iterator combo =
            binding->combos.begin();
          combo != binding->combos.end(); ++combo) {
+      // Convert the string versions of the modifiers into a bitmask.
       uint mods = 0;
       if (!GetModifiers(combo->mods, &mods)) {
         ERROR << "Unknown modifier in key binding "
@@ -399,7 +400,22 @@ void XServer::UpdateKeyBindingMap(
         error_in_combo = true;
         break;
       }
+
+      // Convert the string representation of the key into a keysym.
       KeySym keysym = XStringToKeysym(combo->key.c_str());
+      if (keysym == NoSymbol) {
+        ERROR << "Unknown symbol \"" << combo->key << "\" in key binding "
+              << binding->ToString() << " for command "
+              << KeyBindings::CommandToStr(binding->command);
+        error_in_combo = true;
+        break;
+      }
+
+      // Use the lowercase version of the keysym if one exists.
+      KeySym lower_keysym = NoSymbol;
+      KeySym upper_keysym = NoSymbol;
+      XConvertCase(keysym, &lower_keysym, &upper_keysym);
+      keysym = lower_keysym;
 
       if (parent_binding == NULL) {
         // If this is the first combo in the sequence, then it needs to go
