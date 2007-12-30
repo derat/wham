@@ -8,11 +8,12 @@ using namespace wham;
 int main(int argc, char** argv) {
   XServer x_server;
   CHECK(x_server.Init());
+
   ref_ptr<Config> new_config(new Config);
   Config::Swap(new_config);
 
   KeyBindings bindings;
-  CHECK(bindings.AddBinding("Alt+b", "create_anchor", NULL));
+  CHECK(bindings.AddBinding("Alt+b,n", "create_anchor", NULL));
   x_server.RegisterKeyBindings(bindings);
 
   WindowManager window_manager;

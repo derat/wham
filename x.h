@@ -14,6 +14,8 @@
 
 using namespace std;
 
+class XTestSuite;  // from x_test.h
+
 namespace wham {
 
 class WindowManager;
@@ -55,6 +57,25 @@ class XWindow {
 };
 
 
+struct XKeyBinding {
+  XKeyBinding(KeySym keysym,
+              uint required_mods,
+              uint inherited_mods,
+              KeyBindings::Command command)
+      : keysym(keysym),
+        required_mods(required_mods),
+        inherited_mods(inherited_mods),
+        command(command),
+        children() {}
+
+  KeySym keysym;
+  uint required_mods;
+  uint inherited_mods;
+  KeyBindings::Command command;
+  vector<ref_ptr<XKeyBinding> > children;
+};
+
+
 class XServer {
  public:
   XServer();
@@ -76,6 +97,16 @@ class XServer {
   void RegisterKeyBindings(const KeyBindings& bindings);
 
  private:
+  friend class ::XTestSuite;
+
+  typedef pair<KeySym, uint> XKeyCombo;
+  typedef map<XKeyCombo, ref_ptr<XKeyBinding> > XKeyBindingMap;
+
+  static void UpdateKeyBindingMap(const KeyBindings& bindings,
+                                  XKeyBindingMap* binding_map);
+
+  void HandleKeyPress(KeySym keysym, uint mods);
+
   Display* display_;
   int screen_num_;
 
@@ -91,7 +122,8 @@ class XServer {
   GC default_gc_;
   map<string, GC> gcs_;
 
-  map<pair<KeyCode, uint>, KeyBindings::Command> bindings_;
+  XKeyBindingMap bindings_;
+  XKeyBinding* in_progress_binding_;
 
   DISALLOW_EVIL_CONSTRUCTORS(XServer);
 };

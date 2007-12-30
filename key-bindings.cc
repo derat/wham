@@ -9,6 +9,7 @@
 namespace wham {
 
 KeyBindings::CommandMapping KeyBindings::command_mappings_[] = {
+  { "close_window",  CMD_CLOSE_WINDOW },
   { "create_anchor", CMD_CREATE_ANCHOR },
   { "TERMINATOR", CMD_UNKNOWN },
 };
@@ -34,6 +35,16 @@ bool KeyBindings::AddBinding(const string& combos_str,
 
   bindings_.push_back(binding);
   return true;
+}
+
+
+string KeyBindings::CommandToStr(Command cmd) {
+  for (int i = 0; command_mappings_[i].cmd != CMD_UNKNOWN; ++i) {
+    if (command_mappings_[i].cmd == cmd) {
+      return command_mappings_[i].str;
+    }
+  }
+  return "unknown";
 }
 
 

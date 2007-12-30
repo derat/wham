@@ -49,7 +49,8 @@ clean:
 	  config-parser_test config-parser_test.cc \
 	  key-bindings_test key-bindings_test.cc \
 	  util_test util_test.cc \
-	  window-classifier_test window-classifier_test.cc
+	  window-classifier_test window-classifier_test.cc \
+	  x_test x_test.cc
 
 config-parser_test.cc: config-parser_test.h
 	$(CXXTESTGEN) --error-printer -o $@ config-parser_test.h
@@ -81,8 +82,19 @@ window-classifier_test: \
 	$(CC) $(CXXTESTINCLUDE) $(LIBS) -o $@ \
 	  window-classifier_test.cc window-classifier.o util.o
 
-test: config-parser_test key-bindings_test util_test window-classifier_test
+x_test.cc: x_test.h
+	$(CXXTESTGEN) --error-printer -o $@ x_test.h
+
+x_test: x_test.cc x_test.h x.o config.o key-bindings.o util.o window.o \
+  window-anchor.o window-classifier.o window-manager.o
+	$(CC) $(CXXTESTINCLUDE) $(LIBS) -o $@ x_test.cc x.o config.o \
+	  key-bindings.o util.o window.o window-anchor.o window-classifier.o \
+	  window-manager.o
+
+test: config-parser_test key-bindings_test util_test window-classifier_test \
+  x_test
 	./config-parser_test
 	./key-bindings_test
 	./util_test
 	./window-classifier_test
+	./x_test

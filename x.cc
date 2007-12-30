@@ -169,7 +169,8 @@ void XWindow::Map() {
 XServer::XServer()
     : display_(NULL),
       screen_num_(-1),
-      initialized_(false) {
+      initialized_(false),
+      in_progress_binding_(NULL) {
 }
 
 
@@ -276,6 +277,8 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
           XKeyEvent& e = event.xkey;
           DEBUG << "KeyPress: window=0x" << hex << e.window << dec
                 << " keycode=" << e.keycode << " state=" << e.state;
+          /*
+          KeyCode keycode = XKeysymToKeycode(display_, keysym);
           KeyBindings::Command cmd =
               FindWithDefault(
                   bindings_,
@@ -284,6 +287,7 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
           if (cmd != KeyBindings::CMD_UNKNOWN) {
             window_manager->HandleCommand(cmd);
           }
+          */
         }
         break;
       case KeyRelease:
@@ -335,27 +339,118 @@ XFontStruct* XServer::GetFontInfo(const string& font) {
 
 
 void XServer::RegisterKeyBindings(const KeyBindings& bindings) {
+  // Ungrab old bindings, update our map, and grab all of the top-level
+  // bindings.
   XUngrabKey(display_, AnyKey, AnyModifier, root_);
-  bindings_.clear();
+  UpdateKeyBindingMap(bindings, &bindings_);
+  for (XKeyBindingMap::const_iterator it = bindings_.begin();
+       it != bindings_.end(); ++it) {
+    KeyCode keycode = XKeysymToKeycode(display_, it->second->keysym);
+    XGrabKey(display_, keycode, it->second->required_mods,
+             root_, False, GrabModeAsync, GrabModeAsync);
+  }
+}
 
-  for (vector<KeyBindings::Binding>::const_iterator it =
-         bindings.bindings().begin(); it != bindings.bindings().end(); ++it) {
-    if (it->combos.empty()) {
-      ERROR << "Skipping empty binding for command " << it->command;
+
+void XServer::UpdateKeyBindingMap(
+    const KeyBindings& bindings, XKeyBindingMap* binding_map) {
+  binding_map->clear();
+
+  for (vector<KeyBindings::Binding>::const_iterator binding =
+         bindings.bindings().begin();
+       binding != bindings.bindings().end(); ++binding) {
+    if (binding->combos.empty()) {
+      ERROR << "Skipping empty keybinding for command " << binding->command;
       continue;
     }
-    uint mods = 0;
-    if (it->combos[0].mods & KeyBindings::Combo::MOD_MOD1) mods |= Mod1Mask;
-    if (it->combos[0].mods & KeyBindings::Combo::MOD_SHIFT) mods |= ShiftMask;
-    if (it->combos[0].mods & KeyBindings::Combo::MOD_CONTROL) {
-      mods |= ControlMask;
+
+    XKeyBinding* parent_binding = NULL;
+    uint inherited_mods = 0;
+    for (vector<KeyBindings::Combo>::const_iterator combo =
+           binding->combos.begin();
+         combo != binding->combos.end(); ++combo) {
+      uint mods = 0;
+      if (combo->mods & KeyBindings::Combo::MOD_MOD1)    mods |= Mod1Mask;
+      if (combo->mods & KeyBindings::Combo::MOD_SHIFT)   mods |= ShiftMask;
+      if (combo->mods & KeyBindings::Combo::MOD_CONTROL) mods |= ControlMask;
+      KeySym keysym = XStringToKeysym(combo->key.c_str());
+
+      if (parent_binding == NULL) {
+        // If this is the first combo in the sequence, then it needs to go
+        // into the top-level map.  If we already have it registered as
+        // part of another binding, we'll just use that.
+        pair<KeySym, uint> key = make_pair(keysym, mods);
+        if (binding_map->find(key) == binding_map->end()) {
+          ref_ptr<XKeyBinding> x_binding(
+              new XKeyBinding(keysym, mods, 0, KeyBindings::CMD_UNKNOWN));
+          binding_map->insert(make_pair(key, x_binding));
+          DEBUG << "New top-level binding:"
+                << " keysym=" << keysym << " mods=" << mods;
+        }
+        parent_binding = binding_map->find(key)->second.get();
+        CHECK(parent_binding);
+      } else {
+        if (parent_binding->command != KeyBindings::CMD_UNKNOWN) {
+          ERROR << "While adding multi-level binding "
+                << binding->ToString() << " for "
+                << KeyBindings::CommandToStr(binding->command)
+                << ", removing command "
+                << KeyBindings::CommandToStr(parent_binding->command)
+                << " associated with shorter binding";
+          parent_binding->command = KeyBindings::CMD_UNKNOWN;
+        }
+
+        // Otherwise, we iterate through all of the combos listed as
+        // children of the last combo to see if this one's already
+        // registered.
+        bool found = false;
+        for (vector<ref_ptr<XKeyBinding> >::iterator x_binding =
+               parent_binding->children.begin();
+             x_binding != parent_binding->children.end(); ++x_binding) {
+          CHECK((*x_binding)->inherited_mods == inherited_mods);
+          if ((*x_binding)->required_mods == mods &&
+              (*x_binding)->keysym == keysym) {
+            DEBUG << "Using existing child binding:"
+                  << " keysym=" << keysym << " mods=" << mods
+                  << " inherited_mods=" << inherited_mods;
+            parent_binding = (*x_binding).get();
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          ref_ptr<XKeyBinding> x_binding(
+              new XKeyBinding(keysym, mods, inherited_mods,
+                              KeyBindings::CMD_UNKNOWN));
+          parent_binding->children.push_back(x_binding);
+          DEBUG << "New child binding:"
+                << " keysym=" << keysym << " mods=" << mods
+                << " inherited_Mods=" << inherited_mods;
+          parent_binding = x_binding.get();
+        }
+      }
+
+      inherited_mods |= mods;
     }
-    KeySym keysym = XStringToKeysym(it->combos[0].key.c_str());
-    KeyCode code = XKeysymToKeycode(display_, keysym);
-    DEBUG << "Binding keycode=" << code << " mods=" << mods;
-    XGrabKey(display_, code, mods, root_, False, GrabModeAsync, GrabModeAsync);
-    bindings_.insert(make_pair(make_pair(code, mods), it->command));
+
+    CHECK(parent_binding);
+    if (!parent_binding->children.empty()) {
+      ERROR << "Key binding " << binding->ToString() << " already "
+            << "has sub-bindings; not adding command "
+            << KeyBindings::CommandToStr(binding->command);
+    } else {
+      if (parent_binding->command != KeyBindings::CMD_UNKNOWN) {
+        ERROR << "Rebinding " << binding->ToString() << " from "
+              << KeyBindings::CommandToStr(parent_binding->command)
+              << " to " << KeyBindings::CommandToStr(binding->command);
+      }
+      parent_binding->command = binding->command;
+    }
   }
+}
+
+
+void XServer::HandleKeyPress(KeySym keysym, uint mods) {
 }
 
 }  // namespace wham

@@ -24,12 +24,7 @@ class ValueTraits<KeyBindings::Combo> {
       : value_(value) {
   }
   const char *asString() {
-    if (str_.empty()) {
-      if (value_.mods & MOD_CONTROL) str_ += "Control+";
-      if (value_.mods & MOD_MOD1) str_ += "Mod1+";
-      if (value_.mods & MOD_SHIFT) str_ += "Shift+";
-      str_ += value_.key;
-    }
+    if (str_.empty()) str_ = value_.ToString();
     return str_.c_str();
   }
  private:

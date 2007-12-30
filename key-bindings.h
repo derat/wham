@@ -20,6 +20,7 @@ class KeyBindings {
                   const string& command_str,
                   string* error);
 
+  // FIXME: fix upper/lower-case stuff
   struct Combo {
     Combo()
         : mods(0),
@@ -51,6 +52,16 @@ class KeyBindings {
       return MOD_UNKNOWN;
     }
 
+    // Get a string representation of this combo.
+    string ToString() const {
+      string str;
+      if (mods & MOD_CONTROL) str += "Control+";
+      if (mods & MOD_MOD1)    str += "Mod1+";
+      if (mods & MOD_SHIFT)   str += "Shift+";
+      str += key;
+      return str;
+    }
+
     // Bitmap containing Modifiers required for this combo
     uint mods;
 
@@ -60,13 +71,27 @@ class KeyBindings {
 
   enum Command {
     CMD_UNKNOWN,
+    CMD_CLOSE_WINDOW,
     CMD_CREATE_ANCHOR,
   };
+
+  // Get the string representation of a command.
+  static string CommandToStr(Command cmd);
 
   struct Binding {
     Binding()
         : combos(),
           command(CMD_UNKNOWN) {}
+
+    string ToString() const {
+      string str;
+      for (vector<Combo>::const_iterator combo = combos.begin();
+           combo != combos.end(); ++combo) {
+        if (!str.empty()) str += ", ";
+        str += combo->ToString();
+      }
+      return str;
+    }
 
     vector<Combo> combos;
     Command command;
