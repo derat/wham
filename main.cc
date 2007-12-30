@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
   Config::Swap(new_config);
 
   KeyBindings bindings;
-  CHECK(bindings.AddBinding("Alt+b,n", "create_anchor", NULL));
+  CHECK(bindings.AddBinding("Ctrl+n", "create_anchor", NULL));
   x_server.RegisterKeyBindings(bindings);
 
   WindowManager window_manager;

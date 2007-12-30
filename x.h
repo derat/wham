@@ -110,7 +110,7 @@ class XServer {
   static void UpdateKeyBindingMap(const KeyBindings& bindings,
                                   XKeyBindingMap* binding_map);
 
-  void HandleKeyPress(KeySym keysym, uint mods);
+  void HandleKeyPress(KeySym keysym, uint mods, WindowManager* window_manager);
 
   Display* display_;
   int screen_num_;

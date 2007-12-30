@@ -277,17 +277,7 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
           XKeyEvent& e = event.xkey;
           DEBUG << "KeyPress: window=0x" << hex << e.window << dec
                 << " keycode=" << e.keycode << " state=" << e.state;
-          /*
-          KeyCode keycode = XKeysymToKeycode(display_, keysym);
-          KeyBindings::Command cmd =
-              FindWithDefault(
-                  bindings_,
-                  make_pair(static_cast<KeyCode>(e.keycode), e.state),
-                  KeyBindings::CMD_UNKNOWN);
-          if (cmd != KeyBindings::CMD_UNKNOWN) {
-            window_manager->HandleCommand(cmd);
-          }
-          */
+          HandleKeyPress(XLookupKeysym(&e, 0), e.state, window_manager);
         }
         break;
       case KeyRelease:
@@ -494,7 +484,23 @@ void XServer::UpdateKeyBindingMap(
 }
 
 
-void XServer::HandleKeyPress(KeySym keysym, uint mods) {
+void XServer::HandleKeyPress(KeySym keysym, uint mods,
+                             WindowManager* window_manager) {
+  KeySym keysym_lower = NoSymbol;
+  KeySym keysym_upper = NoSymbol;
+  XConvertCase(keysym, &keysym_lower, &keysym_upper);
+
+  XKeyBinding* binding =
+      FindWithDefault(bindings_, XKeyCombo(keysym_lower, mods),
+                      ref_ptr<XKeyBinding>(NULL)).get();
+  if (binding == NULL) {
+    ERROR << "Ignoring key press without binding";
+    return;
+  }
+
+  if (binding->command != KeyBindings::CMD_UNKNOWN) {
+    window_manager->HandleCommand(binding->command);
+  }
 }
 
 }  // namespace wham
