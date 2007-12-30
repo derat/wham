@@ -178,7 +178,7 @@ bool XServer::Init() {
 
   display_ = XOpenDisplay(NULL);
   if (display_ == NULL) {
-    LOG << "Can't open display " << XDisplayName(NULL);
+    ERROR << "Can't open display " << XDisplayName(NULL);
     return false;
   }
   screen_num_ = DefaultScreen(display_);
@@ -196,8 +196,7 @@ bool XServer::Init() {
   // debugging
   //XSynchronize(display_, True);
 
-  XSelectInput(display_, root_,
-               SubstructureNotifyMask);
+  XSelectInput(display_, root_, SubstructureNotifyMask);
 
   XWindow::server_ = this;
   initialized_ = true;
@@ -215,7 +214,7 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
       case ButtonPress:
         {
           XButtonEvent& e = event.xbutton;
-          LOG << "ButtonPress: window=0x" << hex << e.window;
+          DEBUG << "ButtonPress: window=0x" << hex << e.window;
           XWindow* x_window = GetWindow(e.window, false);
           window_manager->HandleButtonPress(x_window, e.x_root, e.y_root);
         }
@@ -223,7 +222,7 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
       case ButtonRelease:
         {
           XButtonEvent& e = event.xbutton;
-          LOG << "ButtonRelease: window=0x" << hex << e.window;
+          DEBUG << "ButtonRelease: window=0x" << hex << e.window;
           XWindow* x_window = GetWindow(e.window, false);
           window_manager->HandleButtonRelease(x_window);
         }
@@ -232,24 +231,24 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
         {
           /*
           XConfigureEvent& e = event.xconfigure;
-          LOG << "ConfigureNotify: window=0x" << hex << e.window << dec
-              << " x=" << e.x << " y=" << e.y
-              << " width=" << e.width << " height=" << e.height
-              << " border=" << e.border_width
-              << " above=" << static_cast<int>(e.above)
-              << " override=" << e.override_redirect;
+          DEBUG << "ConfigureNotify: window=0x" << hex << e.window << dec
+                << " x=" << e.x << " y=" << e.y
+                << " width=" << e.width << " height=" << e.height
+                << " border=" << e.border_width
+                << " above=" << static_cast<int>(e.above)
+                << " override=" << e.override_redirect;
               */
         }
         break;
       case CreateNotify:
         {
           XCreateWindowEvent& e = event.xcreatewindow;
-          LOG << "CreateNotify: window=0x" << hex << e.window
-              << " parent=0x" << e.parent << dec
-              << " x=" << e.x << " y=" << e.y
-              << " width=" << e.width << " height=" << e.height
-              << " border=" << e.border_width
-              << " override=" << e.override_redirect;
+          DEBUG << "CreateNotify: window=0x" << hex << e.window
+                << " parent=0x" << e.parent << dec
+                << " x=" << e.x << " y=" << e.y
+                << " width=" << e.width << " height=" << e.height
+                << " border=" << e.border_width
+                << " override=" << e.override_redirect;
           XWindow* x_window = GetWindow(e.window, true);
           window_manager->HandleCreateWindow(x_window);
         }
@@ -257,7 +256,7 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
       case DestroyNotify:
         {
           XDestroyWindowEvent& e = event.xdestroywindow;
-          LOG << "DestroyNotify: window=0x" << hex << e.window;
+          DEBUG << "DestroyNotify: window=0x" << hex << e.window;
           XWindow* x_window = GetWindow(e.window, false);
           CHECK(x_window);
           window_manager->HandleDestroyWindow(x_window);
@@ -266,23 +265,37 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
       case Expose:
         {
           XExposeEvent& e = event.xexpose;
-          //LOG << "Expose: window=0x" << hex << e.window;
+          //DEBUG << "Expose: window=0x" << hex << e.window;
           XWindow* x_window = GetWindow(e.window, false);
           CHECK(x_window);
           window_manager->HandleExposeWindow(x_window);
         }
         break;
+      case KeyPress:
+        {
+          XKeyEvent& e = event.xkey;
+          DEBUG << "KeyPress: window=0x" << hex << e.window << dec
+                << " keycode=" << e.keycode << " state=" << e.state;
+        }
+        break;
+      case KeyRelease:
+        {
+          XKeyEvent& e = event.xkey;
+          DEBUG << "KeyRelease: window=0x" << hex << e.window << dec
+                << " keycode=" << e.keycode << " state=" << e.state;
+        }
+        break;
       case MotionNotify:
         {
           XMotionEvent& e = event.xmotion;
-          //LOG << "MotionNotify: window=0x" << hex << e.window << dec
-          //    << " x=" << e.x_root << " y=" << e.y_root;
+          //DEBUG << "MotionNotify: window=0x" << hex << e.window << dec
+          //      << " x=" << e.x_root << " y=" << e.y_root;
           XWindow* x_window = GetWindow(e.window, false);
           window_manager->HandleMotion(x_window, e.x_root, e.y_root);
         }
         break;
       default:
-        LOG << XEventTypeToName(event.type);
+        DEBUG << XEventTypeToName(event.type);
     }
   }
 }
@@ -322,7 +335,7 @@ void XServer::RegisterKeyBindings(const KeyBindings& bindings) {
       ERROR << "Skipping empty binding for command " << it->command;
       continue;
     }
-    uint mods;
+    uint mods = 0;
     if (it->combos[0].mods & KeyBindings::Combo::MOD_MOD1) mods |= Mod1Mask;
     if (it->combos[0].mods & KeyBindings::Combo::MOD_SHIFT) mods |= ShiftMask;
     if (it->combos[0].mods & KeyBindings::Combo::MOD_CONTROL) {
@@ -330,7 +343,8 @@ void XServer::RegisterKeyBindings(const KeyBindings& bindings) {
     }
     KeySym keysym = XStringToKeysym(it->combos[0].key.c_str());
     KeyCode code = XKeysymToKeycode(display_, keysym);
-    XGrabKey(display_, code, mods, root_, True, GrabModeAsync, GrabModeAsync);
+    DEBUG << "Binding keycode=" << code << " mods=" << mods;
+    XGrabKey(display_, code, mods, root_, False, GrabModeAsync, GrabModeAsync);
   }
 }
 
