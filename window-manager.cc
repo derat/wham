@@ -113,4 +113,14 @@ void WindowManager::HandleMotion(XWindow* x_window, int x, int y) {
 }
 
 
+void WindowManager::HandleCommand(KeyBindings::Command cmd) {
+  switch (cmd) {
+    case KeyBindings::CMD_CREATE_ANCHOR:
+      CreateAnchor("new", 250, 250);
+      break;
+    default:
+      ERROR << "Got unknown command " << cmd;
+  }
+}
+
 }  // namespace wham

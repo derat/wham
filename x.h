@@ -91,6 +91,8 @@ class XServer {
   GC default_gc_;
   map<string, GC> gcs_;
 
+  map<pair<KeyCode, uint>, KeyBindings::Command> bindings_;
+
   DISALLOW_EVIL_CONSTRUCTORS(XServer);
 };
 

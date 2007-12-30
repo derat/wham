@@ -8,6 +8,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+#include "key-bindings.h"
 #include "util.h"
 #include "window.h"
 #include "window-anchor.h"
@@ -29,6 +30,9 @@ class WindowManager {
   void HandleDestroyWindow(XWindow* x_window);
   void HandleExposeWindow(XWindow* x_window);
   void HandleMotion(XWindow* x_window, int x, int y);
+
+  // TODO: maybe move Command to this file
+  void HandleCommand(KeyBindings::Command cmd);
 
  private:
   WindowClassifier window_classifier_;

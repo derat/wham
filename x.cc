@@ -276,6 +276,14 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
           XKeyEvent& e = event.xkey;
           DEBUG << "KeyPress: window=0x" << hex << e.window << dec
                 << " keycode=" << e.keycode << " state=" << e.state;
+          KeyBindings::Command cmd =
+              FindWithDefault(
+                  bindings_,
+                  make_pair(static_cast<KeyCode>(e.keycode), e.state),
+                  KeyBindings::CMD_UNKNOWN);
+          if (cmd != KeyBindings::CMD_UNKNOWN) {
+            window_manager->HandleCommand(cmd);
+          }
         }
         break;
       case KeyRelease:
@@ -328,6 +336,7 @@ XFontStruct* XServer::GetFontInfo(const string& font) {
 
 void XServer::RegisterKeyBindings(const KeyBindings& bindings) {
   XUngrabKey(display_, AnyKey, AnyModifier, root_);
+  bindings_.clear();
 
   for (vector<KeyBindings::Binding>::const_iterator it =
          bindings.bindings().begin(); it != bindings.bindings().end(); ++it) {
@@ -345,6 +354,7 @@ void XServer::RegisterKeyBindings(const KeyBindings& bindings) {
     KeyCode code = XKeysymToKeycode(display_, keysym);
     DEBUG << "Binding keycode=" << code << " mods=" << mods;
     XGrabKey(display_, code, mods, root_, False, GrabModeAsync, GrabModeAsync);
+    bindings_.insert(make_pair(make_pair(code, mods), it->command));
   }
 }
 
