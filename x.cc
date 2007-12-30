@@ -1,4 +1,4 @@
-// Copyright 2007, Daniel Erat <dan@erat.org>
+// Copyright 2007 Daniel Erat <dan@erat.org>
 // All rights reserved.
 
 #include "x.h"
@@ -310,6 +310,28 @@ XFontStruct* XServer::GetFontInfo(const string& font) {
   CHECK(font_info);
   fonts_.insert(make_pair(font, font_info));
   return font_info;
+}
+
+
+void XServer::RegisterKeyBindings(const KeyBindings& bindings) {
+  XUngrabKey(display_, AnyKey, AnyModifier, root_);
+
+  for (vector<KeyBindings::Binding>::const_iterator it =
+         bindings.bindings().begin(); it != bindings.bindings().end(); ++it) {
+    if (it->combos.empty()) {
+      ERROR << "Skipping empty binding for command " << it->command;
+      continue;
+    }
+    uint mods;
+    if (it->combos[0].mods & KeyBindings::Combo::MOD_MOD1) mods |= Mod1Mask;
+    if (it->combos[0].mods & KeyBindings::Combo::MOD_SHIFT) mods |= ShiftMask;
+    if (it->combos[0].mods & KeyBindings::Combo::MOD_CONTROL) {
+      mods |= ControlMask;
+    }
+    KeySym keysym = XStringToKeysym(it->combos[0].key.c_str());
+    KeyCode code = XKeysymToKeycode(display_, keysym);
+    XGrabKey(display_, code, mods, root_, True, GrabModeAsync, GrabModeAsync);
+  }
 }
 
 }  // namespace wham

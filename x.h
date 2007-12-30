@@ -1,13 +1,15 @@
-// Copyright 2007, Daniel Erat <dan@erat.org>
+// Copyright 2007 Daniel Erat <dan@erat.org>
 // All rights reserved.
 
 #ifndef __X_H__
 #define __X_H__
 
 #include <map>
+#include <string>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+#include "key-bindings.h"
 #include "util.h"
 
 using namespace std;
@@ -38,6 +40,8 @@ class XWindow {
   void Unmap();
   void Map();
 
+  static XServer* GetServer() { return server_; }
+
   bool operator<(const XWindow& o) const {
     return id_ < o.id_;
   }
@@ -54,7 +58,7 @@ class XWindow {
 class XServer {
  public:
   XServer();
-  // FIXME: free fonts_ and gc_ in d'tor
+  // FIXME: free fonts_ and gcs_ in d'tor
 
   bool Init();
   void RunEventLoop(WindowManager* window_manager);
@@ -68,6 +72,8 @@ class XServer {
   GC GetGC(const string& name);
 
   XFontStruct* GetFontInfo(const string& font);
+
+  void RegisterKeyBindings(const KeyBindings& bindings);
 
  private:
   Display* display_;

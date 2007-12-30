@@ -1,4 +1,4 @@
-// Copyright 2007, Daniel Erat <dan@erat.org>
+// Copyright 2007 Daniel Erat <dan@erat.org>
 // All rights reserved.
 
 #ifndef __WINDOW_CLASSIFIER_H__

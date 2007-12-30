@@ -1,10 +1,11 @@
-// Copyright 2007, Daniel Erat <dan@erat.org>
+// Copyright 2007 Daniel Erat <dan@erat.org>
 // All rights reserved.
 
 #ifndef __KEY_BINDINGS_H__
 #define __KEY_BINDINGS_H__
 
 #include <map>
+#include <string>
 #include <vector>
 
 using namespace std;
@@ -62,14 +63,16 @@ class KeyBindings {
     CMD_CREATE_ANCHOR,
   };
 
-  struct KeyBinding {
-    KeyBinding()
+  struct Binding {
+    Binding()
         : combos(),
           command(CMD_UNKNOWN) {}
 
     vector<Combo> combos;
     Command command;
   };
+
+  const vector<Binding>& bindings() const { return bindings_; }
 
  private:
   friend class ::KeyBindingsTestSuite;
@@ -85,6 +88,8 @@ class KeyBindings {
   // Look up a command from its string representation.
   // Returns CMD_UNKNOWN for invalid strings.
   static Command StrToCommand(const string& str);
+
+  vector<Binding> bindings_;
 
   // An array containing string representations of commands and the
   // corresponding enum values

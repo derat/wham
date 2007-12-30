@@ -1,4 +1,4 @@
-// Copyright 2007, Daniel Erat <dan@erat.org>
+// Copyright 2007 Daniel Erat <dan@erat.org>
 // All rights reserved.
 
 #include <pcrecpp.h>
@@ -23,7 +23,7 @@ bool KeyBindings::AddBinding(const string& combos_str,
                              string* error) {
   if (error) *error = "";
 
-  KeyBinding binding;
+  Binding binding;
   if (!ParseCombos(combos_str, &(binding.combos), error)) return false;
 
   binding.command = StrToCommand(command_str);
@@ -32,6 +32,7 @@ bool KeyBindings::AddBinding(const string& combos_str,
     return false;
   }
 
+  bindings_.push_back(binding);
   return true;
 }
 
