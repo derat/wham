@@ -41,13 +41,13 @@ class WindowAnchor {
   bool Move(int x, int y);
 
   // Set which (zero-indexed) window should be currently displayed.
-  // 'index' must be >= 0 and less than the number of windows in the
-  // anchor.
   bool SetActive(uint index);
 
   uint NumWindows() const { return windows_.size(); }
 
   void DrawTitlebar();
+
+  void ActivateWindowAtCoordinates(int x, int y);
 
  private:
   string name_;

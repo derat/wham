@@ -81,7 +81,11 @@ class XServer {
   XServer();
   // FIXME: free fonts_ and gcs_ in d'tor
 
+  // Connect to the real X server and initialize internal objects.
+  // Returns true on success.
   bool Init();
+
+  // Start reading events from the X server and handling them.
   void RunEventLoop(WindowManager* window_manager);
 
   Display* display() { return display_; }

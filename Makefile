@@ -37,7 +37,7 @@ window-classifier.o: window-classifier.cc window-classifier.h util.h
 	$(CC) -c window-classifier.cc
 
 window-manager.o: window-manager.cc window-manager.h \
-  key-bindings.h util.h window.h window-anchor.h window-classifier.h
+  config.h key-bindings.h util.h window.h window-anchor.h window-classifier.h
 	$(CC) -c window-manager.cc
 
 x.o: x.cc x.h util.h window-classifier.h window-manager.h

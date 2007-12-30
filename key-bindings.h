@@ -54,6 +54,7 @@ class KeyBindings {
     CMD_UNKNOWN,
     CMD_CLOSE_WINDOW,
     CMD_CREATE_ANCHOR,
+    CMD_EXEC_TERM,
   };
 
   // Get the string representation of a command.

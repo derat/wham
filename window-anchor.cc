@@ -96,8 +96,12 @@ bool WindowAnchor::Move(int x, int y) {
 
 
 bool WindowAnchor::SetActive(uint index) {
-  CHECK(index >= 0);
-  CHECK(index < windows_.size());
+  if (index < 0 || index >= windows_.size()) {
+    ERROR << "Ignoring request to activate window " << index
+          << " in anchor " << name_ << " containing " << windows_.size()
+          << " window(s)";
+    return false;
+  }
 
   // If we're already displaying the correct window, we don't need to do
   // anything (except updating the index if it's changed).
@@ -180,6 +184,13 @@ void WindowAnchor::DrawTitlebar() {
   }
 
   titlebar_->Move(x_, y_ - titlebar_height_);
+}
+
+
+void WindowAnchor::ActivateWindowAtCoordinates(int x, int y) {
+  if (windows_.empty()) return;
+  int index = (x - x_) * windows_.size() / titlebar_width_;
+  SetActive(index);
 }
 
 }  // namespace wham

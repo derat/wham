@@ -14,6 +14,7 @@ int main(int argc, char** argv) {
 
   KeyBindings bindings;
   CHECK(bindings.AddBinding("Ctrl+n", "create_anchor", NULL));
+  CHECK(bindings.AddBinding("Ctrl+t", "exec_term", NULL));
   x_server.RegisterKeyBindings(bindings);
 
   WindowManager window_manager;

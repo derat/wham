@@ -207,6 +207,7 @@ bool XServer::Init() {
 
 void XServer::RunEventLoop(WindowManager* window_manager) {
   CHECK(window_manager);
+  CHECK(initialized_);
 
   XEvent event;
   while (true) {
@@ -225,7 +226,7 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
           XButtonEvent& e = event.xbutton;
           DEBUG << "ButtonRelease: window=0x" << hex << e.window;
           XWindow* x_window = GetWindow(e.window, false);
-          window_manager->HandleButtonRelease(x_window);
+          window_manager->HandleButtonRelease(x_window, e.x_root, e.y_root);
         }
         break;
       case ConfigureNotify:
@@ -497,6 +498,8 @@ void XServer::HandleKeyPress(KeySym keysym, uint mods,
     ERROR << "Ignoring key press without binding";
     return;
   }
+
+  // FIXME: handle multi-level bindings
 
   if (binding->command != KeyBindings::CMD_UNKNOWN) {
     window_manager->HandleCommand(binding->command);

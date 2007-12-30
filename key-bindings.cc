@@ -11,6 +11,7 @@ namespace wham {
 KeyBindings::CommandMapping KeyBindings::command_mappings_[] = {
   { "close_window",  CMD_CLOSE_WINDOW },
   { "create_anchor", CMD_CREATE_ANCHOR },
+  { "exec_term", CMD_EXEC_TERM },  // FIXME: testing
   { "TERMINATOR", CMD_UNKNOWN },
 };
 

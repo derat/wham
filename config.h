@@ -17,7 +17,8 @@ extern ref_ptr<Config> config;
 struct Config {
  public:
   Config()
-      : titlebar_font("fixed"),
+      : dragging_threshold(1),
+        titlebar_font("fixed"),
         titlebar_padding(3),
         titlebar_border(1),
         titlebar_min_width(200),
@@ -27,6 +28,8 @@ struct Config {
   static void Swap(ref_ptr<Config> new_config) {
     config.swap(new_config);
   }
+
+  int dragging_threshold;
 
   string titlebar_font;
   int titlebar_padding;
