@@ -6,7 +6,9 @@
 
 #include <iostream>
 #include <map>
+#include <pcrecpp.h>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -143,6 +145,16 @@ V FindWithDefault(const map<K, V>& the_map, const K& key, V def) {
   if (the_map.find(key) == the_map.end()) return def;
   return the_map.find(key)->second;
 }
+
+
+// Split a string on whitespace, saving the individual pieces to the
+// passed-in vector.
+void SplitString(const string& str, vector<string>* parts);
+
+
+// Split a string on whitespace, returning the individual pieces as a new
+// vector.
+vector<string> SplitString(const string& str);
 
 
 }  // namespace wham

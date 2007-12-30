@@ -352,6 +352,27 @@ void XServer::RegisterKeyBindings(const KeyBindings& bindings) {
 }
 
 
+bool XServer::GetModifiers(const vector<string>& mods, uint* mod_bits) {
+  CHECK(mod_bits);
+  *mod_bits = 0U;
+  bool result = true;
+  for (vector<string>::const_iterator mod = mods.begin();
+       mod != mods.end(); ++mod) {
+    if (strcasecmp(mod->c_str(), "Shift") == 0) {
+      *mod_bits |= ShiftMask;
+    } else if (strcasecmp(mod->c_str(), "Control") == 0 ||
+               strcasecmp(mod->c_str(), "Ctrl") == 0) {
+      *mod_bits |= ControlMask;
+    } else if (strcasecmp(mod->c_str(), "Mod1") == 0) {
+      *mod_bits |= Mod1Mask;
+    } else {
+      result = false;
+    }
+  }
+  return result;
+}
+
+
 void XServer::UpdateKeyBindingMap(
     const KeyBindings& bindings, XKeyBindingMap* binding_map) {
   binding_map->clear();
@@ -366,13 +387,18 @@ void XServer::UpdateKeyBindingMap(
 
     XKeyBinding* parent_binding = NULL;
     uint inherited_mods = 0;
+    bool error_in_combo = false;
     for (vector<KeyBindings::Combo>::const_iterator combo =
            binding->combos.begin();
          combo != binding->combos.end(); ++combo) {
       uint mods = 0;
-      if (combo->mods & KeyBindings::Combo::MOD_MOD1)    mods |= Mod1Mask;
-      if (combo->mods & KeyBindings::Combo::MOD_SHIFT)   mods |= ShiftMask;
-      if (combo->mods & KeyBindings::Combo::MOD_CONTROL) mods |= ControlMask;
+      if (!GetModifiers(combo->mods, &mods)) {
+        ERROR << "Unknown modifier in key binding "
+              << binding->ToString() << " for command "
+              << KeyBindings::CommandToStr(binding->command);
+        error_in_combo = true;
+        break;
+      }
       KeySym keysym = XStringToKeysym(combo->key.c_str());
 
       if (parent_binding == NULL) {
@@ -433,18 +459,20 @@ void XServer::UpdateKeyBindingMap(
       inherited_mods |= mods;
     }
 
-    CHECK(parent_binding);
-    if (!parent_binding->children.empty()) {
-      ERROR << "Key binding " << binding->ToString() << " already "
-            << "has sub-bindings; not adding command "
-            << KeyBindings::CommandToStr(binding->command);
-    } else {
-      if (parent_binding->command != KeyBindings::CMD_UNKNOWN) {
-        ERROR << "Rebinding " << binding->ToString() << " from "
-              << KeyBindings::CommandToStr(parent_binding->command)
-              << " to " << KeyBindings::CommandToStr(binding->command);
+    if (!error_in_combo) {
+      CHECK(parent_binding);
+      if (!parent_binding->children.empty()) {
+        ERROR << "Key binding " << binding->ToString() << " already "
+              << "has sub-bindings; not adding command "
+              << KeyBindings::CommandToStr(binding->command);
+      } else {
+        if (parent_binding->command != KeyBindings::CMD_UNKNOWN) {
+          ERROR << "Rebinding " << binding->ToString() << " from "
+                << KeyBindings::CommandToStr(parent_binding->command)
+                << " to " << KeyBindings::CommandToStr(binding->command);
+        }
+        parent_binding->command = binding->command;
       }
-      parent_binding->command = binding->command;
     }
   }
 }

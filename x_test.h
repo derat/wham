@@ -10,6 +10,30 @@ using namespace wham;
 
 class XTestSuite : public CxxTest::TestSuite {
  public:
+  void testXServer_GetModifiers() {
+    vector<string> mods;
+    uint mod_bits = 0;
+
+    TS_ASSERT(XServer::GetModifiers(mods, &mod_bits));
+
+    mods.push_back("Control");
+    mods.push_back("Shift");
+    TS_ASSERT(XServer::GetModifiers(mods, &mod_bits));
+    TS_ASSERT_EQUALS(mod_bits, static_cast<uint>(ControlMask|ShiftMask));
+
+    mods.clear();
+    mods.push_back("Ctrl");
+    mods.push_back("Mod1");
+    TS_ASSERT(XServer::GetModifiers(mods, &mod_bits));
+    TS_ASSERT_EQUALS(mod_bits, static_cast<uint>(ControlMask|Mod1Mask));
+
+    mods.clear();
+    mods.push_back("Foo");
+    mods.push_back("Mod1");
+    TS_ASSERT(!XServer::GetModifiers(mods, &mod_bits));
+    TS_ASSERT_EQUALS(mod_bits, static_cast<uint>(Mod1Mask));
+  }
+
   void testXServer_UpdateKeyBindingMap() {
     KeyBindings bindings;
     XServer::XKeyBindingMap binding_map;

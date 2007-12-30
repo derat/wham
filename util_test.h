@@ -50,4 +50,21 @@ class UtilTestSuite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(*ptr2.refs_, 1);
     TS_ASSERT_EQUALS(*ptr3.refs_, 2);
   }
+
+  void testSplitString() {
+    vector<string> expected;
+    vector<string> parts;
+
+    SplitString("", &parts);
+    TS_ASSERT_EQUALS(parts, expected);
+
+    SplitString("   ", &parts);
+    TS_ASSERT_EQUALS(parts, expected);
+
+    expected.push_back("a");
+    expected.push_back("b");
+    expected.push_back("c");
+    SplitString(" a b c ", &parts);
+    TS_ASSERT_EQUALS(parts, expected);
+  }
 };

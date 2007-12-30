@@ -40,4 +40,21 @@ Logger& Logger::operator<<(ios_base& (*f)(ios_base&)) {
   return *this;
 }
 
+
+void SplitString(const string& str, vector<string>* parts) {
+  CHECK(parts);
+  parts->clear();
+  static pcrecpp::RE re("\\s*(\\S+)");
+  pcrecpp::StringPiece input(str);
+  string part;
+  while (re.Consume(&input, &part)) parts->push_back(part);
+}
+
+
+vector<string> SplitString(const string& str) {
+  vector<string> parts;
+  SplitString(str, &parts);
+  return parts;
+}
+
 }  // namespace wham

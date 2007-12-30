@@ -20,53 +20,34 @@ class KeyBindings {
                   const string& command_str,
                   string* error);
 
-  // FIXME: fix upper/lower-case stuff
   struct Combo {
-    Combo()
-        : mods(0),
-          key("") {}
+    Combo() {}
     Combo(const string& key)
-        : mods(0),
-          key(key) {}
-    Combo(uint mods, const string& key)
-        : mods(mods),
-          key(key) {}
+        : key(key) {}
+    Combo(const string& key, const vector<string>& mods)
+        : key(key),
+          mods(mods) {}
 
     bool operator==(const Combo& o) const {
-      return mods == o.mods && key == o.key;
-    }
-
-    enum Modifier {
-      MOD_UNKNOWN = 0,
-      MOD_SHIFT   = 1 << 0,
-      MOD_CONTROL = 1 << 1,
-      MOD_MOD1    = 1 << 2,
-    };
-
-    // Look up a modifier from its string representation.
-    // Returns MOD_UNKNOWN for invalid strings.
-    static Modifier StrToModifier(const string& str) {
-      if (str == "Shift") return MOD_SHIFT;
-      if (str == "Control" || str == "Ctrl") return MOD_CONTROL;
-      if (str == "Mod1" || str == "Alt") return MOD_MOD1;
-      return MOD_UNKNOWN;
+      return key == o.key && mods == o.mods;
     }
 
     // Get a string representation of this combo.
     string ToString() const {
       string str;
-      if (mods & MOD_CONTROL) str += "Control+";
-      if (mods & MOD_MOD1)    str += "Mod1+";
-      if (mods & MOD_SHIFT)   str += "Shift+";
+      for (vector<string>::const_iterator mod = mods.begin();
+           mod != mods.end(); ++mod) {
+        str += *mod + "+";
+      }
       str += key;
       return str;
     }
 
-    // Bitmap containing Modifiers required for this combo
-    uint mods;
-
     // A string representation of the key's name
     string key;
+
+    // String representations of modifier keys
+    vector<string> mods;
   };
 
   enum Command {

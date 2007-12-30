@@ -99,6 +99,11 @@ class XServer {
  private:
   friend class ::XTestSuite;
 
+  // Convert a vector containing string representations of modifiers keys
+  // into a bitmap consisting of the corresponding X modifier masks.
+  // Returns false if any unknown modifiers were seen.
+  static bool GetModifiers(const vector<string>& mods, uint* mod_bits);
+
   typedef pair<KeySym, uint> XKeyCombo;
   typedef map<XKeyCombo, ref_ptr<XKeyBinding> > XKeyBindingMap;
 

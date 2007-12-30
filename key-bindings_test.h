@@ -9,11 +9,6 @@
 
 using namespace wham;
 
-// Save some typing later.
-#define MOD_CONTROL KeyBindings::Combo::MOD_CONTROL
-#define MOD_MOD1    KeyBindings::Combo::MOD_MOD1
-#define MOD_SHIFT   KeyBindings::Combo::MOD_SHIFT
-
 namespace CxxTest {
 
 // Make Combo structs get pretty-printed by CxxTest.
@@ -41,9 +36,9 @@ class KeyBindingsTestSuite : public CxxTest::TestSuite {
     // Test a sequence of two bindings, each of which has modifiers.
     vector<KeyBindings::Combo> expected_seq;
     expected_seq.push_back(
-        KeyBindings::Combo(MOD_CONTROL | MOD_SHIFT, "U"));
+        KeyBindings::Combo("U", SplitString("Ctrl Shift")));
     expected_seq.push_back(
-        KeyBindings::Combo(MOD_MOD1, "M"));
+        KeyBindings::Combo("M", SplitString("Alt")));
     vector<KeyBindings::Combo> seq;
     TS_ASSERT(KeyBindings::ParseCombos("Ctrl+Shift+U, Alt+M", &seq, NULL));
     TS_ASSERT_EQUALS(seq, expected_seq);
@@ -51,7 +46,7 @@ class KeyBindingsTestSuite : public CxxTest::TestSuite {
     // Test a single binding with lots of whitespace.
     expected_seq.clear();
     expected_seq.push_back(
-        KeyBindings::Combo(MOD_CONTROL | MOD_MOD1, "Foo"));
+        KeyBindings::Combo("Foo", SplitString("Control Mod1")));
     seq.clear();
     TS_ASSERT(KeyBindings::ParseCombos(" Control + Mod1 + Foo ", &seq, NULL));
     TS_ASSERT_EQUALS(seq, expected_seq);
@@ -66,7 +61,6 @@ class KeyBindingsTestSuite : public CxxTest::TestSuite {
 
     // Test a couple of malformed sequences.
     TS_ASSERT(!KeyBindings::ParseCombos("+R", &seq, NULL));
-    TS_ASSERT(!KeyBindings::ParseCombos("Foo+J", &seq, NULL));
     TS_ASSERT(!KeyBindings::ParseCombos("Ctrl+", &seq, NULL));
   }
 

@@ -63,14 +63,9 @@ bool KeyBindings::ParseCombos(const string& str,
   do {
     Combo combo;
 
-    string modifier;
-    while (mod_re.Consume(&input, static_cast<void*>(NULL), &modifier)) {
-      Combo::Modifier mod_bit = Combo::StrToModifier(modifier);
-      if (mod_bit == Combo::MOD_UNKNOWN) {
-        if (error) *error = "Got unknown modifier \"" + modifier + "\"";
-        return false;
-      }
-      combo.mods |= mod_bit;
+    string mod;
+    while (mod_re.Consume(&input, static_cast<void*>(NULL), &mod)) {
+      combo.mods.push_back(mod);
     }
     string key;
     if (!key_re.Consume(&input, &key)) {

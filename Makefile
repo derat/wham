@@ -19,7 +19,7 @@ config.o: config.cc config.h util.h
 config-parser.o: config-parser.cc config-parser.h util.h
 	$(CC) -c config-parser.cc
 
-key-bindings.o: key-bindings.cc key-bindings.h
+key-bindings.o: key-bindings.cc key-bindings.h util.h
 	$(CC) -c key-bindings.cc
 
 util.o: util.cc util.h
