@@ -9,7 +9,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
-#include "key-bindings.h"
+#include "command.h"
 #include "util.h"
 
 using namespace std;
@@ -18,6 +18,7 @@ class XTestSuite;  // from x_test.h
 
 namespace wham {
 
+class KeyBindings;
 class WindowManager;
 class WindowProperties;
 class XServer;
@@ -61,7 +62,7 @@ struct XKeyBinding {
   XKeyBinding(KeySym keysym,
               uint required_mods,
               uint inherited_mods,
-              KeyBindings::Command command)
+              Command command)
       : keysym(keysym),
         required_mods(required_mods),
         inherited_mods(inherited_mods),
@@ -71,7 +72,7 @@ struct XKeyBinding {
   KeySym keysym;
   uint required_mods;
   uint inherited_mods;
-  KeyBindings::Command command;
+  Command command;
   vector<ref_ptr<XKeyBinding> > children;
 };
 

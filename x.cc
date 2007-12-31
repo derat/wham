@@ -5,6 +5,7 @@
 
 #include <iostream>
 
+#include "key-bindings.h"
 #include "util.h"
 #include "window-classifier.h"
 #include "window-manager.h"
@@ -372,7 +373,8 @@ void XServer::UpdateKeyBindingMap(
          bindings.bindings().begin();
        binding != bindings.bindings().end(); ++binding) {
     if (binding->combos.empty()) {
-      ERROR << "Skipping empty key binding for command " << binding->command;
+      ERROR << "Skipping empty key binding for command "
+            << binding->command.ToString();
       continue;
     }
 
@@ -387,7 +389,7 @@ void XServer::UpdateKeyBindingMap(
       if (!GetModifiers(combo->mods, &mods)) {
         ERROR << "Unknown modifier in key binding "
               << binding->ToString() << " for command "
-              << KeyBindings::CommandToStr(binding->command);
+              << binding->command.ToString();
         error_in_combo = true;
         break;
       }
@@ -397,7 +399,7 @@ void XServer::UpdateKeyBindingMap(
       if (keysym == NoSymbol) {
         ERROR << "Unknown symbol \"" << combo->key << "\" in key binding "
               << binding->ToString() << " for command "
-              << KeyBindings::CommandToStr(binding->command);
+              << binding->command.ToString();
         error_in_combo = true;
         break;
       }
@@ -415,7 +417,7 @@ void XServer::UpdateKeyBindingMap(
         pair<KeySym, uint> key = make_pair(keysym, mods);
         if (binding_map->find(key) == binding_map->end()) {
           ref_ptr<XKeyBinding> x_binding(
-              new XKeyBinding(keysym, mods, 0, KeyBindings::CMD_UNKNOWN));
+              new XKeyBinding(keysym, mods, 0, Command()));
           binding_map->insert(make_pair(key, x_binding));
           DEBUG << "New top-level binding:"
                 << " keysym=" << keysym << " mods=" << mods;
@@ -423,14 +425,14 @@ void XServer::UpdateKeyBindingMap(
         parent_binding = binding_map->find(key)->second.get();
         CHECK(parent_binding);
       } else {
-        if (parent_binding->command != KeyBindings::CMD_UNKNOWN) {
+        if (parent_binding->command.type != Command::UNKNOWN) {
           ERROR << "While adding multi-level binding "
                 << binding->ToString() << " for "
-                << KeyBindings::CommandToStr(binding->command)
+                << binding->command.ToString()
                 << ", removing command "
-                << KeyBindings::CommandToStr(parent_binding->command)
+                << parent_binding->command.ToString()
                 << " associated with shorter binding";
-          parent_binding->command = KeyBindings::CMD_UNKNOWN;
+          parent_binding->command = Command();
         }
 
         // Otherwise, we iterate through all of the combos listed as
@@ -453,8 +455,7 @@ void XServer::UpdateKeyBindingMap(
         }
         if (!found) {
           ref_ptr<XKeyBinding> x_binding(
-              new XKeyBinding(keysym, mods, inherited_mods,
-                              KeyBindings::CMD_UNKNOWN));
+              new XKeyBinding(keysym, mods, inherited_mods, Command()));
           parent_binding->children.push_back(x_binding);
           DEBUG << "New child binding:"
                 << " keysym=" << keysym << " mods=" << mods
@@ -471,12 +472,12 @@ void XServer::UpdateKeyBindingMap(
       if (!parent_binding->children.empty()) {
         ERROR << "Key binding " << binding->ToString() << " already "
               << "has sub-bindings; not adding command "
-              << KeyBindings::CommandToStr(binding->command);
+              << binding->command.ToString();
       } else {
-        if (parent_binding->command != KeyBindings::CMD_UNKNOWN) {
+        if (parent_binding->command.type != Command::UNKNOWN) {
           ERROR << "Rebinding " << binding->ToString() << " from "
-                << KeyBindings::CommandToStr(parent_binding->command)
-                << " to " << KeyBindings::CommandToStr(binding->command);
+                << parent_binding->command.ToString() << " to "
+                << binding->command.ToString();
         }
         parent_binding->command = binding->command;
       }
@@ -501,7 +502,7 @@ void XServer::HandleKeyPress(KeySym keysym, uint mods,
 
   // FIXME: handle multi-level bindings
 
-  if (binding->command != KeyBindings::CMD_UNKNOWN) {
+  if (binding->command.type != Command::UNKNOWN) {
     window_manager->HandleCommand(binding->command);
   }
 }

@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+#include "command.h"
+
 using namespace std;
 
 class KeyBindingsTestSuite;
@@ -18,6 +20,7 @@ class KeyBindings {
  public:
   bool AddBinding(const string& combos_str,
                   const string& command_str,
+                  const vector<string>& args,
                   string* error);
 
   struct Combo {
@@ -50,20 +53,10 @@ class KeyBindings {
     vector<string> mods;
   };
 
-  enum Command {
-    CMD_UNKNOWN,
-    CMD_CLOSE_WINDOW,
-    CMD_CREATE_ANCHOR,
-    CMD_EXEC_TERM,
-  };
-
-  // Get the string representation of a command.
-  static string CommandToStr(Command cmd);
-
   struct Binding {
     Binding()
         : combos(),
-          command(CMD_UNKNOWN) {}
+          command() {}
 
     string ToString() const {
       string str;
@@ -92,24 +85,7 @@ class KeyBindings {
                           vector<Combo>* combos,
                           string* error);
 
-  // Look up a command from its string representation.
-  // Returns CMD_UNKNOWN for invalid strings.
-  static Command StrToCommand(const string& str);
-
   vector<Binding> bindings_;
-
-  // An array containing string representations of commands and the
-  // corresponding enum values
-  struct CommandMapping {
-    string str;
-    Command cmd;
-  };
-  static CommandMapping command_mappings_[];
-
-  // A map generated from command_mappings_ and a bool to track whether
-  // it's been initialized yet or not
-  static map<string, Command> commands_;
-  static bool commands_initialized_;
 };
 
 }  // namespace wham

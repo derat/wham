@@ -63,11 +63,4 @@ class KeyBindingsTestSuite : public CxxTest::TestSuite {
     TS_ASSERT(!KeyBindings::ParseCombos("+R", &seq, NULL));
     TS_ASSERT(!KeyBindings::ParseCombos("Ctrl+", &seq, NULL));
   }
-
-  void testKeyBindings_StrToCommand() {
-    TS_ASSERT_EQUALS(KeyBindings::StrToCommand("create_anchor"),
-                     KeyBindings::CMD_CREATE_ANCHOR);
-    TS_ASSERT_EQUALS(KeyBindings::StrToCommand("bogus"),
-                     KeyBindings::CMD_UNKNOWN);
-  }
 };

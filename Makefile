@@ -7,11 +7,14 @@ CXXTESTINCLUDE=-I/home/derat/local/include
 PROGNAME=wham
 
 $(PROGNAME): \
-  main.cc config.o config-parser.o key-bindings.o util.o window.o \
+  main.cc command.o config.o config-parser.o key-bindings.o util.o window.o \
   window-anchor.o window-classifier.o window-manager.o x.o
 	$(CC) -o $@ $(LIBS) main.cc \
-	  config.o config-parser.o key-bindings.o util.o window.o \
+	  command.o config.o config-parser.o key-bindings.o util.o window.o \
 	  window-anchor.o window-classifier.o window-manager.o x.o
+
+command.o: command.cc command.h util.h
+	$(CC) -c command.cc
 
 config.o: config.cc config.h util.h
 	$(CC) -c config.cc
@@ -19,7 +22,7 @@ config.o: config.cc config.h util.h
 config-parser.o: config-parser.cc config-parser.h util.h
 	$(CC) -c config-parser.cc
 
-key-bindings.o: key-bindings.cc key-bindings.h util.h
+key-bindings.o: key-bindings.cc key-bindings.h command.h util.h
 	$(CC) -c key-bindings.cc
 
 util.o: util.cc util.h
@@ -37,20 +40,31 @@ window-classifier.o: window-classifier.cc window-classifier.h util.h
 	$(CC) -c window-classifier.cc
 
 window-manager.o: window-manager.cc window-manager.h \
-  config.h key-bindings.h util.h window.h window-anchor.h window-classifier.h
+  command.h config.h key-bindings.h util.h window.h window-anchor.h \
+  window-classifier.h
 	$(CC) -c window-manager.cc
 
 x.o: x.cc x.h util.h window-classifier.h window-manager.h
 	$(CC) -c x.cc
 
 clean:
-	rm -f $(PROGNAME) config.o config-parser.o key-bindings.o util.o \
-	  window.o window-anchor.o window-classifier.o window-manager.o x.o \
+	rm -f $(PROGNAME) command.o config.o config-parser.o key-bindings.o \
+	  util.o window.o window-anchor.o window-classifier.o window-manager.o \
+	  x.o \
+	  command_test command_test.cc \
 	  config-parser_test config-parser_test.cc \
 	  key-bindings_test key-bindings_test.cc \
 	  util_test util_test.cc \
 	  window-classifier_test window-classifier_test.cc \
 	  x_test x_test.cc
+
+command_test.cc: command_test.h
+	$(CXXTESTGEN) --error-printer -o $@ command_test.h
+
+command_test: \
+  command_test.cc command_test.h command.o util.o
+	$(CC) $(CXXTESTINCLUDE) $(LIBS) -o $@ \
+	  command_test.cc command.o util.o
 
 config-parser_test.cc: config-parser_test.h
 	$(CXXTESTGEN) --error-printer -o $@ config-parser_test.h
@@ -64,9 +78,9 @@ key-bindings_test.cc: key-bindings_test.h
 	$(CXXTESTGEN) --error-printer -o $@ key-bindings_test.h
 
 key-bindings_test: \
-  key-bindings_test.cc key-bindings_test.h key-bindings.o util.o
+  key-bindings_test.cc key-bindings_test.h key-bindings.o command.o util.o
 	$(CC) $(CXXTESTINCLUDE) $(LIBS) -o $@ \
-	  key-bindings_test.cc key-bindings.o util.o
+	  key-bindings_test.cc key-bindings.o command.o util.o
 
 util_test.cc: util_test.h
 	$(CXXTESTGEN) --error-printer -o $@ util_test.h
@@ -87,12 +101,13 @@ x_test.cc: x_test.h
 
 x_test: x_test.cc x_test.h x.o config.o key-bindings.o util.o window.o \
   window-anchor.o window-classifier.o window-manager.o
-	$(CC) $(CXXTESTINCLUDE) $(LIBS) -o $@ x_test.cc x.o config.o \
-	  key-bindings.o util.o window.o window-anchor.o window-classifier.o \
-	  window-manager.o
+	$(CC) $(CXXTESTINCLUDE) $(LIBS) -o $@ x_test.cc x.o \
+	  command.o config.o key-bindings.o util.o window.o window-anchor.o \
+	  window-classifier.o window-manager.o
 
-test: config-parser_test key-bindings_test util_test window-classifier_test \
-  x_test
+test: command_test config-parser_test key-bindings_test util_test \
+  window-classifier_test x_test
+	./command_test
 	./config-parser_test
 	./key-bindings_test
 	./util_test

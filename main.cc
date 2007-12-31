@@ -13,8 +13,16 @@ int main(int argc, char** argv) {
   Config::Swap(new_config);
 
   KeyBindings bindings;
-  CHECK(bindings.AddBinding("Ctrl+n", "create_anchor", NULL));
-  CHECK(bindings.AddBinding("Ctrl+t", "exec_term", NULL));
+  vector<string> args;
+  CHECK(bindings.AddBinding("Ctrl+n", "create_anchor", args, NULL));
+  args.push_back("/usr/bin/urxvt");
+  CHECK(bindings.AddBinding("Ctrl+t", "exec", args, NULL));
+  args.clear();
+  args.push_back("0");
+  CHECK(bindings.AddBinding("Ctrl+1", "switch_window", args, NULL));
+  args.clear();
+  args.push_back("1");
+  CHECK(bindings.AddBinding("Ctrl+2", "switch_window", args, NULL));
   x_server.RegisterKeyBindings(bindings);
 
   WindowManager window_manager;

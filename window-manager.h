@@ -8,6 +8,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+#include "command.h"
 #include "key-bindings.h"
 #include "util.h"
 #include "window.h"
@@ -33,8 +34,7 @@ class WindowManager {
 
   bool Exec(const string& command);
 
-  // TODO: maybe move Command to this file
-  void HandleCommand(KeyBindings::Command cmd);
+  void HandleCommand(const Command& cmd);
 
  private:
   WindowClassifier window_classifier_;

@@ -134,10 +134,8 @@ void WindowManager::HandleMotion(XWindow* x_window, int x, int y) {
   if (!dragging_) {
     if (abs(x - mouse_down_x_) <= config->dragging_threshold &&
         abs(y - mouse_down_y_) <= config->dragging_threshold) {
-      DEBUG << "Aborting drag";
       return;
     }
-    DEBUG << "Starting drag";
     dragging_ = true;
   }
   WindowAnchor* anchor = anchors_[active_anchor_].get();
@@ -161,16 +159,23 @@ bool WindowManager::Exec(const string& command) {
 }
 
 
-void WindowManager::HandleCommand(KeyBindings::Command cmd) {
-  switch (cmd) {
-    case KeyBindings::CMD_CREATE_ANCHOR:
+void WindowManager::HandleCommand(const Command &cmd) {
+  switch (cmd.type) {
+    case Command::CREATE_ANCHOR:
       CreateAnchor("new", 250, 250);
       break;
-    case KeyBindings::CMD_EXEC_TERM:
-      Exec("urxvt");
+    case Command::EXEC:
+      Exec(cmd.args[0]);
+      break;
+    case Command::SWITCH_WINDOW:
+      {
+        WindowAnchor* anchor = anchors_[active_anchor_].get();
+        CHECK(anchor);
+        anchor->SetActive(atoi(cmd.args[0].c_str()));
+      }
       break;
     default:
-      ERROR << "Got unknown command " << cmd;
+      ERROR << "Got unknown command " << cmd.type;
   }
 }
 
