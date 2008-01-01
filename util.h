@@ -50,6 +50,7 @@ class Logger {
 
   Logger& operator<<(const string& msg);
   Logger& operator<<(int num);
+  Logger& operator<<(void* ptr);
   Logger& operator<<(ios_base& (*f)(ios_base&));
 
  private:
@@ -113,6 +114,9 @@ class ref_ptr {
     int* tmp_refs = refs_;
     refs_ = other.refs_;
     other.refs_ = tmp_refs;
+  }
+  bool operator==(const ref_ptr<T>& other) const {
+    return ptr_ == other.ptr_;
   }
 
  private:

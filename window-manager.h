@@ -32,11 +32,13 @@ class WindowManager {
   void HandleExposeWindow(XWindow* x_window);
   void HandleMotion(XWindow* x_window, int x, int y);
 
-  bool Exec(const string& command);
-
   void HandleCommand(const Command& cmd);
 
  private:
+  bool Exec(const string& command);
+
+  WindowAnchor* GetNearestAnchor(const string& direction) const;
+
   WindowClassifier window_classifier_;
 
   typedef map<XWindow*, ref_ptr<Window> > WindowMap;

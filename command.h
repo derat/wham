@@ -20,6 +20,7 @@ struct Command {
     CLOSE_WINDOW,
     CREATE_ANCHOR,
     EXEC,
+    SWITCH_ANCHOR,
     SWITCH_WINDOW,
     UNKNOWN,
   };

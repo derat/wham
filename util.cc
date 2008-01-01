@@ -35,6 +35,11 @@ Logger& Logger::operator<<(int num) {
   return *this;
 }
 
+Logger& Logger::operator<<(void* ptr) {
+  cerr << ptr;
+  return *this;
+}
+
 Logger& Logger::operator<<(ios_base& (*f)(ios_base&)) {
   cerr << f;
   return *this;

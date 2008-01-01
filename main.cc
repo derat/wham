@@ -13,16 +13,21 @@ int main(int argc, char** argv) {
   Config::Swap(new_config);
 
   KeyBindings bindings;
-  vector<string> args;
-  CHECK(bindings.AddBinding("Ctrl+n", "create_anchor", args, NULL));
-  args.push_back("/usr/bin/urxvt");
-  CHECK(bindings.AddBinding("Ctrl+t", "exec", args, NULL));
-  args.clear();
-  args.push_back("0");
-  CHECK(bindings.AddBinding("Ctrl+1", "switch_window", args, NULL));
-  args.clear();
-  args.push_back("1");
-  CHECK(bindings.AddBinding("Ctrl+2", "switch_window", args, NULL));
+  CHECK(bindings.AddBinding("Ctrl+n", "create_anchor", vector<string>(), NULL));
+  CHECK(bindings.AddBinding("Ctrl+t", "exec",
+                            vector<string>(1, "/usr/bin/urxvt"), NULL));
+  CHECK(bindings.AddBinding("Ctrl+1", "switch_window",
+                            vector<string>(1, "0"), NULL));
+  CHECK(bindings.AddBinding("Ctrl+2", "switch_window",
+                            vector<string>(1, "1"), NULL));
+  CHECK(bindings.AddBinding("Ctrl+h", "switch_anchor",
+                            vector<string>(1, "left"), NULL));
+  CHECK(bindings.AddBinding("Ctrl+l", "switch_anchor",
+                            vector<string>(1, "right"), NULL));
+  CHECK(bindings.AddBinding("Ctrl+j", "switch_anchor",
+                            vector<string>(1, "down"), NULL));
+  CHECK(bindings.AddBinding("Ctrl+k", "switch_anchor",
+                            vector<string>(1, "up"), NULL));
   x_server.RegisterKeyBindings(bindings);
 
   WindowManager window_manager;

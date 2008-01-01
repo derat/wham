@@ -144,6 +144,33 @@ void WindowManager::HandleMotion(XWindow* x_window, int x, int y) {
 }
 
 
+void WindowManager::HandleCommand(const Command &cmd) {
+  switch (cmd.type) {
+    case Command::CREATE_ANCHOR:
+      CreateAnchor("new", 250, 250);
+      break;
+    case Command::EXEC:
+      Exec(cmd.args[0]);
+      break;
+    case Command::SWITCH_ANCHOR:
+      {
+        WindowAnchor* anchor = GetNearestAnchor(cmd.args[0]);
+        LOG << "anchor=" << hex << anchor;
+      }
+      break;
+    case Command::SWITCH_WINDOW:
+      {
+        WindowAnchor* anchor = anchors_[active_anchor_].get();
+        CHECK(anchor);
+        anchor->SetActive(atoi(cmd.args[0].c_str()));
+      }
+      break;
+    default:
+      ERROR << "Got unknown command " << cmd.type;
+  }
+}
+
+
 bool WindowManager::Exec(const string& command) {
   DEBUG << "Executing " << command;
   const char* shell = "/bin/sh";
@@ -159,24 +186,36 @@ bool WindowManager::Exec(const string& command) {
 }
 
 
-void WindowManager::HandleCommand(const Command &cmd) {
-  switch (cmd.type) {
-    case Command::CREATE_ANCHOR:
-      CreateAnchor("new", 250, 250);
-      break;
-    case Command::EXEC:
-      Exec(cmd.args[0]);
-      break;
-    case Command::SWITCH_WINDOW:
-      {
-        WindowAnchor* anchor = anchors_[active_anchor_].get();
-        CHECK(anchor);
-        anchor->SetActive(atoi(cmd.args[0].c_str()));
-      }
-      break;
-    default:
-      ERROR << "Got unknown command " << cmd.type;
+WindowAnchor* WindowManager::GetNearestAnchor(const string& direction) const {
+  int dx = 0, dy = 0;
+  if (direction == "left")       dx = -1;
+  else if (direction == "right") dx =  1;
+  else if (direction == "up")    dy = -1;
+  else if (direction == "down")  dy =  1;
+  else return NULL;
+
+  ref_ptr<WindowAnchor> active = anchors_[active_anchor_];
+  WindowAnchor* nearest = NULL;
+  int nearest_dist = INT_MAX;
+  for (WindowAnchorVector::const_iterator anchor = anchors_.begin();
+       anchor != anchors_.end(); ++anchor) {
+    if (*anchor == active) continue;
+    int dist = 0;
+    if (dy != 0) {
+      dist = (*anchor)->y() - active->y();
+      if (dy * dist < dy) continue;
+      // FIXME: also need to check that the anchor isn't too far to the
+      // side of the titlebar
+    } else {
+      dist = (*anchor)->x() - active->x();
+      if (dx * dist < dx) continue;
+    }
+    if (dist < nearest_dist) {
+      nearest = anchor->get();
+      nearest_dist = dist;
+    }
   }
+  return nearest;
 }
 
 }  // namespace wham

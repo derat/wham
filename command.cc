@@ -11,6 +11,7 @@ Command::Info Command::info_[] = {
   { "close_window",  CLOSE_WINDOW,  0 },
   { "create_anchor", CREATE_ANCHOR, 0 },
   { "exec",          EXEC,          1 },
+  { "switch_anchor", SWITCH_ANCHOR, 1 },
   { "switch_window", SWITCH_WINDOW, 1 },
   { "unknown",       UNKNOWN,       0 },
 };
