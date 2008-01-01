@@ -1,7 +1,7 @@
 // Copyright 2007 Daniel Erat <dan@erat.org>
 // All rights reserved.
 
-#include "window-anchor.h"
+#include "anchor.h"
 
 #include <cmath>
 #include <limits>
@@ -18,11 +18,11 @@ DEFINE_int(titlebar_padding, 2);
 DEFINE_int(titlebar_border, 1);
 
 
-int WindowAnchor::font_ascent_ = 0;
-int WindowAnchor::font_descent_ = 0;
+int Anchor::font_ascent_ = 0;
+int Anchor::font_descent_ = 0;
 
 
-WindowAnchor::WindowAnchor(const string& name, int x, int y)
+Anchor::Anchor(const string& name, int x, int y)
     : name_(),
       x_(x),
       y_(y),
@@ -47,13 +47,13 @@ WindowAnchor::WindowAnchor(const string& name, int x, int y)
 }
 
 
-WindowAnchor::~WindowAnchor() {
+Anchor::~Anchor() {
   active_window_ = NULL;
   titlebar_ = NULL;
 }
 
 
-void WindowAnchor::SetName(const string& name) {
+void Anchor::SetName(const string& name) {
   if (name_ == name) return;
   name_ = name;
   titlebar_->GetTextSize(config->titlebar_font, "[" + name_ + "]",
@@ -61,14 +61,14 @@ void WindowAnchor::SetName(const string& name) {
 }
 
 
-void WindowAnchor::AddWindow(Window* window) {
+void Anchor::AddWindow(Window* window) {
   CHECK(find(windows_.begin(), windows_.end(), window) == windows_.end());
   windows_.push_back(window);
   if (!active_window_) SetActive(0);
 }
 
 
-void WindowAnchor::RemoveWindow(Window* window) {
+void Anchor::RemoveWindow(Window* window) {
   WindowVector::iterator it = find(windows_.begin(), windows_.end(), window);
   CHECK(it != windows_.end());
   windows_.erase(it);
@@ -87,7 +87,7 @@ void WindowAnchor::RemoveWindow(Window* window) {
 }
 
 
-bool WindowAnchor::Move(int x, int y) {
+bool Anchor::Move(int x, int y) {
   x_ = x;
   y_ = y;
 
@@ -97,7 +97,7 @@ bool WindowAnchor::Move(int x, int y) {
 }
 
 
-bool WindowAnchor::SetActive(uint index) {
+bool Anchor::SetActive(uint index) {
   if (index < 0 || index >= windows_.size()) {
     ERROR << "Ignoring request to activate window " << index
           << " in anchor " << name_ << " containing " << windows_.size()
@@ -128,7 +128,7 @@ bool WindowAnchor::SetActive(uint index) {
 }
 
 
-void WindowAnchor::DrawTitlebar() {
+void Anchor::DrawTitlebar() {
   titlebar_height_ = font_ascent_ + font_descent_ +
       2 * config->titlebar_padding + 2 * config->titlebar_border;
   if (windows_.empty()) {
@@ -187,21 +187,21 @@ void WindowAnchor::DrawTitlebar() {
 }
 
 
-void WindowAnchor::ActivateWindowAtCoordinates(int x, int y) {
+void Anchor::ActivateWindowAtCoordinates(int x, int y) {
   if (windows_.empty()) return;
   int index = (x - x_) * windows_.size() / titlebar_width_;
   SetActive(index);
 }
 
 
-void WindowAnchor::SetGravity(WindowAnchor::Gravity gravity) {
+void Anchor::SetGravity(Anchor::Gravity gravity) {
   if (gravity_ == gravity) return;
   gravity_ = gravity;
   Move(x_, y_);
 }
 
 
-void WindowAnchor::UpdateWindowPosition(Window* window) {
+void Anchor::UpdateWindowPosition(Window* window) {
   CHECK(window);
   int x = (gravity_ == TOP_LEFT || gravity_ == BOTTOM_LEFT) ?
       x_ : x_ + titlebar_width_ - window->width();

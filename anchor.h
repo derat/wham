@@ -1,8 +1,8 @@
 // Copyright 2007 Daniel Erat <dan@erat.org>
 // All rights reserved.
 
-#ifndef __WINDOW_ANCHOR_H__
-#define __WINDOW_ANCHOR_H__
+#ifndef __ANCHOR_H__
+#define __ANCHOR_H__
 
 #include <vector>
 
@@ -17,12 +17,12 @@ class XWindow;  // from x.h
 
 // A collection of windows, exactly one of which is visible at any given
 // time.
-class WindowAnchor {
+class Anchor {
  public:
   const static int kTitlebarHeight;
 
-  WindowAnchor(const string& name, int x, int y);
-  ~WindowAnchor();
+  Anchor(const string& name, int x, int y);
+  ~Anchor();
 
   string name() const { return name_; }
   int x() const { return x_; }
@@ -92,7 +92,7 @@ class WindowAnchor {
   int name_ascent_;
   int name_descent_;
 
-  DISALLOW_EVIL_CONSTRUCTORS(WindowAnchor);
+  DISALLOW_EVIL_CONSTRUCTORS(Anchor);
 };
 
 }  // namespace wham

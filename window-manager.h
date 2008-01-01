@@ -8,11 +8,11 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+#include "anchor.h"
 #include "command.h"
 #include "key-bindings.h"
 #include "util.h"
 #include "window.h"
-#include "window-anchor.h"
 #include "window-classifier.h"
 
 using namespace std;
@@ -37,21 +37,21 @@ class WindowManager {
  private:
   bool Exec(const string& command);
 
-  WindowAnchor* GetNearestAnchor(const string& direction) const;
+  Anchor* GetNearestAnchor(const string& direction) const;
 
   WindowClassifier window_classifier_;
 
   typedef map<XWindow*, ref_ptr<Window> > WindowMap;
   WindowMap windows_;
 
-  typedef map<XWindow*, WindowAnchor*> WindowAnchorTitlebarMap;
-  WindowAnchorTitlebarMap anchor_titlebars_;
+  typedef map<XWindow*, Anchor*> AnchorTitlebarMap;
+  AnchorTitlebarMap anchor_titlebars_;
 
-  typedef vector<ref_ptr<WindowAnchor> > WindowAnchorVector;
-  WindowAnchorVector anchors_;
+  typedef vector<ref_ptr<Anchor> > AnchorVector;
+  AnchorVector anchors_;
 
-  typedef vector<WindowAnchor*> WindowAnchorPtrVector;
-  map<Window*, WindowAnchorPtrVector> windows_to_anchors_;
+  typedef vector<Anchor*> AnchorPtrVector;
+  map<Window*, AnchorPtrVector> windows_to_anchors_;
 
   size_t active_anchor_;
 

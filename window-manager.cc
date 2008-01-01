@@ -45,15 +45,15 @@ WindowManager::WindowManager()
 
 
 void WindowManager::CreateAnchor(const string& name, int x, int y) {
-  ref_ptr<WindowAnchor> anchor(new WindowAnchor(name, x, y));
+  ref_ptr<Anchor> anchor(new Anchor(name, x, y));
   anchors_.push_back(anchor);
   anchor_titlebars_.insert(make_pair(anchor->titlebar(), anchor.get()));
 }
 
 
 void WindowManager::HandleButtonPress(XWindow* x_window, int x, int y) {
-  WindowAnchor* anchor = FindWithDefault(
-      anchor_titlebars_, x_window, static_cast<WindowAnchor*>(NULL));
+  Anchor* anchor = FindWithDefault(
+      anchor_titlebars_, x_window, static_cast<Anchor*>(NULL));
   if (anchor == NULL) {
     ERROR << "Ignoring button press for unknown window";
     return;
@@ -80,8 +80,8 @@ void WindowManager::HandleButtonRelease(XWindow* x_window, int x, int y) {
   if (dragging_) {
     dragging_ = false;
   } else {
-    WindowAnchor* anchor = FindWithDefault(
-        anchor_titlebars_, x_window, static_cast<WindowAnchor*>(NULL));
+    Anchor* anchor = FindWithDefault(
+        anchor_titlebars_, x_window, static_cast<Anchor*>(NULL));
     if (anchor == NULL) {
       ERROR << "Ignoring button release for unknown window";
       return;
@@ -100,7 +100,7 @@ void WindowManager::HandleCreateWindow(XWindow* x_window) {
   windows_.insert(make_pair(x_window, window));
   window->Classify(window_classifier_);
 
-  WindowAnchor* anchor = anchors_[active_anchor_].get();
+  Anchor* anchor = anchors_[active_anchor_].get();
   anchor->AddWindow(window.get());
   windows_to_anchors_[window.get()].push_back(anchor);
   anchor->SetActive(anchor->NumWindows()-1);
@@ -111,8 +111,8 @@ void WindowManager::HandleDestroyWindow(XWindow* x_window) {
   CHECK(windows_.count(x_window) == 1);
   Window* window = windows_[x_window].get();
   CHECK(window);
-  WindowAnchorPtrVector& anchors = windows_to_anchors_[window];
-  for (WindowAnchorPtrVector::iterator anchor = anchors.begin();
+  AnchorPtrVector& anchors = windows_to_anchors_[window];
+  for (AnchorPtrVector::iterator anchor = anchors.begin();
        anchor != anchors.end(); ++anchor) {
     (*anchor)->RemoveWindow(window);
   }
@@ -123,7 +123,7 @@ void WindowManager::HandleDestroyWindow(XWindow* x_window) {
 
 void WindowManager::HandleExposeWindow(XWindow* x_window) {
   CHECK(anchor_titlebars_.count(x_window));
-  WindowAnchor* anchor = anchor_titlebars_[x_window];
+  Anchor* anchor = anchor_titlebars_[x_window];
   CHECK(anchor);
   anchor->DrawTitlebar();
 }
@@ -138,7 +138,7 @@ void WindowManager::HandleMotion(XWindow* x_window, int x, int y) {
     }
     dragging_ = true;
   }
-  WindowAnchor* anchor = anchors_[active_anchor_].get();
+  Anchor* anchor = anchors_[active_anchor_].get();
   CHECK(anchor);
   anchor->Move(x - drag_offset_x_, y - drag_offset_y_);
 }
@@ -154,13 +154,13 @@ void WindowManager::HandleCommand(const Command &cmd) {
       break;
     case Command::SWITCH_ANCHOR:
       {
-        WindowAnchor* anchor = GetNearestAnchor(cmd.args[0]);
+        Anchor* anchor = GetNearestAnchor(cmd.args[0]);
         LOG << "anchor=" << hex << anchor;
       }
       break;
     case Command::SWITCH_WINDOW:
       {
-        WindowAnchor* anchor = anchors_[active_anchor_].get();
+        Anchor* anchor = anchors_[active_anchor_].get();
         CHECK(anchor);
         anchor->SetActive(atoi(cmd.args[0].c_str()));
       }
@@ -186,7 +186,7 @@ bool WindowManager::Exec(const string& command) {
 }
 
 
-WindowAnchor* WindowManager::GetNearestAnchor(const string& direction) const {
+Anchor* WindowManager::GetNearestAnchor(const string& direction) const {
   int dx = 0, dy = 0;
   if (direction == "left")       dx = -1;
   else if (direction == "right") dx =  1;
@@ -194,10 +194,10 @@ WindowAnchor* WindowManager::GetNearestAnchor(const string& direction) const {
   else if (direction == "down")  dy =  1;
   else return NULL;
 
-  ref_ptr<WindowAnchor> active = anchors_[active_anchor_];
-  WindowAnchor* nearest = NULL;
+  ref_ptr<Anchor> active = anchors_[active_anchor_];
+  Anchor* nearest = NULL;
   int nearest_dist = INT_MAX;
-  for (WindowAnchorVector::const_iterator anchor = anchors_.begin();
+  for (AnchorVector::const_iterator anchor = anchors_.begin();
        anchor != anchors_.end(); ++anchor) {
     if (*anchor == active) continue;
     int dist = 0;
