@@ -9,6 +9,8 @@ namespace wham {
 
 Window::Window(XWindow* x_window)
     : x_window_(x_window),
+      width_(0),
+      height_(0),
       props_(),
       configs_() {
   UpdateProperties();
@@ -32,6 +34,8 @@ void Window::Move(int x, int y) {
 
 void Window::Resize(uint width, uint height) {
   x_window_->Resize(width, height);
+  width_ = width;
+  height_ = height;
 }
 
 

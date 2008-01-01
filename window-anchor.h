@@ -49,7 +49,20 @@ class WindowAnchor {
 
   void ActivateWindowAtCoordinates(int x, int y);
 
+  // Where an anchor should appear in relation to its windows.
+  enum Gravity {
+    TOP_LEFT,
+    TOP_RIGHT,
+    BOTTOM_LEFT,
+    BOTTOM_RIGHT,
+  };
+
+  // Change the anchor's gravity.
+  void SetGravity(Gravity gravity);
+
  private:
+  void UpdateWindowPosition(Window* window);
+
   string name_;
 
   int x_;
@@ -62,6 +75,9 @@ class WindowAnchor {
   // the window itself
   uint active_index_;
   Window* active_window_;
+
+  // Where an anchor should appear in relation to its windows.
+  Gravity gravity_;
 
   XWindow* titlebar_;
   int titlebar_width_;

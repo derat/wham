@@ -34,6 +34,9 @@ class Window {
   string title() const { return props_.window_name; }
   int title_width() const { return title_width_; }
 
+  uint width() const { return width_; }
+  uint height() const { return height_; }
+
  private:
   void ApplyConfig();
 
@@ -43,6 +46,9 @@ class Window {
   // A pointer to information about the X window; used for interacting with
   // the server
   XWindow* x_window_;  // not owned
+
+  uint width_;
+  uint height_;
 
   WindowProperties props_;
 

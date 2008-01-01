@@ -28,6 +28,7 @@ WindowAnchor::WindowAnchor(const string& name, int x, int y)
       y_(y),
       active_index_(0),
       active_window_(NULL),
+      gravity_(TOP_LEFT),
       titlebar_(XWindow::Create(x, y, 1, 1)),
       titlebar_width_(0),
       titlebar_height_(0),
@@ -89,8 +90,9 @@ void WindowAnchor::RemoveWindow(Window* window) {
 bool WindowAnchor::Move(int x, int y) {
   x_ = x;
   y_ = y;
-  titlebar_->Move(x, y - titlebar_height_);
-  if (active_window_) active_window_->Move(x, y);
+
+  titlebar_->Move(x, y);
+  if (active_window_) UpdateWindowPosition(active_window_);
   return true;
 }
 
@@ -118,7 +120,7 @@ bool WindowAnchor::SetActive(uint index) {
   active_index_ = index;
   active_window_ = windows_[active_index_];
   CHECK(active_window_);
-  active_window_->Move(x_, y_);
+  UpdateWindowPosition(active_window_);
   active_window_->Map();
 
   DrawTitlebar();
@@ -182,8 +184,6 @@ void WindowAnchor::DrawTitlebar() {
           (*window)->title(), active ? "white" : "black");
     }
   }
-
-  titlebar_->Move(x_, y_ - titlebar_height_);
 }
 
 
@@ -191,6 +191,25 @@ void WindowAnchor::ActivateWindowAtCoordinates(int x, int y) {
   if (windows_.empty()) return;
   int index = (x - x_) * windows_.size() / titlebar_width_;
   SetActive(index);
+}
+
+
+void WindowAnchor::SetGravity(WindowAnchor::Gravity gravity) {
+  if (gravity_ == gravity) return;
+  gravity_ = gravity;
+  Move(x_, y_);
+}
+
+
+void WindowAnchor::UpdateWindowPosition(Window* window) {
+  CHECK(window);
+  int x = (gravity_ == TOP_LEFT || gravity_ == BOTTOM_LEFT) ?
+      x_ : x_ + titlebar_width_ - window->width();
+  int y = (gravity_ == TOP_LEFT || gravity_ == TOP_RIGHT) ?
+      y_ + titlebar_height_ : y_ - window->height();
+  LOG << "y_=" << y_ << " titlebar_height=" << titlebar_height_
+      << " y=" << y;
+  window->Move(x, y);
 }
 
 }  // namespace wham
