@@ -30,6 +30,8 @@ int main(int argc, char** argv) {
                             vector<string>(1, "up"), NULL));
   CHECK(bindings.AddBinding("Ctrl+g", "cycle_anchor_gravity",
                             vector<string>(1, "true"), NULL));
+  CHECK(bindings.AddBinding("Ctrl+shift+g", "cycle_anchor_gravity",
+                            vector<string>(1, "false"), NULL));
   x_server.RegisterKeyBindings(bindings);
 
   WindowManager window_manager;
