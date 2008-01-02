@@ -207,8 +207,6 @@ void Anchor::UpdateWindowPosition(Window* window) {
       x_ : x_ + titlebar_width_ - window->width();
   int y = (gravity_ == TOP_LEFT || gravity_ == TOP_RIGHT) ?
       y_ + titlebar_height_ : y_ - window->height();
-  LOG << "y_=" << y_ << " titlebar_height=" << titlebar_height_
-      << " y=" << y;
   window->Move(x, y);
 }
 

@@ -37,6 +37,8 @@ class Window {
   uint width() const { return width_; }
   uint height() const { return height_; }
 
+  XWindow* x_window() const { return x_window_; }
+
  private:
   void ApplyConfig();
 

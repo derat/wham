@@ -7,11 +7,11 @@ CXXTESTINCLUDE=-I/home/derat/local/include
 PROGNAME=wham
 
 $(PROGNAME): \
-  main.cc anchor.o command.o config.o config-parser.o key-bindings.o util.o \
-  window.o window-classifier.o window-manager.o x.o
+  main.cc anchor.o command.o config.o config-parser.o desktop.o key-bindings.o \
+  util.o window.o window-classifier.o window-manager.o x.o
 	$(CC) -o $@ $(LIBS) main.cc \
-	  anchor.o command.o config.o config-parser.o key-bindings.o util.o \
-	  window.o window-classifier.o window-manager.o x.o
+	  anchor.o command.o config.o config-parser.o desktop.o key-bindings.o \
+	  util.o window.o window-classifier.o window-manager.o x.o
 
 anchor.o: anchor.cc anchor.h \
   config.h util.h window.h x.h
@@ -25,6 +25,9 @@ config.o: config.cc config.h util.h
 
 config-parser.o: config-parser.cc config-parser.h util.h
 	$(CC) -c config-parser.cc
+
+desktop.o: desktop.cc desktop.h anchor.h util.h
+	$(CC) -c desktop.cc
 
 key-bindings.o: key-bindings.cc key-bindings.h command.h util.h
 	$(CC) -c key-bindings.cc
@@ -49,8 +52,8 @@ x.o: x.cc x.h util.h window-classifier.h window-manager.h
 
 clean:
 	rm -f $(PROGNAME) anchor.o command.o config.o config-parser.o \
-	  key-bindings.o util.o window.o window-classifier.o window-manager.o \
-	  x.o \
+	  desktop.o key-bindings.o util.o window.o window-classifier.o \
+	  window-manager.o x.o \
 	  command_test command_test.cc \
 	  config-parser_test config-parser_test.cc \
 	  key-bindings_test key-bindings_test.cc \

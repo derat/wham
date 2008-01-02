@@ -5,11 +5,10 @@
 #define __WINDOW_MANAGER_H__
 
 #include <map>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
 
 #include "anchor.h"
 #include "command.h"
+#include "desktop.h"
 #include "key-bindings.h"
 #include "util.h"
 #include "window.h"
@@ -19,11 +18,11 @@ using namespace std;
 
 namespace wham {
 
+class XWindow;
+
 class WindowManager {
  public:
   WindowManager();
-
-  void CreateAnchor(const string& name, int x, int y);
 
   void HandleButtonPress(XWindow* x_window, int x, int y);
   void HandleButtonRelease(XWindow* x_window, int x, int y);
@@ -35,25 +34,19 @@ class WindowManager {
   void HandleCommand(const Command& cmd);
 
  private:
-  bool Exec(const string& command);
+  bool IsAnchorWindow(XWindow* x_window);
 
-  Anchor* GetNearestAnchor(const string& direction) const;
+  bool Exec(const string& command);
 
   WindowClassifier window_classifier_;
 
   typedef map<XWindow*, ref_ptr<Window> > WindowMap;
   WindowMap windows_;
 
-  typedef map<XWindow*, Anchor*> AnchorTitlebarMap;
-  AnchorTitlebarMap anchor_titlebars_;
+  typedef vector<ref_ptr<Desktop> > DesktopVector;
+  DesktopVector desktops_;
 
-  typedef vector<ref_ptr<Anchor> > AnchorVector;
-  AnchorVector anchors_;
-
-  typedef vector<Anchor*> AnchorPtrVector;
-  map<Window*, AnchorPtrVector> windows_to_anchors_;
-
-  size_t active_anchor_;
+  Desktop* current_desktop_;
 
   // Is a mouse button currently down?
   bool mouse_down_;
