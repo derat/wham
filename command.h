@@ -86,12 +86,13 @@ class Command {
  private:
   friend class ::KeyBindingsTestSuite;
 
+  // Different types of arguments that can be required by a command
   enum ArgType {
     NO_ARG,
     INT_ARG,
     BOOL_ARG,
     STRING_ARG,
-    DIRECTION_ARG,
+    DIRECTION_ARG,  // case-insensitive "up", "down", "left", or "right"
   };
 
   // Get the required number of arguments for a command type.
@@ -100,8 +101,13 @@ class Command {
   // Initialize static data.  Does nothing if it's already initialized.
   static void InitializeStaticData();
 
+  // This command's type.
   Type type_;
 
+  // Argument associated with the command.
+  // This is ugly... We can't use a C++ string in a union, so we have to
+  // use a pointer to one instead and define our own copy constructor and
+  // assignment operators that make a copy of the existing pointer.
   union arg_ {
     int i;
     bool b;
@@ -109,6 +115,8 @@ class Command {
     Direction dir;
   } arg_;
 
+  // Is this command valid (that is, does it have a known type and an
+  // argument that is suitable for its type)?
   bool valid_;
 
   // Array containing information about commands.
@@ -119,7 +127,7 @@ class Command {
   };
   static Info info_[];
 
-  // Maps generated from info_ and a bool to track whether they've been
+  // Maps generated from 'info_' and a bool to track whether they've been
   // initialized yet or not.
   static map<string, Type> name_to_type_;
   static map<Type, string> type_to_name_;

@@ -53,6 +53,10 @@ class KeyBindingsTestSuite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(cmd.Valid(), false);
   }
 
+  void testCommand_BoolArg() {
+    // FIXME: write this when there's a command with a bool arg
+  }
+
   void testCommand_StringArg() {
     vector<string> args;
 

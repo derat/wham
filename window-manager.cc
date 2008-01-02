@@ -124,7 +124,7 @@ void WindowManager::HandleCommand(const Command &cmd) {
     case Command::EXEC:
       Exec(cmd.GetStringArg());
       break;
-    case Command::SWITCH_ANCHOR:
+    case Command::SWITCH_NEAREST_ANCHOR:
       /*
       {
         Anchor* anchor = GetNearestAnchor(cmd.args[0]);
@@ -132,7 +132,7 @@ void WindowManager::HandleCommand(const Command &cmd) {
       }
       */
       break;
-    case Command::SWITCH_WINDOW:
+    case Command::SWITCH_NTH_WINDOW:
       {
         Anchor* anchor = current_desktop_->active_anchor();
         if (anchor) anchor->SetActive(cmd.GetIntArg());

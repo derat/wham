@@ -106,19 +106,19 @@ window-manager_test.cc: window-manager_test.h
 
 window-manager_test: \
   window-manager_test.cc window-manager_test.h window-manager.o \
-  anchor.o command.o config.o window.o window-classifier.o util.o x.o
+  anchor.o command.o config.o desktop.o window.o window-classifier.o util.o x.o
 	$(CC) $(CXXTESTINCLUDE) $(LIBS) -o $@ \
 	  window-manager_test.cc window-manager.o \
-	  anchor.o command.o config.o key-bindings.o util.o window.o \
+	  anchor.o desktop.o command.o config.o key-bindings.o util.o window.o \
 	  window-classifier.o x.o
 
 x_test.cc: x_test.h
 	$(CXXTESTGEN) --error-printer -o $@ x_test.h
 
-x_test: x_test.cc x_test.h x.o config.o key-bindings.o util.o window.o \
-  anchor.o window-classifier.o window-manager.o
+x_test: x_test.cc x_test.h x.o command.o config.o desktop.o key-bindings.o \
+  util.o window.o anchor.o window-classifier.o window-manager.o
 	$(CC) $(CXXTESTINCLUDE) $(LIBS) -o $@ x_test.cc x.o \
-	  anchor.o command.o config.o key-bindings.o util.o window.o \
+	  anchor.o command.o config.o desktop.o key-bindings.o util.o window.o \
 	  window-classifier.o window-manager.o
 
 test: command_test config-parser_test key-bindings_test util_test \

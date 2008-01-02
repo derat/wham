@@ -50,8 +50,13 @@ Command::Command(const string& name, const vector<string>& args)
     case BOOL_ARG:
       if (args.size() != 1 || args[0].empty()) {
         valid_ = false;
+      } else if (strcasecmp(args[0].c_str(), "true") == 0 || args[0] == "1") {
+        arg_.b = true;
+      } else if (strcasecmp(args[0].c_str(), "false") == 0 || args[0] == "0") {
+        arg_.b = false;
+      } else {
+        valid_ = false;
       }
-      CHECK(false);  // FIXME: implement this
       break;
     case STRING_ARG:
       if (args.size() != 1) {

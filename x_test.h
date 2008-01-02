@@ -56,7 +56,7 @@ class XTestSuite : public CxxTest::TestSuite {
       TS_ASSERT_EQUALS(binding->keysym, static_cast<uint>(XK_n));
       TS_ASSERT_EQUALS(binding->required_mods, static_cast<uint>(Mod1Mask));
       TS_ASSERT_EQUALS(binding->inherited_mods, 0U);
-      TS_ASSERT_EQUALS(binding->command.type, Command::CREATE_ANCHOR);
+      TS_ASSERT_EQUALS(binding->command.type(), Command::CREATE_ANCHOR);
       TS_ASSERT(binding->children.empty());
     }
 
@@ -66,21 +66,21 @@ class XTestSuite : public CxxTest::TestSuite {
       TS_ASSERT_EQUALS(binding->keysym, static_cast<uint>(XK_u));
       TS_ASSERT_EQUALS(binding->required_mods, static_cast<uint>(ControlMask));
       TS_ASSERT_EQUALS(binding->inherited_mods, 0U);
-      TS_ASSERT_EQUALS(binding->command.type, Command::UNKNOWN);
+      TS_ASSERT_EQUALS(binding->command.type(), Command::UNKNOWN);
       TS_ASSERT_EQUALS(binding->children.size(), 2U);
       if (binding->children.size() == 2) {
         XKeyBinding* child = binding->children[0].get();
         TS_ASSERT_EQUALS(child->keysym, static_cast<uint>(XK_c));
         TS_ASSERT_EQUALS(child->required_mods, 0U);
         TS_ASSERT_EQUALS(child->inherited_mods, static_cast<uint>(ControlMask));
-        TS_ASSERT_EQUALS(child->command.type, Command::CLOSE_WINDOW);
+        TS_ASSERT_EQUALS(child->command.type(), Command::CLOSE_WINDOW);
         TS_ASSERT(child->children.empty());
 
         child = binding->children[1].get();
         TS_ASSERT_EQUALS(child->keysym, static_cast<uint>(XK_n));
         TS_ASSERT_EQUALS(child->required_mods, static_cast<uint>(ShiftMask));
         TS_ASSERT_EQUALS(child->inherited_mods, static_cast<uint>(ControlMask));
-        TS_ASSERT_EQUALS(child->command.type, Command::CREATE_ANCHOR);
+        TS_ASSERT_EQUALS(child->command.type(), Command::CREATE_ANCHOR);
         TS_ASSERT(child->children.empty());
       }
     }
