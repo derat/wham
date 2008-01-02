@@ -28,6 +28,8 @@ int main(int argc, char** argv) {
                             vector<string>(1, "down"), NULL));
   CHECK(bindings.AddBinding("Ctrl+k", "switch_nearest_anchor",
                             vector<string>(1, "up"), NULL));
+  CHECK(bindings.AddBinding("Ctrl+g", "cycle_anchor_gravity",
+                            vector<string>(1, "true"), NULL));
   x_server.RegisterKeyBindings(bindings);
 
   WindowManager window_manager;

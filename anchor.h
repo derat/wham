@@ -53,12 +53,14 @@ class Anchor {
   enum Gravity {
     TOP_LEFT,
     TOP_RIGHT,
-    BOTTOM_LEFT,
     BOTTOM_RIGHT,
+    BOTTOM_LEFT,
+    NUM_GRAVITIES,
   };
 
   // Change the anchor's gravity.
   void SetGravity(Gravity gravity);
+  void CycleGravity(bool forward);
 
  private:
   void UpdateWindowPosition(Window* window);

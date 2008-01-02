@@ -1,3 +1,5 @@
 #!/bin/sh
 Xnest -auth /dev/null :1 &
-#DISPLAY=:1 xsetroot -bg black
+#sleep 1
+#DISPLAY=:1 xsetroot -solid LightSteelBlue4
+#DISPLAY=:1 xrdb -load ~/.Xresources

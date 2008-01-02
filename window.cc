@@ -1,11 +1,15 @@
 // Copyright 2007 Daniel Erat <dan@erat.org>
 // All rights reserved.
 
-#include "config.h"
 #include "window.h"
+
+#include "config.h"
 #include "x.h"
 
 namespace wham {
+
+WindowClassifier* Window::classifier_ = NULL;
+
 
 Window::Window(XWindow* x_window)
     : x_window_(x_window),
@@ -14,16 +18,7 @@ Window::Window(XWindow* x_window)
       props_(),
       configs_() {
   UpdateProperties();
-}
-
-
-bool Window::Classify(const WindowClassifier& classifier) {
-  if (!classifier.ClassifyWindow(props_, &configs_)) {
-    ERROR << "Unable to classify window";
-    return false;
-  }
-  ApplyConfig();
-  return true;
+  Classify();
 }
 
 
@@ -49,8 +44,19 @@ void Window::Map() {
 }
 
 
+bool Window::Classify() {
+  CHECK(classifier_);
+  if (!classifier_->ClassifyWindow(props_, &configs_)) {
+    ERROR << "Unable to classify window";
+    return false;
+  }
+  ApplyConfig();
+  return true;
+}
+
+
 void Window::ApplyConfig() {
-  const WindowConfig* config = GetActiveConfig();
+  const WindowConfig* config = configs_.GetActiveConfig();
   CHECK(config);
   Resize(config->width, config->height);
 }

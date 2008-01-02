@@ -54,7 +54,40 @@ class KeyBindingsTestSuite : public CxxTest::TestSuite {
   }
 
   void testCommand_BoolArg() {
-    // FIXME: write this when there's a command with a bool arg
+    vector<string> args;
+
+    // no args
+    Command cmd("cycle_anchor_gravity", args);
+    TS_ASSERT_EQUALS(cmd.type(), Command::CYCLE_ANCHOR_GRAVITY);
+    TS_ASSERT_EQUALS(cmd.Valid(), false);
+
+    // single bool arg -- "true"
+    args.push_back("true");
+    cmd = Command("cycle_anchor_gravity", args);
+    TS_ASSERT_EQUALS(cmd.type(), Command::CYCLE_ANCHOR_GRAVITY);
+    TS_ASSERT_EQUALS(cmd.Valid(), true);
+    TS_ASSERT_EQUALS(cmd.GetBoolArg(), true);
+
+    // single bool arg -- 0
+    args.clear();
+    args.push_back("0");
+    cmd = Command("cycle_anchor_gravity", args);
+    TS_ASSERT_EQUALS(cmd.type(), Command::CYCLE_ANCHOR_GRAVITY);
+    TS_ASSERT_EQUALS(cmd.Valid(), true);
+    TS_ASSERT_EQUALS(cmd.GetBoolArg(), false);
+
+    // two bool args
+    args.push_back("false");
+    cmd = Command("cycle_anchor_gravity", args);
+    TS_ASSERT_EQUALS(cmd.type(), Command::CYCLE_ANCHOR_GRAVITY);
+    TS_ASSERT_EQUALS(cmd.Valid(), false);
+
+    // single non-bool arg
+    args.clear();
+    args.push_back("blah");
+    cmd = Command("cycle_anchor_gravity", args);
+    TS_ASSERT_EQUALS(cmd.type(), Command::CYCLE_ANCHOR_GRAVITY);
+    TS_ASSERT_EQUALS(cmd.Valid(), false);
   }
 
   void testCommand_StringArg() {

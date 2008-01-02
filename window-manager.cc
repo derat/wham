@@ -38,6 +38,8 @@ WindowManager::WindowManager()
   configs->push_back(ref_ptr<WindowConfig>(new WindowConfig("def", 400, 400)));
   window_classifier_.AddConfig(criteria, configs);
 
+  Window::SetClassifier(&window_classifier_);
+
   desktops_.push_back(ref_ptr<Desktop>(new Desktop()));
   current_desktop_ = desktops_[0].get();
 }
@@ -120,6 +122,12 @@ void WindowManager::HandleCommand(const Command &cmd) {
   switch (cmd.type()) {
     case Command::CREATE_ANCHOR:
       current_desktop_->CreateAnchor("new", 250, 250);
+      break;
+    case Command::CYCLE_ANCHOR_GRAVITY:
+      {
+        Anchor* anchor = current_desktop_->active_anchor();
+        if (anchor) anchor->CycleGravity(cmd.GetBoolArg());
+      }
       break;
     case Command::EXEC:
       Exec(cmd.GetStringArg());

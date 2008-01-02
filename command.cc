@@ -10,6 +10,7 @@ namespace wham {
 Command::Info Command::info_[] = {
   { "close_window",          CLOSE_WINDOW,          NO_ARG },
   { "create_anchor",         CREATE_ANCHOR,         NO_ARG },
+  { "cycle_anchor_gravity",  CYCLE_ANCHOR_GRAVITY,  BOOL_ARG },
   { "exec",                  EXEC,                  STRING_ARG },
   { "switch_nearest_anchor", SWITCH_NEAREST_ANCHOR, DIRECTION_ARG },
   { "switch_nth_anchor",     SWITCH_NTH_ANCHOR,     INT_ARG },

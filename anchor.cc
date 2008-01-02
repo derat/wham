@@ -147,10 +147,10 @@ void Anchor::DrawTitlebar() {
   titlebar_width_ = min(max(titlebar_width_, config->titlebar_min_width),
                         config->titlebar_max_width);
 
-  //LOG << "before=" << titlebar_height_;
   titlebar_->Resize(titlebar_width_, titlebar_height_);
-  //LOG << "after=" << titlebar_height_;
   titlebar_->Clear();
+
+  // Draw outside border.
   titlebar_->DrawLine(0, 0, titlebar_width_ - 1, 0, "black");
   titlebar_->DrawLine(0, titlebar_height_ - 1,
                       titlebar_width_ - 1, titlebar_height_ - 1, "black");
@@ -166,7 +166,6 @@ void Anchor::DrawTitlebar() {
     float title_width =
         static_cast<float>(titlebar_width_ - config->titlebar_border) /
         windows_.size();
-    int rounded_width = static_cast<int>(roundf(title_width));
     int i = 0;
     for (WindowVector::const_iterator window = windows_.begin();
          window != windows_.end(); ++window, ++i) {
@@ -174,8 +173,9 @@ void Anchor::DrawTitlebar() {
       int x = static_cast<int>(roundf(i * title_width));
       int y = config->titlebar_border + config->titlebar_padding +
               font_ascent_;
+      int width = static_cast<int>(roundf((i + 1) * title_width)) - x;
       if (active) {
-        titlebar_->DrawBox(x, 0, rounded_width, titlebar_height_ - 1, "black");
+        titlebar_->DrawBox(x, 0, width, titlebar_height_ - 1, "black");
       } else {
         titlebar_->DrawLine(x, 0, x, titlebar_height_ - 1, "black");
       }
@@ -197,7 +197,13 @@ void Anchor::ActivateWindowAtCoordinates(int x, int y) {
 void Anchor::SetGravity(Anchor::Gravity gravity) {
   if (gravity_ == gravity) return;
   gravity_ = gravity;
-  Move(x_, y_);
+  if (active_window_) UpdateWindowPosition(active_window_);
+}
+
+
+void Anchor::CycleGravity(bool forward) {
+  SetGravity(static_cast<Gravity>(
+      (gravity_ + NUM_GRAVITIES + (forward ? 1 : -1)) % NUM_GRAVITIES));
 }
 
 
