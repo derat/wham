@@ -29,13 +29,13 @@ WindowManager::WindowManager()
   criteria->push_back(crit);
 
   ref_ptr<WindowConfigVector> configs(new WindowConfigVector);
-  configs->push_back(new WindowConfig("default", 300, 300));
+  configs->push_back(ref_ptr<WindowConfig>(new WindowConfig("abc", 300, 300)));
 
   window_classifier_.AddConfig(criteria, configs);
 
   criteria.reset(new WindowCriteriaVector);
   configs.reset(new WindowConfigVector);
-  configs->push_back(new WindowConfig("foo", 400, 400));
+  configs->push_back(ref_ptr<WindowConfig>(new WindowConfig("def", 400, 400)));
   window_classifier_.AddConfig(criteria, configs);
 
   desktops_.push_back(ref_ptr<Desktop>(new Desktop()));

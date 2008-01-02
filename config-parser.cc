@@ -225,7 +225,8 @@ bool ConfigParser::Parse(Tokenizer* tokenizer, ParsedConfig* config) {
       }
       if (!current_node) {
         current_node = new ParsedConfig::Node;
-        node_stack.top()->children.push_back(current_node);
+        node_stack.top()->children.push_back(
+            ref_ptr<ParsedConfig::Node>(current_node));
       }
       if (in_concat) {
         // Invariant: if we're concatenating, we already have a token.

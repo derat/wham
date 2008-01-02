@@ -131,7 +131,8 @@ class WindowClassifierTestSuite : public CxxTest::TestSuite {
     criteria->push_back(crit);
 
     ref_ptr<WindowConfigVector> configs(new WindowConfigVector);
-    configs->push_back(new WindowConfig("default", 100, 200));
+    configs->push_back(
+        ref_ptr<WindowConfig>(new WindowConfig("default", 100, 200)));
 
     classifier.AddConfig(criteria, configs);
 
@@ -142,14 +143,16 @@ class WindowClassifierTestSuite : public CxxTest::TestSuite {
     criteria->push_back(crit);
 
     configs.reset(new WindowConfigVector);
-    configs->push_back(new WindowConfig("default", 300, 400));
+    configs->push_back(
+        ref_ptr<WindowConfig>(new WindowConfig("default", 300, 400)));
 
     classifier.AddConfig(criteria, configs);
 
     // Add a third config matching everything.
     criteria.reset(new WindowCriteriaVector);
     configs.reset(new WindowConfigVector);
-    configs->push_back(new WindowConfig("foo", 500, 600));
+    configs->push_back(
+        ref_ptr<WindowConfig>(new WindowConfig("foo", 500, 600)));
     classifier.AddConfig(criteria, configs);
 
     WindowProperties props;

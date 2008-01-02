@@ -7,8 +7,7 @@
 namespace wham {
 
 Desktop::Desktop()
-    : active_anchor_(NULL),
-      active_anchor_index_(0) {
+    : active_anchor_(NULL) {
   // Create a few anchors just for testing.
   CreateAnchor("anchor1", 50, 50);
   CreateAnchor("anchor2", 300, 300);
@@ -30,14 +29,9 @@ Anchor* Desktop::GetAnchorByTitlebar(XWindow* titlebar) const {
 
 
 void Desktop::SetActiveAnchor(Anchor* anchor) {
-  for (size_t i = 0; i < anchors_.size(); ++i) {
-    if (anchor == anchors_[i].get()) {
-      active_anchor_ = anchors_[i].get();
-      active_anchor_index_ = i;
-      return;
-    }
-  }
-  CHECK(false);
+  if (anchor == active_anchor_) return;
+  CHECK(find(anchors_.begin(), anchors_.end(), anchor) != anchors_.end());
+  active_anchor_ = anchor;
 }
 
 

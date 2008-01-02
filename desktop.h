@@ -51,12 +51,13 @@ class Desktop {
   typedef map<XWindow*, Anchor*> AnchorTitlebarMap;
   AnchorTitlebarMap anchor_titlebars_;
 
+  // Map from a window present on this desktop to the anchor that contains
+  // it.  At most one anchor on a desktop can contain a given window.
   typedef map<Window*, Anchor*> WindowAnchorMap;
   WindowAnchorMap window_anchors_;
 
-  // Index into 'anchors_' of the currently-active anchor.
+  // Currently-active anchor.
   Anchor* active_anchor_;
-  size_t active_anchor_index_;
 
   DISALLOW_EVIL_CONSTRUCTORS(Desktop);
 };

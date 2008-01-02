@@ -68,7 +68,7 @@ class Logger {
 template<class T>
 class ref_ptr {
  public:
-  ref_ptr(T* ptr=NULL)
+  explicit ref_ptr(T* ptr=NULL)
       : ptr_(ptr),
         refs_(ptr ? new int(0) : NULL) {
     add_ref();
@@ -117,6 +117,9 @@ class ref_ptr {
   }
   bool operator==(const ref_ptr<T>& other) const {
     return ptr_ == other.ptr_;
+  }
+  bool operator==(const T* ptr) const {
+    return ptr_ == ptr;
   }
 
  private:
