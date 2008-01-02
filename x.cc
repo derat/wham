@@ -425,7 +425,7 @@ void XServer::UpdateKeyBindingMap(
         parent_binding = binding_map->find(key)->second.get();
         CHECK(parent_binding);
       } else {
-        if (parent_binding->command.type != Command::UNKNOWN) {
+        if (parent_binding->command.type() != Command::UNKNOWN) {
           ERROR << "While adding multi-level binding "
                 << binding->ToString() << " for "
                 << binding->command.ToString()
@@ -474,7 +474,7 @@ void XServer::UpdateKeyBindingMap(
               << "has sub-bindings; not adding command "
               << binding->command.ToString();
       } else {
-        if (parent_binding->command.type != Command::UNKNOWN) {
+        if (parent_binding->command.type() != Command::UNKNOWN) {
           ERROR << "Rebinding " << binding->ToString() << " from "
                 << parent_binding->command.ToString() << " to "
                 << binding->command.ToString();
@@ -502,7 +502,7 @@ void XServer::HandleKeyPress(KeySym keysym, uint mods,
 
   // FIXME: handle multi-level bindings
 
-  if (binding->command.type != Command::UNKNOWN) {
+  if (binding->command.type() != Command::UNKNOWN) {
     window_manager->HandleCommand(binding->command);
   }
 }

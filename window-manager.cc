@@ -117,12 +117,12 @@ void WindowManager::HandleMotion(XWindow* x_window, int x, int y) {
 
 
 void WindowManager::HandleCommand(const Command &cmd) {
-  switch (cmd.type) {
+  switch (cmd.type()) {
     case Command::CREATE_ANCHOR:
       current_desktop_->CreateAnchor("new", 250, 250);
       break;
     case Command::EXEC:
-      Exec(cmd.args[0]);
+      Exec(cmd.GetStringArg());
       break;
     case Command::SWITCH_ANCHOR:
       /*
@@ -135,11 +135,11 @@ void WindowManager::HandleCommand(const Command &cmd) {
     case Command::SWITCH_WINDOW:
       {
         Anchor* anchor = current_desktop_->active_anchor();
-        if (anchor) anchor->SetActive(atoi(cmd.args[0].c_str()));
+        if (anchor) anchor->SetActive(cmd.GetIntArg());
       }
       break;
     default:
-      ERROR << "Got unknown command " << cmd.type;
+      ERROR << "Got unknown command " << cmd.type();
   }
 }
 

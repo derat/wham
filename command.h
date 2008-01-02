@@ -12,31 +12,69 @@
 
 using namespace std;
 
+class KeyBindingsTestSuite;
+
 namespace wham {
 
-struct Command {
+class Command {
  public:
   enum Type {
     CLOSE_WINDOW,
     CREATE_ANCHOR,
     EXEC,
-    SWITCH_ANCHOR,
-    SWITCH_WINDOW,
+    SWITCH_NEAREST_ANCHOR,
+    SWITCH_NTH_ANCHOR,
+    SWITCH_NTH_WINDOW,
     UNKNOWN,
   };
 
   Command()
-      : type(UNKNOWN),
-        args() {}
-  Command(const string& name, const vector<string>& args)
-      : type(ToType(name)),
-        args(args) {}
+      : type_(UNKNOWN),
+        valid_(false) {}
+  Command(const string& name, const vector<string>& args);
+  Command(const Command& o);
+  ~Command();
 
-  string ToString() const {
-    return ToName(type);
+  Command& operator=(const Command& o);
+
+  Type type() const { return type_; }
+
+  bool Valid() const;
+
+  int GetIntArg() const {
+    CHECK(GetArgType(type_) == INT_ARG);
+    CHECK(Valid());
+    return arg_.i;
   }
 
-  bool CheckArgs() const;
+  bool GetBoolArg() const {
+    CHECK(GetArgType(type_) == BOOL_ARG);
+    CHECK(Valid());
+    return arg_.b;
+  }
+
+  const string& GetStringArg() const {
+    CHECK(GetArgType(type_) == STRING_ARG);
+    CHECK(Valid());
+    return *arg_.s;
+  }
+
+  // TODO: Move this somewhere more general.
+  enum Direction {
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT
+  };
+  Direction GetDirectionArg() {
+    CHECK(GetArgType(type_) == DIRECTION_ARG);
+    CHECK(Valid());
+    return arg_.dir;
+  }
+
+  string ToString() const {
+    return ToName(type_);
+  }
 
   // Get the name of a command type.
   static string ToName(Type type);
@@ -45,21 +83,39 @@ struct Command {
   // Returns UNKNOWN for invalid names.
   static Type ToType(const string& name);
 
-  // Get the required number of arguments for a command type.
-  static uint NumArgs(Type type);
-
-  Type type;
-  vector<string> args;
-
  private:
+  friend class ::KeyBindingsTestSuite;
+
+  enum ArgType {
+    NO_ARG,
+    INT_ARG,
+    BOOL_ARG,
+    STRING_ARG,
+    DIRECTION_ARG,
+  };
+
+  // Get the required number of arguments for a command type.
+  static ArgType GetArgType(Type type);
+
   // Initialize static data.  Does nothing if it's already initialized.
   static void InitializeStaticData();
+
+  Type type_;
+
+  union arg_ {
+    int i;
+    bool b;
+    string* s;
+    Direction dir;
+  } arg_;
+
+  bool valid_;
 
   // Array containing information about commands.
   struct Info {
     string name;
     Type type;
-    uint num_args;
+    ArgType arg_type;
   };
   static Info info_[];
 
@@ -67,7 +123,7 @@ struct Command {
   // initialized yet or not.
   static map<string, Type> name_to_type_;
   static map<Type, string> type_to_name_;
-  static map<Type, uint> type_to_num_args_;
+  static map<Type, ArgType> type_to_arg_type_;
   static bool initialized_;
 };
 

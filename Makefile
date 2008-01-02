@@ -1,4 +1,4 @@
-CC=g++ -Wall -Werror
+CC=g++ -Wall -Werror -g
 LIBS=-lX11 -lpcrecpp
 
 CXXTESTGEN=cxxtestgen.pl
@@ -47,7 +47,8 @@ window-manager.o: window-manager.cc window-manager.h \
   window-classifier.h
 	$(CC) -c window-manager.cc
 
-x.o: x.cc x.h util.h window-classifier.h window-manager.h
+x.o: x.cc x.h command.h key-bindings.h util.h window-classifier.h \
+  window-manager.h
 	$(CC) -c x.cc
 
 clean:

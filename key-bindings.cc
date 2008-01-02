@@ -19,13 +19,13 @@ bool KeyBindings::AddBinding(const string& combos_str,
   if (!ParseCombos(combos_str, &(binding.combos), error)) return false;
 
   binding.command = Command(command_str, args);
-  if (binding.command.type == Command::UNKNOWN) {
+  if (binding.command.type() == Command::UNKNOWN) {
     if (error) *error = "Unknown command \"" + command_str + "\"";
     return false;
   }
-  if (!binding.command.CheckArgs()) {
+  if (!binding.command.Valid()) {
     if (error) {
-      *error = "Wrong number of args for command \"" + command_str + "\"";
+      *error = "Invalid arguments supplied for command \"" + command_str + "\"";
     }
     return false;
   }
