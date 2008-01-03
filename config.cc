@@ -7,6 +7,6 @@ using namespace std;
 
 namespace wham {
 
-ref_ptr<Config> config(NULL);
+ref_ptr<Config> config(new Config());
 
 }  // namespace wham

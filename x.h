@@ -26,35 +26,48 @@ class XServer;
 class XWindow {
  public:
   XWindow(::Window id);
+  virtual ~XWindow() {}
 
   static XWindow* Create(int x, int y, uint width, uint height);
 
   static void GetTextSize(const string& font, const string& text,
                           int* width, int* ascent, int* descent);
-  void Clear();
-  void DrawText(int x, int y, const string& text, const string& color);
-  void DrawLine(int x1, int y1, int x2, int y2, const string& color);
-  void DrawBox(int x, int y, uint width, uint height, const string& color);
+  virtual void Clear();
+  virtual void DrawText(int x, int y, const string& text, const string& color);
+  virtual void DrawLine(int x1, int y1, int x2, int y2, const string& color);
+  virtual void DrawBox(
+      int x, int y, uint width, uint height, const string& color);
 
-  bool GetProperties(WindowProperties* props);
+  virtual bool GetProperties(WindowProperties* props);
 
-  void Move(int x, int y);
-  void Resize(uint width, uint height);
-  void Unmap();
-  void Map();
+  virtual void Move(int x, int y);
+  virtual void Resize(uint width, uint height);
+  virtual void Unmap();
+  virtual void Map();
 
   static XServer* GetServer() { return server_; }
 
-  bool operator<(const XWindow& o) const {
+  virtual bool operator<(const XWindow& o) const {
     return id_ < o.id_;
+  }
+
+  static void SetTesting(bool testing) {
+    testing_ = testing;
   }
 
  private:
   friend class XServer;
 
+  static XServer* server() {
+    CHECK(server_ != NULL);
+    return server_;
+  }
+
   ::Window id_;
 
   static XServer* server_;
+
+  static bool testing_;
 };
 
 

@@ -1,4 +1,4 @@
-// Copyright 2007 Daniel Erat <dan@erat.org>
+// Copyright 2008 Daniel Erat <dan@erat.org>
 // All rights reserved.
 
 #ifndef __DESKTOP_H__
