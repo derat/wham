@@ -67,6 +67,13 @@ clean:
 	  window-manager_test window-manager_test.cc \
 	  x_test x_test.cc
 
+anchor_test.cc: anchor_test.h
+	$(CXXTESTGEN) --error-printer -o $@ $<
+
+anchor_test: \
+  anchor_test.cc anchor_test.h anchor.o $(TESTLIBS)
+	$(CC) $(CXXTESTINCLUDE) $(LIBS) -o $@ $^
+
 command_test.cc: command_test.h
 	$(CXXTESTGEN) --error-printer -o $@ $<
 
@@ -121,8 +128,9 @@ x_test.cc: x_test.h
 x_test: x_test.cc x_test.h $(TESTLIBS)
 	$(CC) $(CXXTESTINCLUDE) $(LIBS) -o $@ $^
 
-test: command_test config-parser_test desktop_test key-bindings_test util_test \
-  window-classifier_test window-manager_test x_test
+test: anchor_test command_test config-parser_test desktop_test \
+  key-bindings_test util_test window-classifier_test window-manager_test x_test
+	./anchor_test
 	./command_test
 	./config-parser_test
 	./desktop_test

@@ -24,10 +24,20 @@ class Anchor {
   Anchor(const string& name, int x, int y);
   ~Anchor();
 
+  // Where an anchor should appear in relation to its windows.
+  enum Gravity {
+    TOP_LEFT,
+    TOP_RIGHT,
+    BOTTOM_RIGHT,
+    BOTTOM_LEFT,
+    NUM_GRAVITIES,
+  };
+
   string name() const { return name_; }
   int x() const { return x_; }
   int y() const { return y_; }
   XWindow* titlebar() { return titlebar_; }
+  Gravity gravity() const { return gravity_; }
 
   void SetName(const string& name);
 
@@ -48,15 +58,6 @@ class Anchor {
   void DrawTitlebar();
 
   void ActivateWindowAtCoordinates(int x, int y);
-
-  // Where an anchor should appear in relation to its windows.
-  enum Gravity {
-    TOP_LEFT,
-    TOP_RIGHT,
-    BOTTOM_RIGHT,
-    BOTTOM_LEFT,
-    NUM_GRAVITIES,
-  };
 
   // Change the anchor's gravity.
   void SetGravity(Gravity gravity);
