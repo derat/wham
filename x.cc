@@ -439,8 +439,6 @@ void XServer::UpdateKeyBindingMap(
           ref_ptr<XKeyBinding> x_binding(
               new XKeyBinding(keysym, mods, 0, Command()));
           binding_map->insert(make_pair(key, x_binding));
-          DEBUG << "New top-level binding:"
-                << " keysym=" << keysym << " mods=" << mods;
         }
         parent_binding = binding_map->find(key)->second.get();
         CHECK(parent_binding);
@@ -477,9 +475,6 @@ void XServer::UpdateKeyBindingMap(
           ref_ptr<XKeyBinding> x_binding(
               new XKeyBinding(keysym, mods, inherited_mods, Command()));
           parent_binding->children.push_back(x_binding);
-          DEBUG << "New child binding:"
-                << " keysym=" << keysym << " mods=" << mods
-                << " inherited_Mods=" << inherited_mods;
           parent_binding = x_binding.get();
         }
       }

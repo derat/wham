@@ -12,6 +12,8 @@
 
 using namespace std;
 
+class DesktopTestSuite;
+
 namespace wham {
 
 class XWindow;
@@ -22,7 +24,7 @@ class Desktop {
   Desktop();
 
   // Create a new anchor.
-  void CreateAnchor(const string& name, int x, int y);
+  Anchor* CreateAnchor(const string& name, int x, int y);
 
   void AddWindow(Window* window);
   void RemoveWindow(Window* window);
@@ -39,6 +41,8 @@ class Desktop {
   Anchor* active_anchor() { return active_anchor_; }
 
  private:
+  friend class ::DesktopTestSuite;
+
   // Get the anchor nearest to the currently-active anchor in the
   // specified direction.
   Anchor* GetNearestAnchor(const string& direction) const;

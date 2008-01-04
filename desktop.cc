@@ -8,30 +8,15 @@ namespace wham {
 
 Desktop::Desktop()
     : active_anchor_(NULL) {
-  // Create a few anchors just for testing.
-  CreateAnchor("anchor1", 50, 50);
-  CreateAnchor("anchor2", 300, 300);
-  SetActiveAnchor(anchors_[0].get());
 }
 
 
-void Desktop::CreateAnchor(const string& name, int x, int y) {
+Anchor* Desktop::CreateAnchor(const string& name, int x, int y) {
   ref_ptr<Anchor> anchor(new Anchor(name, x, y));
   anchors_.push_back(anchor);
   anchor_titlebars_.insert(make_pair(anchor->titlebar(), anchor.get()));
-}
-
-
-Anchor* Desktop::GetAnchorByTitlebar(XWindow* titlebar) const {
-  return FindWithDefault(
-      anchor_titlebars_, titlebar, static_cast<Anchor*>(NULL));
-}
-
-
-void Desktop::SetActiveAnchor(Anchor* anchor) {
-  if (anchor == active_anchor_) return;
-  CHECK(find(anchors_.begin(), anchors_.end(), anchor) != anchors_.end());
-  active_anchor_ = anchor;
+  if (anchors_.size() == 1U) SetActiveAnchor(anchor.get());
+  return anchor.get();
 }
 
 
@@ -56,6 +41,19 @@ void Desktop::RemoveWindow(Window* window) {
     anchor->RemoveWindow(window);
     window_anchors_.erase(window);
   }
+}
+
+
+Anchor* Desktop::GetAnchorByTitlebar(XWindow* titlebar) const {
+  return FindWithDefault(
+      anchor_titlebars_, titlebar, static_cast<Anchor*>(NULL));
+}
+
+
+void Desktop::SetActiveAnchor(Anchor* anchor) {
+  if (anchor == active_anchor_) return;
+  CHECK(find(anchors_.begin(), anchors_.end(), anchor) != anchors_.end());
+  active_anchor_ = anchor;
 }
 
 

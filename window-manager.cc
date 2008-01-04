@@ -42,6 +42,7 @@ WindowManager::WindowManager()
 
   desktops_.push_back(ref_ptr<Desktop>(new Desktop()));
   current_desktop_ = desktops_[0].get();
+  current_desktop_->CreateAnchor("anchor1", 50, 50);
 }
 
 

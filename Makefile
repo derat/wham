@@ -1,4 +1,4 @@
-CC=g++ -Wall -Werror -g
+CC=g++ -Wall -Werror
 LIBS=-lX11 -lpcrecpp
 
 CXXTESTGEN=cxxtestgen.pl
@@ -11,7 +11,7 @@ PROGNAME=wham
 
 $(PROGNAME): \
   main.cc anchor.o command.o config.o config-parser.o desktop.o key-bindings.o \
-  util.o window.o window-classifier.o window-manager.o x.o
+  mock-x.o util.o window.o window-classifier.o window-manager.o x.o
 	$(CC) -o $@ $(LIBS) $^
 
 anchor.o: anchor.cc anchor.h config.h util.h window.h x.h
