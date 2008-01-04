@@ -44,6 +44,8 @@ class XWindow {
   virtual void Resize(uint width, uint height);
   virtual void Unmap();
   virtual void Map();
+  virtual void SelectEvents();
+  virtual void TakeFocus();
 
   static XServer* GetServer() { return server_; }
 

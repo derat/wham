@@ -184,6 +184,16 @@ void XWindow::Map() {
 }
 
 
+void XWindow::SelectEvents() {
+  XSelectInput(server()->display(), id_, EnterWindowMask);
+}
+
+
+void XWindow::TakeFocus() {
+  XSetInputFocus(server()->display(), id_, RevertToPointerRoot, CurrentTime);
+}
+
+
 XServer::XServer()
     : display_(NULL),
       screen_num_(-1),
@@ -282,6 +292,15 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
           XWindow* x_window = GetWindow(e.window, false);
           CHECK(x_window);
           window_manager->HandleDestroyWindow(x_window);
+        }
+        break;
+      case EnterNotify:
+        {
+          XCrossingEvent& e = event.xcrossing;
+          DEBUG << "Enter: window=0x" << hex << e.window;
+          XWindow* x_window = GetWindow(e.window, false);
+          CHECK(x_window);
+          window_manager->HandleEnterWindow(x_window);
         }
         break;
       case Expose:

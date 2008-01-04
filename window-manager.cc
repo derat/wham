@@ -77,6 +77,7 @@ void WindowManager::HandleCreateWindow(XWindow* x_window) {
   // We don't want to manage anchor titlebars.
   if (IsAnchorWindow(x_window)) return;
 
+  x_window->SelectEvents();
   ref_ptr<Window> window(new Window(x_window));
   windows_.insert(make_pair(x_window, window));
   current_desktop_->AddWindow(window.get());
@@ -94,6 +95,12 @@ void WindowManager::HandleDestroyWindow(XWindow* x_window) {
     (*desktop)->RemoveWindow(window);
   }
   windows_.erase(x_window);
+}
+
+
+void WindowManager::HandleEnterWindow(XWindow* x_window) {
+  CHECK(!IsAnchorWindow(x_window));
+  x_window->TakeFocus();
 }
 
 
