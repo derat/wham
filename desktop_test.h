@@ -7,6 +7,7 @@
 
 #include "anchor.h"
 #include "util.h"
+#include "window.h"
 #include "x.h"
 
 using namespace wham;
@@ -45,6 +46,48 @@ class DesktopTestSuite : public CxxTest::TestSuite {
   }
 
   void testDesktop_AddWindow() {
+    /*
+    wham::Window window(XWindow::Create(10, 10, 50, 50));;
+    desktop_->AddWindow(&window);
+    */
+  }
+
+  void testDesktop_GetAnchorByTitlebar() {
+    Anchor* anchor = desktop_->CreateAnchor("test", 10, 20);
+    TS_ASSERT_EQUALS(desktop_->GetAnchorByTitlebar(anchor->titlebar()), anchor);
+
+    // We should get NULL when we look up a window that's not a titlebar.
+    XWindow* x_window = XWindow::Create(0, 0, 10, 10);
+    TS_ASSERT_EQUALS(desktop_->GetAnchorByTitlebar(x_window),
+                     static_cast<Anchor*>(NULL));
+  }
+
+  void testDesktop_SetActiveAnchor() {
+    Anchor* anchor = desktop_->CreateAnchor("test", 10, 20);
+    Anchor* anchor2 = desktop_->CreateAnchor("test2", 30, 40);
+    TS_ASSERT_EQUALS(desktop_->active_anchor(), anchor);
+    desktop_->SetActiveAnchor(anchor2);
+    TS_ASSERT_EQUALS(desktop_->active_anchor(), anchor2);
+  }
+
+  void testDesktop_IsTitlebarWindow() {
+    Anchor* anchor = desktop_->CreateAnchor("test", 10, 20);
+    TS_ASSERT_EQUALS(desktop_->IsTitlebarWindow(anchor->titlebar()), true);
+
+    XWindow* x_window = XWindow::Create(0, 0, 10, 10);
+    TS_ASSERT_EQUALS(desktop_->IsTitlebarWindow(x_window), false);
+  }
+
+  void testDesktop_GetNearestAnchor() {
+    Anchor* anchor = desktop_->CreateAnchor("test", 10, 20);
+    Anchor* anchor2 = desktop_->CreateAnchor("test2", 20, 20);
+    Anchor* anchor3 = desktop_->CreateAnchor("test3", 30, 20);
+    TS_ASSERT_EQUALS(desktop_->active_anchor(), anchor);
+    TS_ASSERT_EQUALS(desktop_->GetNearestAnchor("right"), anchor2);
+
+    desktop_->SetActiveAnchor(anchor2);
+    TS_ASSERT_EQUALS(desktop_->GetNearestAnchor("right"), anchor3);
+    TS_ASSERT_EQUALS(desktop_->GetNearestAnchor("left"), anchor);
   }
 
   ref_ptr<XServer> x_server_;
