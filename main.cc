@@ -1,4 +1,5 @@
 #include "config.h"
+#include "drawing-engine.h"
 #include "key-bindings.h"
 #include "window-manager.h"
 #include "x.h"
@@ -11,6 +12,9 @@ int main(int argc, char** argv) {
 
   ref_ptr<Config> new_config(new Config);
   Config::Swap(new_config);
+
+  ref_ptr<DrawingEngine> new_drawing_engine(new DrawingEngine(&x_server));
+  DrawingEngine::Swap(new_drawing_engine);
 
   KeyBindings bindings;
   CHECK(bindings.AddBinding("Ctrl+n", "create_anchor", vector<string>(), NULL));

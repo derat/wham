@@ -12,8 +12,8 @@ using namespace std;
 
 namespace wham {
 
-class Window;   // from window.h
-class XWindow;  // from x.h
+class Window;         // from window.h
+class XWindow;        // from x.h
 
 // A collection of windows, exactly one of which is visible at any given
 // time.
@@ -38,6 +38,8 @@ class Anchor {
   int y() const { return y_; }
   XWindow* titlebar() { return titlebar_; }
   Gravity gravity() const { return gravity_; }
+  const vector<Window*>& windows() const { return windows_; }
+  const Window* active_window() const { return active_window_; }
 
   void SetName(const string& name);
 
@@ -83,17 +85,8 @@ class Anchor {
   Gravity gravity_;
 
   XWindow* titlebar_;
-  int titlebar_width_;
-  int titlebar_height_;
-
-  // FIXME: update these when the font changes
-  static int font_ascent_;
-  static int font_descent_;
-
-  // Information about the size of the anchor's name
-  int name_width_;
-  int name_ascent_;
-  int name_descent_;
+  uint titlebar_width_;
+  uint titlebar_height_;
 
   DISALLOW_EVIL_CONSTRUCTORS(Anchor);
 };

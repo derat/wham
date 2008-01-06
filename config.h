@@ -32,10 +32,10 @@ struct Config {
   int dragging_threshold;
 
   string titlebar_font;
-  int titlebar_padding;
-  int titlebar_border;
-  int titlebar_min_width;
-  int titlebar_max_width;
+  uint titlebar_padding;
+  uint titlebar_border;
+  uint titlebar_min_width;
+  uint titlebar_max_width;
 
   DISALLOW_EVIL_CONSTRUCTORS(Config);
 };

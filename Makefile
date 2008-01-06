@@ -10,8 +10,9 @@ TESTLIBS=anchor.o command.o config.o config-parser.o desktop.o key-bindings.o \
 PROGNAME=wham
 
 $(PROGNAME): \
-  main.cc anchor.o command.o config.o config-parser.o desktop.o key-bindings.o \
-  mock-x.o util.o window.o window-classifier.o window-manager.o x.o
+  main.cc anchor.o command.o config.o config-parser.o desktop.o \
+  drawing-engine.o key-bindings.o mock-x.o util.o window.o \
+  window-classifier.o window-manager.o x.o
 	$(CC) -o $@ $(LIBS) $^
 
 anchor.o: anchor.cc anchor.h config.h util.h window.h x.h
@@ -27,6 +28,10 @@ config-parser.o: config-parser.cc config-parser.h util.h
 	$(CC) -c $<
 
 desktop.o: desktop.cc desktop.h anchor.h util.h
+	$(CC) -c $<
+
+drawing-engine.o: drawing-engine.cc drawing-engine.h \
+  anchor.h config.h window.h util.h x.h
 	$(CC) -c $<
 
 key-bindings.o: key-bindings.cc key-bindings.h command.h util.h
@@ -55,10 +60,7 @@ x.o: x.cc x.h command.h key-bindings.h util.h window-classifier.h \
 	$(CC) -c $<
 
 clean:
-	rm -f $(PROGNAME) anchor.o command.o config.o config-parser.o \
-	  desktop.o mock-x.o key-bindings.o util.o window.o \
-	  window-classifier.o window-manager.o x.o \
-	  *_test *_test.cc
+	rm -f $(PROGNAME) *.o *_test *_test.cc
 
 TEST_HEADERS=$(wildcard *_test.h)
 TEST_SOURCES=$(subst .h,.cc,$(TEST_HEADERS))

@@ -29,12 +29,6 @@ using namespace std;
   class_name(const class_name&); \
   void operator=(const class_name&)
 
-#define DEFINE_int(name, default_value) \
-  int SETTING_##name = (default_value)
-
-#define DEFINE_string(name, default_value) \
-  string SETTING_##name = (default_value)
-
 
 typedef unsigned int uint;
 
