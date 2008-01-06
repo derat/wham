@@ -26,7 +26,6 @@ class Window {
   void Map();
 
   string title() const { return props_.window_name; }
-  int title_width() const { return title_width_; }
 
   uint width() const { return width_; }
   uint height() const { return height_; }
@@ -55,9 +54,6 @@ class Window {
   uint height_;
 
   WindowProperties props_;
-
-  // Information about the size of the window's title
-  int title_width_;
 
   WindowConfigSet configs_;
 

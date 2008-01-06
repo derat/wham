@@ -7,6 +7,6 @@ using namespace std;
 
 namespace wham {
 
-ref_ptr<Config> config(new Config());
+ref_ptr<Config> Config::singleton_(new Config());
 
 }  // namespace wham

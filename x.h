@@ -30,13 +30,7 @@ class XWindow {
 
   static XWindow* Create(int x, int y, uint width, uint height);
 
-  static void GetTextSize(const string& font, const string& text,
-                          int* width, int* ascent, int* descent);
-  virtual void Clear();
-  virtual void DrawText(int x, int y, const string& text, const string& color);
-  virtual void DrawLine(int x1, int y1, int x2, int y2, const string& color);
-  virtual void DrawBox(
-      int x, int y, uint width, uint height, const string& color);
+  ::Window id() const { return id_; }
 
   virtual bool GetProperties(WindowProperties* props);
 
@@ -46,8 +40,6 @@ class XWindow {
   virtual void Map();
   virtual void SelectEvents();
   virtual void TakeFocus();
-
-  static XServer* GetServer() { return server_; }
 
   virtual bool operator<(const XWindow& o) const {
     return id_ < o.id_;
@@ -60,14 +52,7 @@ class XWindow {
  private:
   friend class XServer;
 
-  static XServer* server() {
-    CHECK(server_ != NULL);
-    return server_;
-  }
-
   ::Window id_;
-
-  static XServer* server_;
 
   static bool testing_;
 };
@@ -92,10 +77,22 @@ struct XKeyBinding {
 };
 
 
+// Represents a connection to an X server.
 class XServer {
  public:
   XServer();
   // FIXME: free fonts_ and gcs_ in d'tor
+
+  // Get the current X connection.
+  static XServer* Get() {
+    CHECK(singleton_.get());
+    return singleton_.get();
+  }
+
+  // Swap in a new connection to an X server.
+  static void Swap(ref_ptr<XServer> new_x_server) {
+    singleton_.swap(new_x_server);
+  }
 
   // Connect to the real X server and initialize internal objects.
   // Returns true on success.
@@ -149,6 +146,9 @@ class XServer {
 
   XKeyBindingMap bindings_;
   XKeyBinding* in_progress_binding_;
+
+  // Singleton object.
+  static ref_ptr<XServer> singleton_;
 
   DISALLOW_EVIL_CONSTRUCTORS(XServer);
 };

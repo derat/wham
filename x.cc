@@ -15,7 +15,7 @@ using namespace std;
 
 namespace wham {
 
-XServer* XWindow::server_ = NULL;
+ref_ptr<XServer> XServer::singleton_(NULL);
 
 bool XWindow::testing_ = false;
 
@@ -64,7 +64,7 @@ XWindow::XWindow(::Window id)
     : id_(id) {
   if (!testing_) {
     // TODO: move this to a separate, virtual method
-    XSetWindowBorderWidth(server()->display(), id_, 0);
+    XSetWindowBorderWidth(XServer::Get()->display(), id_, 0);
   }
 }
 
@@ -76,64 +76,23 @@ XWindow* XWindow::Create(int x, int y, uint width, uint height) {
     win = win_id++;
   } else {
     win = XCreateSimpleWindow(
-              server()->display(), server()->root(),
+              XServer::Get()->display(), XServer::Get()->root(),
               x, y, width, height, 0 /* border */,
-              BlackPixel(server()->display(), server()->screen_num()),
-              WhitePixel(server()->display(), server()->screen_num()));
-    XSelectInput(server()->display(), win,
+              BlackPixel(XServer::Get()->display(),
+                         XServer::Get()->screen_num()),
+              WhitePixel(XServer::Get()->display(),
+                         XServer::Get()->screen_num()));
+    XSelectInput(XServer::Get()->display(), win,
                  ButtonPressMask | ButtonReleaseMask | ExposureMask |
                  PointerMotionMask | PropertyChangeMask);
   }
-  return server()->GetWindow(win, true);
-}
-
-
-void XWindow::GetTextSize(const string& font, const string& text,
-                          int* width, int* ascent, int* descent) {
-  if (testing_) {
-    if (width) *width = text.size() * 8;
-    if (ascent) *ascent = 10;
-    if (descent) *descent = 5;
-  } else {
-    XFontStruct* font_info = server()->GetFontInfo(font);
-    int tmp_dir, tmp_ascent, tmp_descent;
-    XCharStruct overall;
-    XTextExtents(font_info, text.c_str(), text.size(),
-                 &tmp_dir, &tmp_ascent, &tmp_descent, &overall);
-    if (width) *width = overall.width;
-    if (ascent) *ascent = overall.ascent;
-    if (descent) *descent = overall.descent;
-  }
-}
-
-
-void XWindow::Clear() {
-  XClearWindow(server()->display(), id_);
-}
-
-
-void XWindow::DrawText(int x, int y, const string& text, const string& color) {
-  GC gc = server()->GetGC(color);
-  XDrawString(server()->display(), id_, gc, x, y, text.c_str(), text.size());
-}
-
-
-void XWindow::DrawLine(int x1, int y1, int x2, int y2, const string& color) {
-  GC gc = server()->GetGC(color);
-  XDrawLine(server()->display(), id_, gc, x1, y1, x2, y2);
-}
-
-
-void XWindow::DrawBox(int x, int y, uint width, uint height,
-                      const string& color) {
-  GC gc = server()->GetGC(color);
-  XFillRectangle(server()->display(), id_, gc, x, y, width, height);
+  return XServer::Get()->GetWindow(win, true);
 }
 
 
 bool XWindow::GetProperties(WindowProperties* props) {
   char* window_name = NULL;
-  if (!XFetchName(server()->display(), id_, &window_name)) {
+  if (!XFetchName(XServer::Get()->display(), id_, &window_name)) {
     ERROR << "XFetchName() failed for 0x" << hex << id_;
     return false;
   }
@@ -141,7 +100,7 @@ bool XWindow::GetProperties(WindowProperties* props) {
   if (window_name) XFree(window_name);
 
   char* icon_name = NULL;
-  if (!XGetIconName(server()->display(), id_, &icon_name)) {
+  if (!XGetIconName(XServer::Get()->display(), id_, &icon_name)) {
     ERROR << "XGetIconName() failed for 0x" << hex << id_;
     return false;
   }
@@ -151,7 +110,7 @@ bool XWindow::GetProperties(WindowProperties* props) {
   // FIXME: get command with XGetCommand()
 
   XClassHint class_hint;
-  if (!XGetClassHint(server()->display(), id_, &class_hint)) {
+  if (!XGetClassHint(XServer::Get()->display(), id_, &class_hint)) {
     ERROR << "XGetClassHint() failed for 0x" << hex << id_;
     return false;
   }
@@ -165,32 +124,32 @@ bool XWindow::GetProperties(WindowProperties* props) {
 
 
 void XWindow::Move(int x, int y) {
-  XMoveWindow(server()->display(), id_, x, y);
+  XMoveWindow(XServer::Get()->display(), id_, x, y);
 }
 
 
 void XWindow::Resize(uint width, uint height) {
-  XResizeWindow(server()->display(), id_, width, height);
+  XResizeWindow(XServer::Get()->display(), id_, width, height);
 }
 
 
 void XWindow::Unmap() {
-  XUnmapWindow(server()->display(), id_);
+  XUnmapWindow(XServer::Get()->display(), id_);
 }
 
 
 void XWindow::Map() {
-  XMapWindow(server()->display(), id_);
+  XMapWindow(XServer::Get()->display(), id_);
 }
 
 
 void XWindow::SelectEvents() {
-  XSelectInput(server()->display(), id_, EnterWindowMask);
+  XSelectInput(XServer::Get()->display(), id_, EnterWindowMask);
 }
 
 
 void XWindow::TakeFocus() {
-  XSetInputFocus(server()->display(), id_, RevertToPointerRoot, CurrentTime);
+  XSetInputFocus(XServer::Get()->display(), id_, RevertToPointerRoot, CurrentTime);
 }
 
 
@@ -229,7 +188,6 @@ bool XServer::Init() {
     XSelectInput(display_, root_, SubstructureNotifyMask);
   }
 
-  XWindow::server_ = this;
   initialized_ = true;
   return true;
 }
@@ -356,16 +314,6 @@ XWindow* XServer::GetWindow(::Window id, bool create) {
 
 GC XServer::GetGC(const string& name) {
   return FindWithDefault(gcs_, name, default_gc_);
-}
-
-
-XFontStruct* XServer::GetFontInfo(const string& font) {
-  map<string, XFontStruct*>::const_iterator it = fonts_.find(font);
-  if (it != fonts_.end()) return it->second;
-  XFontStruct* font_info = XLoadQueryFont(display_, font.c_str());
-  CHECK(font_info);
-  fonts_.insert(make_pair(font, font_info));
-  return font_info;
 }
 
 

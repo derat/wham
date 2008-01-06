@@ -65,8 +65,6 @@ void Window::ApplyConfig() {
 bool Window::UpdateProperties() {
   CHECK(x_window_);
   if (!x_window_->GetProperties(&props_)) return false;
-  x_window_->GetTextSize(config->titlebar_font, props_.window_name,
-                         &title_width_, NULL, NULL);
   return true;
 }
 

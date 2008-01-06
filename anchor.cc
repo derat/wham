@@ -112,8 +112,8 @@ bool Anchor::SetActive(uint index) {
 
 
 void Anchor::DrawTitlebar() {
-  drawing_engine->DrawAnchor(*this, titlebar_,
-                             &titlebar_width_, &titlebar_height_);
+  DrawingEngine::Get()->DrawAnchor(
+      *this, titlebar_, &titlebar_width_, &titlebar_height_);
 }
 
 

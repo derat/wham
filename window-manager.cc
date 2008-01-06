@@ -114,8 +114,8 @@ void WindowManager::HandleExposeWindow(XWindow* x_window) {
 void WindowManager::HandleMotion(XWindow* x_window, int x, int y) {
   if (!mouse_down_) return;
   if (!dragging_) {
-    if (abs(x - mouse_down_x_) <= config->dragging_threshold &&
-        abs(y - mouse_down_y_) <= config->dragging_threshold) {
+    if (abs(x - mouse_down_x_) <= Config::Get()->dragging_threshold &&
+        abs(y - mouse_down_y_) <= Config::Get()->dragging_threshold) {
       return;
     }
     dragging_ = true;

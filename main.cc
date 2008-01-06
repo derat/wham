@@ -7,14 +7,12 @@
 using namespace wham;
 
 int main(int argc, char** argv) {
-  XServer x_server;
-  CHECK(x_server.Init());
+  ref_ptr<XServer> x_server(new XServer());
+  XServer::Swap(x_server);
+  CHECK(XServer::Get()->Init());
 
-  ref_ptr<Config> new_config(new Config);
-  Config::Swap(new_config);
-
-  ref_ptr<DrawingEngine> new_drawing_engine(new DrawingEngine(&x_server));
-  DrawingEngine::Swap(new_drawing_engine);
+  ref_ptr<DrawingEngine> drawing_engine(new DrawingEngine());
+  DrawingEngine::Swap(drawing_engine);
 
   KeyBindings bindings;
   CHECK(bindings.AddBinding("Ctrl+n", "create_anchor", vector<string>(), NULL));
@@ -36,9 +34,9 @@ int main(int argc, char** argv) {
                             vector<string>(1, "true"), NULL));
   CHECK(bindings.AddBinding("Ctrl+shift+g", "cycle_anchor_gravity",
                             vector<string>(1, "false"), NULL));
-  x_server.RegisterKeyBindings(bindings);
+  XServer::Get()->RegisterKeyBindings(bindings);
 
   WindowManager window_manager;
-  x_server.RunEventLoop(&window_manager);
+  XServer::Get()->RunEventLoop(&window_manager);
   return 0;
 }
