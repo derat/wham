@@ -43,6 +43,10 @@ class DrawingEngine {
                   uint* titlebar_height);
 
  private:
+  // Initialize the drawing engine.  Called automatically.  Must be called
+  // after the XServer singleton has been initialized.
+  void InitIfNeeded();
+
   void Clear(::Window win);
 
   // Draw text into a window.
@@ -88,6 +92,9 @@ class DrawingEngine {
   static Display* dpy();
   static int scr();
   static ::Window root();
+
+  // Has the object been initialized by calling Init()?
+  bool initialized_;
 
   // Map from font name to font struct.
   map<string, XFontStruct*> fonts_;

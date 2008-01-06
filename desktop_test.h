@@ -6,6 +6,7 @@
 #include "desktop.h"
 
 #include "anchor.h"
+#include "drawing-engine.h"
 #include "util.h"
 #include "window.h"
 #include "x.h"
@@ -15,9 +16,7 @@ using namespace wham;
 class DesktopTestSuite : public CxxTest::TestSuite {
  public:
   void setUp() {
-    x_server_.reset(new XServer);
-    x_server_->Init();
-    XWindow::SetTesting(true);
+    XServer::SetupTesting();
     desktop_.reset(new Desktop);
   }
 
@@ -90,6 +89,5 @@ class DesktopTestSuite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(desktop_->GetNearestAnchor("left"), anchor);
   }
 
-  ref_ptr<XServer> x_server_;
   ref_ptr<Desktop> desktop_;
 };

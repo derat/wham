@@ -40,21 +40,19 @@ class XWindow {
   virtual void Map();
   virtual void SelectEvents();
   virtual void TakeFocus();
+  virtual void SetBorder(uint size);
 
   virtual bool operator<(const XWindow& o) const {
     return id_ < o.id_;
   }
 
-  static void SetTesting(bool testing) {
-    testing_ = testing;
-  }
-
  private:
-  friend class XServer;
+  // Convenience methods.
+  static ::Display* dpy();
+  static int scr();
+  static ::Window root();
 
   ::Window id_;
-
-  static bool testing_;
 };
 
 
@@ -81,7 +79,6 @@ struct XKeyBinding {
 class XServer {
  public:
   XServer();
-  // FIXME: free fonts_ and gcs_ in d'tor
 
   // Get the current X connection.
   static XServer* Get() {
@@ -94,9 +91,15 @@ class XServer {
     singleton_.swap(new_x_server);
   }
 
-  // Connect to the real X server and initialize internal objects.
+  // Helper method that test suites can call in their setUp() methods.
+  static void SetupTesting();
+
+  // Connect to the real X server and initialize internal data.
   // Returns true on success.
   bool Init();
+
+  // Has Init() been called successfully?
+  bool Initialized() const { return initialized_; }
 
   // Start reading events from the X server and handling them.
   void RunEventLoop(WindowManager* window_manager);
@@ -107,11 +110,10 @@ class XServer {
 
   XWindow* GetWindow(::Window id, bool create);
 
-  GC GetGC(const string& name);
-
-  XFontStruct* GetFontInfo(const string& font);
-
   void RegisterKeyBindings(const KeyBindings& bindings);
+
+  static void SetTesting(bool testing) { testing_ = testing; }
+  static bool Testing() { return testing_; }
 
  private:
   friend class ::XTestSuite;
@@ -131,7 +133,6 @@ class XServer {
 
   Display* display_;
   int screen_num_;
-
   ::Window root_;
 
   bool initialized_;
@@ -139,16 +140,13 @@ class XServer {
   typedef map< ::Window, ref_ptr<XWindow> > XWindowMap;
   XWindowMap windows_;
 
-  map<string, XFontStruct* > fonts_;
-
-  GC default_gc_;
-  map<string, GC> gcs_;
-
   XKeyBindingMap bindings_;
   XKeyBinding* in_progress_binding_;
 
   // Singleton object.
   static ref_ptr<XServer> singleton_;
+
+  static bool testing_;
 
   DISALLOW_EVIL_CONSTRUCTORS(XServer);
 };

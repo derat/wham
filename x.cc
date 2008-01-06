@@ -15,9 +15,9 @@ using namespace std;
 
 namespace wham {
 
-ref_ptr<XServer> XServer::singleton_(NULL);
+ref_ptr<XServer> XServer::singleton_(new XServer);
 
-bool XWindow::testing_ = false;
+bool XServer::testing_ = false;
 
 
 static const char* XEventTypeToName(int type) {
@@ -62,27 +62,20 @@ static const char* XEventTypeToName(int type) {
 
 XWindow::XWindow(::Window id)
     : id_(id) {
-  if (!testing_) {
-    // TODO: move this to a separate, virtual method
-    XSetWindowBorderWidth(XServer::Get()->display(), id_, 0);
-  }
 }
 
 
 XWindow* XWindow::Create(int x, int y, uint width, uint height) {
   ::Window win;
-  if (testing_) {
+  if (XServer::Testing()) {
     static int win_id = 1;
     win = win_id++;
   } else {
     win = XCreateSimpleWindow(
-              XServer::Get()->display(), XServer::Get()->root(),
-              x, y, width, height, 0 /* border */,
-              BlackPixel(XServer::Get()->display(),
-                         XServer::Get()->screen_num()),
-              WhitePixel(XServer::Get()->display(),
-                         XServer::Get()->screen_num()));
-    XSelectInput(XServer::Get()->display(), win,
+              dpy(), root(), x, y, width, height, 0 /* border */,
+              BlackPixel(dpy(), scr()),
+              WhitePixel(dpy(), scr()));
+    XSelectInput(dpy(), win,
                  ButtonPressMask | ButtonReleaseMask | ExposureMask |
                  PointerMotionMask | PropertyChangeMask);
   }
@@ -92,7 +85,7 @@ XWindow* XWindow::Create(int x, int y, uint width, uint height) {
 
 bool XWindow::GetProperties(WindowProperties* props) {
   char* window_name = NULL;
-  if (!XFetchName(XServer::Get()->display(), id_, &window_name)) {
+  if (!XFetchName(dpy(), id_, &window_name)) {
     ERROR << "XFetchName() failed for 0x" << hex << id_;
     return false;
   }
@@ -100,7 +93,7 @@ bool XWindow::GetProperties(WindowProperties* props) {
   if (window_name) XFree(window_name);
 
   char* icon_name = NULL;
-  if (!XGetIconName(XServer::Get()->display(), id_, &icon_name)) {
+  if (!XGetIconName(dpy(), id_, &icon_name)) {
     ERROR << "XGetIconName() failed for 0x" << hex << id_;
     return false;
   }
@@ -110,7 +103,7 @@ bool XWindow::GetProperties(WindowProperties* props) {
   // FIXME: get command with XGetCommand()
 
   XClassHint class_hint;
-  if (!XGetClassHint(XServer::Get()->display(), id_, &class_hint)) {
+  if (!XGetClassHint(dpy(), id_, &class_hint)) {
     ERROR << "XGetClassHint() failed for 0x" << hex << id_;
     return false;
   }
@@ -124,32 +117,52 @@ bool XWindow::GetProperties(WindowProperties* props) {
 
 
 void XWindow::Move(int x, int y) {
-  XMoveWindow(XServer::Get()->display(), id_, x, y);
+  XMoveWindow(dpy(), id_, x, y);
 }
 
 
 void XWindow::Resize(uint width, uint height) {
-  XResizeWindow(XServer::Get()->display(), id_, width, height);
+  XResizeWindow(dpy(), id_, width, height);
 }
 
 
 void XWindow::Unmap() {
-  XUnmapWindow(XServer::Get()->display(), id_);
+  XUnmapWindow(dpy(), id_);
 }
 
 
 void XWindow::Map() {
-  XMapWindow(XServer::Get()->display(), id_);
+  XMapWindow(dpy(), id_);
 }
 
 
 void XWindow::SelectEvents() {
-  XSelectInput(XServer::Get()->display(), id_, EnterWindowMask);
+  XSelectInput(dpy(), id_, EnterWindowMask);
 }
 
 
 void XWindow::TakeFocus() {
-  XSetInputFocus(XServer::Get()->display(), id_, RevertToPointerRoot, CurrentTime);
+  XSetInputFocus(dpy(), id_, RevertToPointerRoot, CurrentTime);
+}
+
+
+void XWindow::SetBorder(uint size) {
+  XSetWindowBorderWidth(dpy(), id_, size);
+}
+
+
+::Display* XWindow::dpy() {
+  return XServer::Get()->display();
+}
+
+
+int XWindow::scr() {
+  return XServer::Get()->screen_num();
+}
+
+
+::Window XWindow::root() {
+  return XServer::Get()->root();
 }
 
 
@@ -161,26 +174,24 @@ XServer::XServer()
 }
 
 
+void XServer::SetupTesting() {
+  XServer::SetTesting(true);
+  // Initialize the X server once.
+  if (!Get()->initialized_) Get()->Init();
+}
+
+
 bool XServer::Init() {
   CHECK(!initialized_);
 
-  if (!XWindow::testing_) {
+  if (!testing_) {
     display_ = XOpenDisplay(NULL);
     if (display_ == NULL) {
       ERROR << "Can't open display " << XDisplayName(NULL);
       return false;
     }
     screen_num_ = DefaultScreen(display_);
-
     root_ = RootWindow(display_, screen_num_);
-
-    GC gc = XCreateGC(display_, root_, 0, NULL);
-    XSetForeground(display_, gc, BlackPixel(display_, screen_num_));
-    gcs_.insert(make_pair("black", gc));
-
-    gc = XCreateGC(display_, root_, 0, NULL);
-    XSetForeground(display_, gc, WhitePixel(display_, screen_num_));
-    gcs_.insert(make_pair("white", gc));
 
     // debugging
     //XSynchronize(display_, True);
@@ -305,15 +316,9 @@ XWindow* XServer::GetWindow(::Window id, bool create) {
   XWindowMap::iterator it = windows_.find(id);
   if (it != windows_.end()) return it->second.get();
   if (!create) return NULL;
-  ref_ptr<XWindow> window(
-      XWindow::testing_ ? new MockXWindow(id) : new XWindow(id));
+  ref_ptr<XWindow> window(testing_ ? new MockXWindow(id) : new XWindow(id));
   windows_.insert(make_pair(id, window));
   return window.get();
-}
-
-
-GC XServer::GetGC(const string& name) {
-  return FindWithDefault(gcs_, name, default_gc_);
 }
 
 

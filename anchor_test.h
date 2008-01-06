@@ -5,6 +5,7 @@
 
 #include "anchor.h"
 
+#include "drawing-engine.h"
 #include "util.h"
 #include "window.h"
 #include "x.h"
@@ -14,9 +15,7 @@ using namespace wham;
 class AnchorTestSuite : public CxxTest::TestSuite {
  public:
   void setUp() {
-    x_server_.reset(new XServer);
-    x_server_->Init();
-    XWindow::SetTesting(true);
+    XServer::SetupTesting();
   }
 
   void testAnchor_Ctor() {

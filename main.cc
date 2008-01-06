@@ -7,8 +7,6 @@
 using namespace wham;
 
 int main(int argc, char** argv) {
-  ref_ptr<XServer> x_server(new XServer());
-  XServer::Swap(x_server);
   CHECK(XServer::Get()->Init());
 
   ref_ptr<DrawingEngine> drawing_engine(new DrawingEngine());

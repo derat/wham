@@ -12,25 +12,6 @@ MockXWindow::MockXWindow(::Window id)
 }
 
 
-void MockXWindow::Clear() {
-}
-
-
-void MockXWindow::DrawText(
-    int x, int y, const string& text, const string& color) {
-}
-
-
-void MockXWindow::DrawLine(
-    int x1, int y1, int x2, int y2, const string& color) {
-}
-
-
-void MockXWindow::DrawBox(
-    int x, int y, uint width, uint height, const string& color) {
-}
-
-
 bool MockXWindow::GetProperties(WindowProperties* props) {
   return true;
 }
@@ -49,6 +30,18 @@ void MockXWindow::Unmap() {
 
 
 void MockXWindow::Map() {
+}
+
+
+void MockXWindow::SelectEvents() {
+}
+
+
+void MockXWindow::TakeFocus() {
+}
+
+
+void MockXWindow::SetBorder(uint size) {
 }
 
 }  // namespace wham

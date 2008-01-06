@@ -4,8 +4,9 @@ LIBS=-lX11 -lpcrecpp
 CXXTESTGEN=cxxtestgen.pl
 CXXTESTINCLUDE=-I/home/derat/local/include
 
-TESTLIBS=anchor.o command.o config.o config-parser.o desktop.o key-bindings.o \
-	 mock-x.o util.o window.o window-classifier.o window-manager.o x.o
+TESTLIBS=anchor.o command.o config.o config-parser.o desktop.o \
+	 drawing-engine.o key-bindings.o mock-x.o util.o window.o \
+	 window-classifier.o window-manager.o x.o
 
 PROGNAME=wham
 

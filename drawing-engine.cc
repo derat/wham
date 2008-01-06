@@ -12,7 +12,7 @@
 
 namespace wham {
 
-ref_ptr<DrawingEngine> DrawingEngine::singleton_(NULL);
+ref_ptr<DrawingEngine> DrawingEngine::singleton_(new DrawingEngine);
 
 // A string that hopefully measures the full ascent and descent for a given
 // font.
@@ -20,7 +20,8 @@ static const string kFullHeightString = "X[yj|";
 
 
 DrawingEngine::DrawingEngine()
-    : gc_(XCreateGC(dpy(), root(), 0, NULL)),
+    : initialized_(false),
+      gc_(0),
       gc_font_(NULL) {
 }
 
@@ -33,7 +34,13 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor,
   CHECK(height);
   CHECK(width);
 
+  InitIfNeeded();
   ::Window win = titlebar->id();
+
+  // Don't do anything if there's no real X connection.
+  if (XServer::Testing()) {
+    return;
+  }
 
   Config* c = Config::Get();
   const uint border = c->anchor_border_width;
@@ -64,6 +71,7 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor,
   }
   *width = min(max(*width, c->anchor_min_width), c->anchor_max_width);
 
+  titlebar->SetBorder(0);
   titlebar->Resize(*width, *height);
   Clear(win);
   // FIXME: set the background on init and just clear the window instead
@@ -88,7 +96,7 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor,
       int y = border + padding + ascent;
       int win_width = static_cast<int>(roundf((i + 1) * title_width)) - x;
       if (active) {
-        DrawBox(win, x, 0, win_width, *height - 1,
+        DrawBox(win, x, 1, win_width, *height - 2 * border,
                 c->anchor_active_focused_bg_color);
       }
       DrawLine(win, x, 0, x, *height - 1, border_color);
@@ -98,6 +106,17 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor,
                  : c->anchor_inactive_text_color, font);
     }
   }
+}
+
+
+void DrawingEngine::InitIfNeeded() {
+  if (initialized_) return;
+
+  if (!XServer::Testing()) {
+    CHECK(XServer::Get()->Initialized());
+    gc_ = XCreateGC(dpy(), root(), 0, NULL);
+  }
+  initialized_ = true;
 }
 
 

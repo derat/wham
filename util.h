@@ -157,7 +157,6 @@ void SplitString(const string& str, vector<string>* parts);
 // vector.
 vector<string> SplitString(const string& str);
 
-
 }  // namespace wham
 
 #endif  // __UTIL_H__
