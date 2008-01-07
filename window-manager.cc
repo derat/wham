@@ -100,8 +100,15 @@ void WindowManager::HandleDestroyWindow(XWindow* x_window) {
 
 
 void WindowManager::HandleEnterWindow(XWindow* x_window) {
-  CHECK(!IsAnchorWindow(x_window));
-  x_window->TakeFocus();
+  if (IsAnchorWindow(x_window)) {
+    // Anchor titlebar; give its active window the focus.
+    Anchor* anchor = current_desktop_->GetAnchorByTitlebar(x_window);
+    CHECK(anchor);
+    anchor->FocusActiveWindow();
+  } else {
+    // Client window; give it the focus.
+    x_window->TakeFocus();
+  }
 }
 
 

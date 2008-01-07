@@ -44,6 +44,11 @@ void Window::Map() {
 }
 
 
+void Window::TakeFocus() {
+  x_window_->TakeFocus();
+}
+
+
 bool Window::Classify() {
   CHECK(classifier_);
   if (!classifier_->ClassifyWindow(props_, &configs_)) {

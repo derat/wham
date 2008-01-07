@@ -24,6 +24,7 @@ class Window {
   void Resize(uint width, uint height);
   void Unmap();
   void Map();
+  void TakeFocus();
 
   string title() const { return props_.window_name; }
 

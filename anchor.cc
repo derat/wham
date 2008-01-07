@@ -105,6 +105,7 @@ bool Anchor::SetActive(uint index) {
   CHECK(active_window_);
   UpdateWindowPosition(active_window_);
   active_window_->Map();
+  active_window_->TakeFocus();
 
   DrawTitlebar();
   return true;
@@ -121,6 +122,12 @@ void Anchor::ActivateWindowAtCoordinates(int x, int y) {
   if (windows_.empty()) return;
   int index = (x - x_) * windows_.size() / titlebar_width_;
   SetActive(index);
+}
+
+
+void Anchor::FocusActiveWindow() {
+  if (!active_window_) return;
+  active_window_->TakeFocus();
 }
 
 

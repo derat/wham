@@ -76,8 +76,8 @@ XWindow* XWindow::Create(int x, int y, uint width, uint height) {
               BlackPixel(dpy(), scr()),
               WhitePixel(dpy(), scr()));
     XSelectInput(dpy(), win,
-                 ButtonPressMask | ButtonReleaseMask | ExposureMask |
-                 PointerMotionMask | PropertyChangeMask);
+                 ButtonPressMask | ButtonReleaseMask | EnterWindowMask |
+                 ExposureMask | PointerMotionMask | PropertyChangeMask);
   }
   return XServer::Get()->GetWindow(win, true);
 }
