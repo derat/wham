@@ -31,12 +31,12 @@ class ConfigParserTestSuite : public CxxTest::TestSuite {
   }
 
   void testTokenizer_GetNextToken_commenting() {
-    TS_ASSERT(CompareTokens("# a b c", kNewline, NULL));
-    TS_ASSERT(CompareTokens("a # b c", "a", kNewline, NULL));
-    TS_ASSERT(CompareTokens("a#b", "a", kNewline, NULL));
-    TS_ASSERT(CompareTokens("#a\nb", kNewline, "b", kNewline, NULL));
-    TS_ASSERT(CompareTokens("# a\\nb", kNewline, NULL));
-    TS_ASSERT(CompareTokens("a # b\nc", "a", kNewline, "c", kNewline, NULL));
+    TS_ASSERT(CompareTokens("// a b c", kNewline, NULL));
+    TS_ASSERT(CompareTokens("a // b c", "a", kNewline, NULL));
+    TS_ASSERT(CompareTokens("a//b", "a", kNewline, NULL));
+    TS_ASSERT(CompareTokens("//a\nb", kNewline, "b", kNewline, NULL));
+    TS_ASSERT(CompareTokens("// a\\nb", kNewline, NULL));
+    TS_ASSERT(CompareTokens("a // b\nc", "a", kNewline, "c", kNewline, NULL));
   }
 
   void testTokenizer_GetNextToken_quoting() {
@@ -47,8 +47,10 @@ class ConfigParserTestSuite : public CxxTest::TestSuite {
     TS_ASSERT(CompareTokens(" \"\" ", "", kNewline, NULL));
     TS_ASSERT(CompareTokens("\"a\"\"b\"", "ab", kNewline, NULL));
     TS_ASSERT(CompareTokens("\"ab\"'cd'", "abcd", kNewline, NULL));
-    TS_ASSERT(CompareTokens("\" # \"", " # ", kNewline, NULL));
-    TS_ASSERT(CompareTokens("' # '", " # ", kNewline, NULL));
+    TS_ASSERT(CompareTokens("\" // \"", " // ", kNewline, NULL));
+    TS_ASSERT(CompareTokens("' // '", " // ", kNewline, NULL));
+    TS_ASSERT(CompareTokens("'/'/ blah", "//", "blah", kNewline, NULL));
+    TS_ASSERT(CompareTokens("\"\"// blah", "", kNewline, NULL));
     TS_ASSERT(CompareTokens(" \"{\" ", "{", kNewline, NULL));
     TS_ASSERT(CompareTokens(" \'}\' ", "}", kNewline, NULL));
     TS_ASSERT(CompareTokens(" \".\" ", ".", kNewline, NULL));
@@ -66,7 +68,8 @@ class ConfigParserTestSuite : public CxxTest::TestSuite {
     TS_ASSERT(CompareTokens("a\\nb", "a\nb", kNewline, NULL));
     TS_ASSERT(CompareTokens("a \\\nb", "a", "b", kNewline, NULL));
     TS_ASSERT(CompareTokens("a \\\nn", "a", "n", kNewline, NULL));
-    TS_ASSERT(CompareTokens("\\#", "#", kNewline, NULL));
+    TS_ASSERT(CompareTokens("\\//", "//", kNewline, NULL));
+    TS_ASSERT(CompareTokens("a\\///", "a/", kNewline, NULL));
     TS_ASSERT(CompareTokens("\\'abc\\'", "'abc'", kNewline, NULL));
     TS_ASSERT(CompareTokens("\\\"abc\\\"", "\"abc\"", kNewline, NULL));
     TS_ASSERT(CompareTokens("a \\\n b", "a", "b", kNewline, NULL));

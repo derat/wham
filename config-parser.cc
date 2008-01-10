@@ -64,11 +64,15 @@ bool ConfigParser::Tokenizer::GetNextToken(
   bool in_comment = false;
   bool in_token = false;
   bool bare_token = true;
+  bool bare_last_char = true;
 
   int quote_start_line = 0;
+  int last_ch = 0;
+  int ch = 0;
 
   while (true) {
-    int ch = GetChar();
+    last_ch = ch;
+    ch = GetChar();
 
     // First, handle unterminated quoted strings.
     if ((ch == '\n' || ch == EOF) && (in_single_quote || in_double_quote)) {
@@ -139,7 +143,7 @@ bool ConfigParser::Tokenizer::GetNextToken(
       if (!in_token) in_token = true;
       if (in_single_quote) {
         quote_start_line = line_num_;
-        if (bare_token) bare_token = false;
+        bare_token = false;
       }
       continue;
     }
@@ -148,7 +152,7 @@ bool ConfigParser::Tokenizer::GetNextToken(
       if (!in_token) in_token = true;
       if (in_double_quote) {
         quote_start_line = line_num_;
-        if (bare_token) bare_token = false;
+        bare_token = false;
       }
       continue;
     }
@@ -156,13 +160,17 @@ bool ConfigParser::Tokenizer::GetNextToken(
       in_escape = true;
       continue;
     }
-    if (ch == '#' && !in_escape && !in_single_quote && !in_double_quote) {
+    if (ch == '/' && !in_escape && !in_single_quote && !in_double_quote &&
+        bare_last_char && last_ch == '/') {
       in_comment = true;
+      *token = token->substr(0, token->size() - 1);
+      if (token->empty() && bare_token) in_token = false;
       continue;
     }
 
     // At this point, we have a character that we're going to add to the
     // in-progress token.
+    bare_last_char = true;
     if (in_escape) {
       // Handle escape sequences.
       in_escape = false;
@@ -174,10 +182,11 @@ bool ConfigParser::Tokenizer::GetNextToken(
         case 'v': ch = '\v'; break;
         // Everything else is left untouched.
       }
-      if (bare_token) bare_token = false;
+      bare_token = false;
+      bare_last_char = false;
     }
     *token += static_cast<char>(ch);
-    if (!in_token) in_token = true;
+    in_token = true;
   }
   CHECK(false);
 }
