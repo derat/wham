@@ -126,7 +126,7 @@ class Command {
     Type type;
     ArgType arg_type;
   };
-  static Info info_[];
+  const static Info info_[];
 
   // Maps generated from 'info_' and a bool to track whether they've been
   // initialized yet or not.

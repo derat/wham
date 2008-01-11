@@ -14,6 +14,52 @@ namespace wham {
 
 ref_ptr<DrawingEngine> DrawingEngine::singleton_(new DrawingEngine);
 
+
+
+const DrawingEngine::Style::StringDef DrawingEngine::Style::string_defs_[] = {
+  { FOCUSED_ANCHOR__BACKGROUND,
+    "focused_anchor.background", "#bbbbbb" },
+  { FOCUSED_ANCHOR__ACTIVE_WINDOW__BACKGROUND,
+    "focused_anchor.active_window.background", "#ff0000" },
+  { FOCUSED_ANCHOR__INACTIVE_WINDOW__BACKGROUND,
+    "focused_anchor.inactive_window.background", "#bbbbbb" },
+  { INVALID_TYPE, NULL, NULL },
+};
+
+const DrawingEngine::Style::UintDef DrawingEngine::Style::uint_defs_[] = {
+  { FOCUSED_ANCHOR__BORDER_WIDTH,
+    "focused_anchor.border_width", 1 },
+  { FOCUSED_ANCHOR__PADDING,
+    "focused_anchor.padding", 2 },
+  { FOCUSED_ANCHOR__WINDOW_SPACING,
+    "focused_anchor.window_spacing", 1 },
+  { FOCUSED_ANCHOR__ACTIVE_WINDOW__BORDER_WIDTH,
+    "focused_anchor.active_window.border_width", 1 },
+  { FOCUSED_ANCHOR__ACTIVE_WINDOW__PADDING,
+    "focused_anchor.active_window.padding", 3 },
+  { FOCUSED_ANCHOR__INACTIVE_WINDOW__BACKGROUND,
+    "focused_anchor.inactive_window.border_width", 1 },
+  { FOCUSED_ANCHOR__INACTIVE_WINDOW__PADDING,
+    "focused_anchor.inactive_window.padding", 3 },
+  { INVALID_TYPE, NULL, 0 },
+};
+
+const DrawingEngine::Style::ColorsDef
+    DrawingEngine::Style::colors_defs_[] = {
+  { FOCUSED_ANCHOR__BORDER_COLOR,
+    "focused_anchor.border_color",
+    "#dddddd", "#dddddd", "#999999", "#999999" },
+  { FOCUSED_ANCHOR__ACTIVE_WINDOW__BORDER_COLOR,
+    "focused_anchor.active_window.border_color",
+    "#dddddd", "#dddddd", "#999999", "#999999" },
+  { FOCUSED_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR,
+    "focused_anchor.inactive_window.border_color",
+    "#dddddd", "#dddddd", "#999999", "#999999" },
+  { INVALID_TYPE, NULL, NULL, NULL, NULL, NULL },
+};
+
+bool DrawingEngine::Style::initialized_ = false;
+
 // A string that hopefully measures the full ascent and descent for a given
 // font.
 static const string kFullHeightString = "X[yj|";
@@ -22,7 +68,8 @@ static const string kFullHeightString = "X[yj|";
 DrawingEngine::DrawingEngine()
     : initialized_(false),
       gc_(0),
-      gc_font_(NULL) {
+      gc_font_(NULL),
+      style_(new Style) {
 }
 
 
@@ -106,6 +153,56 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor,
                  : c->anchor_inactive_text_color, font);
     }
   }
+}
+
+
+DrawingEngine::Style::Style() {
+  if (!initialized_) Init();
+
+  for (int i = 0; string_defs_[i].name != NULL; ++i) {
+    const StringDef& def = string_defs_[i];
+    strings_.insert(make_pair(def.type, def.default_value));
+  }
+  for (int i = 0; uint_defs_[i].name != NULL; ++i) {
+    const UintDef& def = uint_defs_[i];
+    uints_.insert(make_pair(def.type, def.default_value));
+  }
+  for (int i = 0; colors_defs_[i].name != NULL; ++i) {
+    const ColorsDef& def = colors_defs_[i];
+    colors_.insert(
+        make_pair(def.type, Colors(def.top, def.left, def.bottom, def.right)));
+  }
+}
+
+
+const string& DrawingEngine::Style::GetString(Type type) const {
+  map<Type, string>::const_iterator it = strings_.find(type);
+  CHECK(it != strings_.end());
+  return it->second;
+}
+
+
+uint DrawingEngine::Style::GetUint(Type type) const {
+  map<Type, uint>::const_iterator it = uints_.find(type);
+  CHECK(it != uints_.end());
+  return it->second;
+}
+
+
+void DrawingEngine::Style::GetColors(
+    Type type, DrawingEngine::Style::Colors* colors) const {
+  CHECK(colors);
+  map<Type, Colors>::const_iterator it = colors_.find(type);
+  CHECK(it != colors_.end());
+  *colors = it->second;
+}
+
+
+void DrawingEngine::Style::Init() {
+  CHECK(!initialized_);
+  for (int i = 0; string_defs_[i].name != NULL; ++i) {
+  }
+  initialized_ = true;
 }
 
 

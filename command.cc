@@ -7,7 +7,7 @@
 
 namespace wham {
 
-Command::Info Command::info_[] = {
+const Command::Info Command::info_[] = {
   { "close_window",          CLOSE_WINDOW,          NO_ARG },
   { "create_anchor",         CREATE_ANCHOR,         NO_ARG },
   { "cycle_anchor_gravity",  CYCLE_ANCHOR_GRAVITY,  BOOL_ARG },
@@ -135,7 +135,7 @@ Command::ArgType Command::GetArgType(Command::Type type) {
 void Command::InitializeStaticData() {
   if (initialized_) return;
   for (int i = 0; info_[i].type != UNKNOWN; ++i) {
-    Info& info = info_[i];
+    const Info& info = info_[i];
     name_to_type_.insert(make_pair(info.name, info.type));
     type_to_name_.insert(make_pair(info.type, info.name));
     type_to_arg_type_.insert(make_pair(info.type, info.arg_type));

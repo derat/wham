@@ -43,6 +43,90 @@ class DrawingEngine {
                   uint* titlebar_height);
 
  private:
+  class Style {
+   public:
+    Style();
+
+    // Enum describing different components of the style.
+    enum Type {
+      INVALID_TYPE,
+
+      FOCUSED_ANCHOR__BACKGROUND,
+      FOCUSED_ANCHOR__ACTIVE_WINDOW__BACKGROUND,
+      FOCUSED_ANCHOR__INACTIVE_WINDOW__BACKGROUND,
+
+      FOCUSED_ANCHOR__BORDER_WIDTH,
+      FOCUSED_ANCHOR__PADDING,
+      FOCUSED_ANCHOR__WINDOW_SPACING,
+      FOCUSED_ANCHOR__ACTIVE_WINDOW__BORDER_WIDTH,
+      FOCUSED_ANCHOR__ACTIVE_WINDOW__PADDING,
+      FOCUSED_ANCHOR__INACTIVE_WINDOW__BORDER_WIDTH,
+      FOCUSED_ANCHOR__INACTIVE_WINDOW__PADDING,
+
+      FOCUSED_ANCHOR__BORDER_COLOR,
+      FOCUSED_ANCHOR__ACTIVE_WINDOW__BORDER_COLOR,
+      FOCUSED_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR,
+    };
+
+    struct Colors {
+      Colors(const string& top,
+             const string& left,
+             const string& bottom,
+             const string& right)
+          : top(top),
+            left(left),
+            bottom(bottom),
+            right(right) {}
+      string top;
+      string left;
+      string bottom;
+      string right;
+    };
+
+    const string& GetString(Type type) const;
+    uint GetUint(Type type) const;
+    void GetColors(Type type, Colors* colors) const;
+
+   private:
+    // Initialize static data.
+    static void Init();
+
+    // Struct describing a string component of the style.
+    struct StringDef {
+      Type type;
+      const char* name;
+      const char* default_value;
+    };
+
+    // Struct describing an unsigned int component of the style.
+    struct UintDef {
+      Type type;
+      const char* name;
+      uint default_value;
+    };
+
+    // Struct describing a set of four colors belonging to the style.
+    struct ColorsDef {
+      Type type;
+      const char* name;
+      const char* top;
+      const char* left;
+      const char* bottom;
+      const char* right;
+    };
+
+    // Static information describing components of the style.
+    const static StringDef string_defs_[];
+    const static UintDef uint_defs_[];
+    const static ColorsDef colors_defs_[];
+
+    static bool initialized_;
+
+    map<Type, string> strings_;
+    map<Type, uint> uints_;
+    map<Type, Colors> colors_;
+  };  // class Style
+
   // Initialize the drawing engine.  Called automatically.  Must be called
   // after the XServer singleton has been initialized.
   void InitIfNeeded();
@@ -107,6 +191,8 @@ class DrawingEngine {
 
   // Font currently installed in 'gc_'.
   XFontStruct* gc_font_;
+
+  ref_ptr<Style> style_;
 
   // Singleton object.
   static ref_ptr<DrawingEngine> singleton_;
