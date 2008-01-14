@@ -77,7 +77,7 @@ void WindowManager::HandleCreateWindow(XWindow* x_window) {
   // We don't want to manage anchor titlebars.
   if (IsAnchorWindow(x_window)) return;
 
-  x_window->SetBorder(1);
+  x_window->SetBorder(Config::Get()->window_border);
   x_window->SelectEvents();
   ref_ptr<Window> window(new Window(x_window));
   windows_.insert(make_pair(x_window, window));

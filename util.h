@@ -42,10 +42,20 @@ class Logger {
   Logger(const string& filename, int line_num);
   ~Logger();
 
-  Logger& operator<<(const string& msg);
-  Logger& operator<<(int num);
-  Logger& operator<<(void* ptr);
+  Logger& operator<<(long v);
+  Logger& operator<<(unsigned long v);
+  Logger& operator<<(bool v);
+  Logger& operator<<(short v);
+  Logger& operator<<(unsigned short v);
+  Logger& operator<<(int v);
+  Logger& operator<<(unsigned int v);
+  Logger& operator<<(double v);
+  Logger& operator<<(float v);
+  Logger& operator<<(long double v);
+  Logger& operator<<(const void* v);
   Logger& operator<<(ios_base& (*f)(ios_base&));
+  Logger& operator<<(const char* v);
+  Logger& operator<<(const string& v);
 
  private:
   // Has the input so far ended with a newline?

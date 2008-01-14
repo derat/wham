@@ -146,10 +146,11 @@ void Anchor::CycleGravity(bool forward) {
 
 void Anchor::UpdateWindowPosition(Window* window) {
   CHECK(window);
+  uint border = Config::Get()->window_border;
   int x = (gravity_ == TOP_LEFT || gravity_ == BOTTOM_LEFT) ?
-      x_ : x_ + titlebar_width_ - window->width();
+      x_ : x_ + titlebar_width_ - window->width() - 2 * border;
   int y = (gravity_ == TOP_LEFT || gravity_ == TOP_RIGHT) ?
-      y_ + titlebar_height_ : y_ - window->height();
+      y_ + titlebar_height_ : y_ - window->height() - 2 * border;
   window->Move(x, y);
 }
 

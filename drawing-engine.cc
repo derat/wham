@@ -12,17 +12,26 @@
 
 namespace wham {
 
+// Macros for looking up style data.
+#define s(x) style_->GetString(x)
+#define u(x) style_->GetUint(x)
+#define c(x) style_->GetColors(x)
+
 ref_ptr<DrawingEngine> DrawingEngine::singleton_(new DrawingEngine);
-
-
 
 const DrawingEngine::Style::StringDef DrawingEngine::Style::string_defs_[] = {
   { FOCUSED_ANCHOR__BACKGROUND,
     "focused_anchor.background", "#bbbbbb" },
+  { FOCUSED_ANCHOR__FONT,
+    "focused_anchor.font", "fixed" },
   { FOCUSED_ANCHOR__ACTIVE_WINDOW__BACKGROUND,
-    "focused_anchor.active_window.background", "#ff0000" },
+    "focused_anchor.active_window.background", "#3d4479" },
+  { FOCUSED_ANCHOR__ACTIVE_WINDOW__TEXT_COLOR,
+    "focused_anchor.active_window.text_color", "#ffffff" },
   { FOCUSED_ANCHOR__INACTIVE_WINDOW__BACKGROUND,
     "focused_anchor.inactive_window.background", "#bbbbbb" },
+  { FOCUSED_ANCHOR__INACTIVE_WINDOW__TEXT_COLOR,
+    "focused_anchor.inactive_window.text_color", "#555555" },
   { INVALID_TYPE, NULL, NULL },
 };
 
@@ -32,15 +41,15 @@ const DrawingEngine::Style::UintDef DrawingEngine::Style::uint_defs_[] = {
   { FOCUSED_ANCHOR__PADDING,
     "focused_anchor.padding", 2 },
   { FOCUSED_ANCHOR__WINDOW_SPACING,
-    "focused_anchor.window_spacing", 1 },
+    "focused_anchor.window_spacing", 2 },
   { FOCUSED_ANCHOR__ACTIVE_WINDOW__BORDER_WIDTH,
     "focused_anchor.active_window.border_width", 1 },
   { FOCUSED_ANCHOR__ACTIVE_WINDOW__PADDING,
-    "focused_anchor.active_window.padding", 3 },
-  { FOCUSED_ANCHOR__INACTIVE_WINDOW__BACKGROUND,
+    "focused_anchor.active_window.padding", 2 },
+  { FOCUSED_ANCHOR__INACTIVE_WINDOW__BORDER_WIDTH,
     "focused_anchor.inactive_window.border_width", 1 },
   { FOCUSED_ANCHOR__INACTIVE_WINDOW__PADDING,
-    "focused_anchor.inactive_window.padding", 3 },
+    "focused_anchor.inactive_window.padding", 2 },
   { INVALID_TYPE, NULL, 0 },
 };
 
@@ -51,7 +60,7 @@ const DrawingEngine::Style::ColorsDef
     "#dddddd", "#dddddd", "#999999", "#999999" },
   { FOCUSED_ANCHOR__ACTIVE_WINDOW__BORDER_COLOR,
     "focused_anchor.active_window.border_color",
-    "#dddddd", "#dddddd", "#999999", "#999999" },
+    "#272c4e", "#272c4e", "#5f6abd", "#5f6abd" },
   { FOCUSED_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR,
     "focused_anchor.inactive_window.border_color",
     "#dddddd", "#dddddd", "#999999", "#999999" },
@@ -89,21 +98,33 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor,
     return;
   }
 
-  Config* c = Config::Get();
-  const uint border = c->anchor_border_width;
-  const uint padding = c->anchor_padding;
-  const string& border_color = c->anchor_border_color;
-  const string& font = c->anchor_font;
+  const Config* conf = Config::Get();
+
+  const string anchor_name = "[" + anchor.name() + "]";
+
+  const string& font = s(Style::FOCUSED_ANCHOR__FONT);
+
+  uint border = u(Style::FOCUSED_ANCHOR__BORDER_WIDTH);
+  uint padding = u(Style::FOCUSED_ANCHOR__PADDING);
+  uint spacing = u(Style::FOCUSED_ANCHOR__WINDOW_SPACING);
+  uint awindow_border = u(Style::FOCUSED_ANCHOR__ACTIVE_WINDOW__BORDER_WIDTH);
+  uint awindow_padding = u(Style::FOCUSED_ANCHOR__ACTIVE_WINDOW__PADDING);
+  uint iwindow_border = u(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__BORDER_WIDTH);
+  uint iwindow_padding = u(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__PADDING);
 
   int ascent = 0, descent = 0;
   GetTextSize(font, kFullHeightString, NULL, &ascent, &descent);
-  *height = ascent + descent + 2 * padding + 2 * border;
+  *height = ascent + descent + 2 * padding + 2 * border +
+      2 * max(awindow_border, iwindow_border) +
+      2 * max(awindow_padding, iwindow_padding);
 
+  // Include the outer border and padding in the total width.
+  *width = 2 * (border + padding);
   const vector<Window*>& windows = anchor.windows();
   if (windows.empty()) {
     int name_width = 0;
-    GetTextSize(font, anchor.name(), &name_width, NULL, NULL);
-    *width = name_width + 2 * padding + 2 * border;
+    GetTextSize(font, anchor_name, &name_width, NULL, NULL);
+    *width += name_width + 2 * (iwindow_padding + iwindow_border);
   } else {
     int max_title_width = 0;
     for (vector<Window*>::const_iterator window = windows.begin();
@@ -112,45 +133,67 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor,
       GetTextSize(font, (*window)->title(), &title_width, NULL, NULL);
       max_title_width = max(max_title_width, title_width);
     }
-    *width = max_title_width * windows.size() +
-        2 * padding * windows.size() +
-        border * (windows.size() + 1);
+    *width += max_title_width + 2 * (awindow_padding + awindow_border) +
+        (windows.size() - 1) *
+        (max_title_width + iwindow_border + iwindow_padding + spacing);
   }
-  *width = min(max(*width, c->anchor_min_width), c->anchor_max_width);
+  *width = min(max(*width, conf->anchor_min_width), conf->anchor_max_width);
 
   titlebar->SetBorder(0);
   titlebar->Resize(*width, *height);
-  Clear(win);
-  // FIXME: set the background on init and just clear the window instead
-  DrawBox(win, 0, 0, *width - 1, *height - 1, c->anchor_inactive_bg_color);
+  DrawBorders(win, 0, 0, *width, *height,
+              s(Style::FOCUSED_ANCHOR__BACKGROUND),
+              c(Style::FOCUSED_ANCHOR__BORDER_COLOR),
+              u(Style::FOCUSED_ANCHOR__BORDER_WIDTH));
 
-  // Draw outside border.
-  DrawLine(win, 0, 0, *width - 1, 0, border_color);
-  DrawLine(win, 0, *height - 1, *width - 1, *height - 1, border_color);
-  DrawLine(win, 0, 0, 0, *height - 1, border_color);
-  DrawLine(win, *width - 1, 0, *width - 1, *height - 1, border_color);
+  // FIXME: set all window's backgrounds on init
 
   if (windows.empty()) {
-    DrawText(win, border + padding, border + padding + ascent,
-             "[" + anchor.name() + "]", c->anchor_inactive_text_color, font);
+    DrawBorders(win, border + padding, border + padding,
+                *width - 2 * (border + padding),
+                *height - 2 * (border + padding),
+                s(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__BACKGROUND),
+                c(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR),
+                iwindow_border);
+    DrawText(win,
+             border + padding + iwindow_border + iwindow_padding,
+             border + padding + iwindow_border + iwindow_padding + ascent,
+             anchor_name, font,
+             s(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__TEXT_COLOR));
   } else {
-    float title_width = static_cast<float>(*width - border) / windows.size();
+    uint width_for_titles =
+        *width - 2 * (border + padding) - (windows.size() - 1) * spacing;
+    float title_width = static_cast<float>(width_for_titles) / windows.size();
+
     int i = 0;
     for (vector<Window*>::const_iterator window = windows.begin();
          window != windows.end(); ++window, ++i) {
       bool active = (anchor.active_window() == *window);
-      int x = static_cast<int>(roundf(i * title_width));
-      int y = border + padding + ascent;
-      int win_width = static_cast<int>(roundf((i + 1) * title_width)) - x;
-      if (active) {
-        DrawBox(win, x, 1, win_width, *height - 2 * border,
-                c->anchor_active_focused_bg_color);
-      }
-      DrawLine(win, x, 0, x, *height - 1, border_color);
-      DrawText(
-          win, x + border + padding, y, (*window)->title(),
-          active ? c->anchor_active_focused_text_color
-                 : c->anchor_inactive_text_color, font);
+      int x = border + padding +
+          static_cast<int>(roundf(i * (title_width + spacing)));
+      int y = border + padding;
+      int this_width = border + padding +
+          static_cast<int>(roundf(i * (title_width + spacing) + title_width)) -
+          x;
+
+      DrawBorders(win, x, y, this_width, *height - 2 * (border + padding),
+                  active ?
+                    s(Style::FOCUSED_ANCHOR__ACTIVE_WINDOW__BACKGROUND) :
+                    s(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__BACKGROUND),
+                  active ?
+                    c(Style::FOCUSED_ANCHOR__ACTIVE_WINDOW__BORDER_COLOR) :
+                    c(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR),
+                  active ?
+                    u(Style::FOCUSED_ANCHOR__ACTIVE_WINDOW__BORDER_WIDTH) :
+                    u(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__BORDER_WIDTH));
+
+      uint gap = active ?
+          awindow_border + awindow_padding :
+          iwindow_border + iwindow_padding;
+      DrawText(win, x + gap, y + gap + ascent, (*window)->title(), font,
+          active ?
+            s(Style::FOCUSED_ANCHOR__ACTIVE_WINDOW__TEXT_COLOR) :
+            s(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__TEXT_COLOR));
     }
   }
 }
@@ -189,12 +232,11 @@ uint DrawingEngine::Style::GetUint(Type type) const {
 }
 
 
-void DrawingEngine::Style::GetColors(
-    Type type, DrawingEngine::Style::Colors* colors) const {
-  CHECK(colors);
+const DrawingEngine::Style::Colors& DrawingEngine::Style::GetColors(
+    Type type) const {
   map<Type, Colors>::const_iterator it = colors_.find(type);
   CHECK(it != colors_.end());
-  *colors = it->second;
+  return it->second;
 }
 
 
@@ -226,10 +268,10 @@ void DrawingEngine::DrawText(::Window win,
                              int x,
                              int y,
                              const string& text,
-                             const string& color,
-                             const string& font) {
-  ChangeColor(color);
+                             const string& font,
+                             const string& color) {
   ChangeFont(font);
+  ChangeColor(color);
   XDrawString(dpy(), win, gc_, x, y, text.c_str(), text.size());
 }
 
@@ -253,6 +295,27 @@ void DrawingEngine::DrawBox(::Window win,
                             const string& color) {
   ChangeColor(color);
   XFillRectangle(dpy(), win, gc_, x, y, width, height);
+}
+
+
+void DrawingEngine::DrawBorders(::Window win,
+                                int x,
+                                int y,
+                                uint width,
+                                uint height,
+                                const string& background,
+                                const Style::Colors& border_colors,
+                                uint border_width) {
+  DrawBox(win, x, y, width, height, background);
+  if (border_width) {
+    DrawBox(win, x, y, width, border_width, border_colors.top);
+    DrawBox(win, x, y + border_width, border_width, height - border_width,
+            border_colors.left);
+    DrawBox(win, x + border_width, y + height - border_width,
+            width - border_width, border_width, border_colors.bottom);
+    DrawBox(win, x + width - border_width, y + border_width,
+            border_width, height - 2 * border_width, border_colors.right);
+  }
 }
 
 

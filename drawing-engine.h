@@ -52,8 +52,11 @@ class DrawingEngine {
       INVALID_TYPE,
 
       FOCUSED_ANCHOR__BACKGROUND,
+      FOCUSED_ANCHOR__FONT,
       FOCUSED_ANCHOR__ACTIVE_WINDOW__BACKGROUND,
+      FOCUSED_ANCHOR__ACTIVE_WINDOW__TEXT_COLOR,
       FOCUSED_ANCHOR__INACTIVE_WINDOW__BACKGROUND,
+      FOCUSED_ANCHOR__INACTIVE_WINDOW__TEXT_COLOR,
 
       FOCUSED_ANCHOR__BORDER_WIDTH,
       FOCUSED_ANCHOR__PADDING,
@@ -85,7 +88,7 @@ class DrawingEngine {
 
     const string& GetString(Type type) const;
     uint GetUint(Type type) const;
-    void GetColors(Type type, Colors* colors) const;
+    const Colors& GetColors(Type type) const;
 
    private:
     // Initialize static data.
@@ -138,8 +141,8 @@ class DrawingEngine {
                 int x,
                 int y,
                 const string& text,
-                const string& color,
-                const string& font);
+                const string& font,
+                const string& color);
 
   // Draw a line in a window.
   void DrawLine(::Window win,
@@ -156,6 +159,15 @@ class DrawingEngine {
                uint width,
                uint height,
                const string& color);
+
+  void DrawBorders(::Window win,
+                   int x,
+                   int y,
+                   uint width,
+                   uint height,
+                   const string& background,
+                   const Style::Colors& border_colors,
+                   uint border_width);
 
   // Change the color used by 'gc_'.
   void ChangeColor(const string& name);
