@@ -84,8 +84,8 @@ class WindowConfigSet {
   // necessary.
   void CycleActiveConfig(bool forward) {
     if (configs_.size() <= 1) return;
-    active_ = (active_ + (forward ? 1 : -1)) % configs_.size();
-    if (active_ < 0) active_ = configs_.size() + active_;
+    active_ = (active_ + configs_.size() + (forward ? 1 : -1)) %
+        configs_.size();
   }
 
   // Get the number of configs in this set.
