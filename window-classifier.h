@@ -80,6 +80,14 @@ class WindowConfigSet {
     return configs_[active_].get();
   }
 
+  // Cycle the active config either forward or backward, wrapping if
+  // necessary.
+  void CycleActiveConfig(bool forward) {
+    if (configs_.size() <= 1) return;
+    active_ = (active_ + (forward ? 1 : -1)) % configs_.size();
+    if (active_ < 0) active_ = configs_.size() + active_;
+  }
+
   // Get the number of configs in this set.
   size_t NumConfigs() const { return configs_.size(); }
 

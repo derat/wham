@@ -71,6 +71,44 @@ class WindowClassifierTestSuite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(configs.NumConfigs(), 0U);
   }
 
+  void testWindowConfigSet_CycleActiveConfig() {
+    WindowConfigSet configs;
+
+    WindowConfig config("first", 100, 100);
+    configs.MergeConfig(config);
+    WindowConfig config2("second", 100, 100);
+    configs.MergeConfig(config2);
+
+    // Initially, the first config should be active.
+    const WindowConfig* active = configs.GetActiveConfig();
+    CHECK(active != NULL);
+    TS_ASSERT_EQUALS(active->name, "first");
+
+    // If we cycle forward, the second config will be active.
+    configs.CycleActiveConfig(true);
+    active = configs.GetActiveConfig();
+    CHECK(active != NULL);
+    TS_ASSERT_EQUALS(active->name, "second");
+
+    // Wrap around if we cycle forward again.
+    configs.CycleActiveConfig(true);
+    active = configs.GetActiveConfig();
+    CHECK(active != NULL);
+    TS_ASSERT_EQUALS(active->name, "first");
+
+    // We should also wrap when we cycle backward.
+    configs.CycleActiveConfig(false);
+    active = configs.GetActiveConfig();
+    CHECK(active != NULL);
+    TS_ASSERT_EQUALS(active->name, "second");
+
+    // One more step backward should bring us to the first config again.
+    configs.CycleActiveConfig(false);
+    active = configs.GetActiveConfig();
+    CHECK(active != NULL);
+    TS_ASSERT_EQUALS(active->name, "first");
+  }
+
   void testWindowCriteria_Matches() {
     // Empty criteria should match everything.
     WindowProperties props;

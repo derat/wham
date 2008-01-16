@@ -22,6 +22,12 @@ Window::Window(XWindow* x_window)
 }
 
 
+void Window::CycleConfig(bool forward) {
+  configs_.CycleActiveConfig(forward);
+  ApplyConfig();
+}
+
+
 void Window::Move(int x, int y) {
   x_window_->Move(x, y);
 }

@@ -131,6 +131,13 @@ void Anchor::FocusActiveWindow() {
 }
 
 
+void Anchor::CycleActiveWindowConfig(bool forward) {
+  if (!active_window_) return;
+  active_window_->CycleConfig(forward);
+  UpdateWindowPosition(active_window_);
+}
+
+
 void Anchor::SetGravity(Anchor::Gravity gravity) {
   if (gravity_ == gravity) return;
   gravity_ = gravity;

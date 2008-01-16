@@ -63,6 +63,8 @@ class Anchor {
 
   void FocusActiveWindow();
 
+  void CycleActiveWindowConfig(bool forward);
+
   // Change the anchor's gravity.
   void SetGravity(Gravity gravity);
   void CycleGravity(bool forward);

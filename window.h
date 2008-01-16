@@ -20,6 +20,8 @@ class Window {
     x_window_ = NULL;
   }
 
+  void CycleConfig(bool forward);
+
   void Move(int x, int y);
   void Resize(uint width, uint height);
   void Unmap();
