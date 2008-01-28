@@ -5,6 +5,8 @@
 
 namespace wham {
 
+ref_ptr<WindowClassifier> WindowClassifier::singleton_(new WindowClassifier);
+
 void WindowConfig::Merge(const WindowConfig& config) {
   name = config.name;
   width = config.width;

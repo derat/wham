@@ -15,43 +15,41 @@
 namespace wham {
 
 WindowManager::WindowManager()
-    : current_desktop_(NULL),
+    : active_desktop_(NULL),
       mouse_down_(false),
       dragging_(false),
       drag_offset_x_(0),
       drag_offset_y_(0),
       mouse_down_x_(0),
       mouse_down_y_(0) {
-  // Create a bunch of stuff just for testing.
+}
+
+
+void WindowManager::SetupDefaultCrap() {
   ref_ptr<WindowCriteria> crit(new WindowCriteria);
   crit->AddCriterion(WindowCriteria::CRITERION_TYPE_APP_NAME, "rxvt");
   ref_ptr<WindowCriteriaVector> criteria(new WindowCriteriaVector);
   criteria->push_back(crit);
-
   ref_ptr<WindowConfigVector> configs(new WindowConfigVector);
   configs->push_back(ref_ptr<WindowConfig>(new WindowConfig("abc", 300, 300)));
-
-  window_classifier_.AddConfig(criteria, configs);
+  WindowClassifier::Get()->AddConfig(criteria, configs);
 
   criteria.reset(new WindowCriteriaVector);
   configs.reset(new WindowConfigVector);
   configs->push_back(ref_ptr<WindowConfig>(new WindowConfig("def", 400, 400)));
-  window_classifier_.AddConfig(criteria, configs);
+  WindowClassifier::Get()->AddConfig(criteria, configs);
 
-  Window::SetClassifier(&window_classifier_);
-
-  desktops_.push_back(ref_ptr<Desktop>(new Desktop()));
-  current_desktop_ = desktops_[0].get();
-  current_desktop_->CreateAnchor("anchor1", 50, 50);
+  CreateDesktop();
+  active_desktop_->CreateAnchor("anchor1", 50, 50);
 }
 
 
 void WindowManager::HandleButtonPress(XWindow* x_window, int x, int y) {
-  Anchor* anchor = current_desktop_->GetAnchorByTitlebar(x_window);
+  Anchor* anchor = active_desktop_->GetAnchorByTitlebar(x_window);
   CHECK(anchor);
 
   // Make this the active anchor.
-  current_desktop_->SetActiveAnchor(anchor);
+  active_desktop_->SetActiveAnchor(anchor);
 
   mouse_down_ = true;
   drag_offset_x_ = x - anchor->x();
@@ -66,7 +64,7 @@ void WindowManager::HandleButtonRelease(XWindow* x_window, int x, int y) {
   if (dragging_) {
     dragging_ = false;
   } else {
-    Anchor* anchor = current_desktop_->GetAnchorByTitlebar(x_window);
+    Anchor* anchor = active_desktop_->GetAnchorByTitlebar(x_window);
     CHECK(anchor);
     anchor->ActivateWindowAtCoordinates(x, y);
   }
@@ -81,7 +79,7 @@ void WindowManager::HandleCreateWindow(XWindow* x_window) {
   x_window->SelectEvents();
   ref_ptr<Window> window(new Window(x_window));
   windows_.insert(make_pair(x_window, window));
-  current_desktop_->AddWindow(window.get());
+  active_desktop_->AddWindow(window.get());
 }
 
 
@@ -102,7 +100,7 @@ void WindowManager::HandleDestroyWindow(XWindow* x_window) {
 void WindowManager::HandleEnterWindow(XWindow* x_window) {
   if (IsAnchorWindow(x_window)) {
     // Anchor titlebar; give its active window the focus.
-    Anchor* anchor = current_desktop_->GetAnchorByTitlebar(x_window);
+    Anchor* anchor = active_desktop_->GetAnchorByTitlebar(x_window);
     CHECK(anchor);
     anchor->FocusActiveWindow();
   } else {
@@ -113,7 +111,7 @@ void WindowManager::HandleEnterWindow(XWindow* x_window) {
 
 
 void WindowManager::HandleExposeWindow(XWindow* x_window) {
-  Anchor* anchor = current_desktop_->GetAnchorByTitlebar(x_window);
+  Anchor* anchor = active_desktop_->GetAnchorByTitlebar(x_window);
   CHECK(anchor);
   anchor->DrawTitlebar();
 }
@@ -128,20 +126,23 @@ void WindowManager::HandleMotion(XWindow* x_window, int x, int y) {
     }
     dragging_ = true;
   }
-  Anchor* anchor = current_desktop_->active_anchor();
+  Anchor* anchor = active_desktop_->active_anchor();
   CHECK(anchor);
   anchor->Move(x - drag_offset_x_, y - drag_offset_y_);
 }
 
 
 void WindowManager::HandleCommand(const Command &cmd) {
-  if (cmd.type() == Command::CREATE_ANCHOR) {
-    current_desktop_->CreateAnchor("new", 250, 250);
+  if (cmd.type() == Command::ATTACH_TAGGED_WINDOWS) {
+    Anchor* anchor = active_desktop_->active_anchor();
+    if (anchor) AttachTaggedWindows(anchor);
+  } else if (cmd.type() == Command::CREATE_ANCHOR) {
+    active_desktop_->CreateAnchor("new", 250, 250);
   } else if (cmd.type() == Command::CYCLE_ANCHOR_GRAVITY) {
-    Anchor* anchor = current_desktop_->active_anchor();
+    Anchor* anchor = active_desktop_->active_anchor();
     if (anchor) anchor->CycleGravity(cmd.GetBoolArg());
   } else if (cmd.type() == Command::CYCLE_WINDOW_CONFIG) {
-    Anchor* anchor = current_desktop_->active_anchor();
+    Anchor* anchor = active_desktop_->active_anchor();
     if (anchor) anchor->CycleActiveWindowConfig(cmd.GetBoolArg());
   } else if (cmd.type() == Command::EXEC) {
     Exec(cmd.GetStringArg());
@@ -151,15 +152,56 @@ void WindowManager::HandleCommand(const Command &cmd) {
     LOG << "anchor=" << hex << anchor;
     */
   } else if (cmd.type() == Command::SWITCH_NTH_WINDOW) {
-    Anchor* anchor = current_desktop_->active_anchor();
+    Anchor* anchor = active_desktop_->active_anchor();
     if (anchor) anchor->SetActive(cmd.GetIntArg());
+  } else if (cmd.type() == Command::TOGGLE_TAG) {
+    Window* window = GetActiveWindow();
+    if (window) ToggleWindowTag(window);
   } else {
     ERROR << "Got unknown command " << cmd.type();
   }
 }
 
 
-bool WindowManager::IsAnchorWindow(XWindow* x_window) {
+Desktop* WindowManager::CreateDesktop() {
+  // FIXME: Append this after the active desktop, if one exists.
+  desktops_.push_back(ref_ptr<Desktop>(new Desktop()));
+  active_desktop_ = desktops_.back().get();
+  return desktops_.back().get();
+}
+
+
+void WindowManager::AttachTaggedWindows(Anchor* anchor) {
+  CHECK(anchor);
+  for (set<Window*>::iterator it = tagged_windows_.begin();
+       it != tagged_windows_.end(); ++it) {
+    Window* window = *it;
+    for (DesktopVector::iterator desktop = desktops_.begin();
+         desktop != desktops_.end(); ++desktop) {
+      (*desktop)->RemoveWindow(window);
+    }
+    anchor->AddWindow(window);
+  }
+  while (!tagged_windows_.empty()) {
+    ToggleWindowTag(*(tagged_windows_.begin()));
+  }
+}
+
+
+void WindowManager::ToggleWindowTag(Window* window) {
+  CHECK(window);
+  set<Window*>::iterator it = tagged_windows_.find(window);
+  if (it != tagged_windows_.end()) {
+    tagged_windows_.erase(it);
+    window->set_tagged(false);
+  } else {
+    tagged_windows_.insert(window);
+    window->set_tagged(true);
+  }
+}
+
+
+bool WindowManager::IsAnchorWindow(XWindow* x_window) const {
   for (DesktopVector::const_iterator desktop = desktops_.begin();
        desktop != desktops_.end(); ++desktop) {
     if ((*desktop)->IsTitlebarWindow(x_window)) return true;
@@ -168,7 +210,7 @@ bool WindowManager::IsAnchorWindow(XWindow* x_window) {
 }
 
 
-bool WindowManager::Exec(const string& command) {
+bool WindowManager::Exec(const string& command) const {
   DEBUG << "Executing " << command;
   const char* shell = "/bin/sh";
   if (fork() == 0) {
@@ -180,6 +222,13 @@ bool WindowManager::Exec(const string& command) {
   }
   wait(0);
   return true;
+}
+
+
+Window* WindowManager::GetActiveWindow() const {
+  Anchor* anchor = active_desktop_->active_anchor();
+  if (anchor == NULL) return NULL;
+  return anchor->mutable_active_window();
 }
 
 }  // namespace wham

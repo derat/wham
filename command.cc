@@ -8,6 +8,7 @@
 namespace wham {
 
 const Command::Info Command::info_[] = {
+  { "attach_tagged_windows", ATTACH_TAGGED_WINDOWS, NO_ARG },
   { "close_window",          CLOSE_WINDOW,          NO_ARG },
   { "create_anchor",         CREATE_ANCHOR,         NO_ARG },
   { "cycle_anchor_gravity",  CYCLE_ANCHOR_GRAVITY,  BOOL_ARG },
@@ -16,6 +17,7 @@ const Command::Info Command::info_[] = {
   { "switch_nearest_anchor", SWITCH_NEAREST_ANCHOR, DIRECTION_ARG },
   { "switch_nth_anchor",     SWITCH_NTH_ANCHOR,     INT_ARG },
   { "switch_nth_window",     SWITCH_NTH_WINDOW,     INT_ARG },
+  { "toggle_tag",            TOGGLE_TAG,            NO_ARG },
   { "unknown",               UNKNOWN,               NO_ARG },
 };
 

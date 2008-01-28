@@ -33,11 +33,10 @@ class Window {
   uint width() const { return width_; }
   uint height() const { return height_; }
 
-  XWindow* x_window() const { return x_window_; }
+  bool tagged() const { return tagged_; }
+  void set_tagged(bool tagged) { tagged_ = tagged; }
 
-  static void SetClassifier(WindowClassifier* classifier) {
-    classifier_ = classifier;
-  }
+  XWindow* x_window() const { return x_window_; }
 
  private:
   bool Classify();
@@ -46,8 +45,6 @@ class Window {
 
   // Update 'props_' with this window's properties.
   bool UpdateProperties();
-
-  static WindowClassifier* classifier_;
 
   // A pointer to information about the X window; used for interacting with
   // the server
@@ -59,6 +56,8 @@ class Window {
   WindowProperties props_;
 
   WindowConfigSet configs_;
+
+  bool tagged_;
 
   DISALLOW_EVIL_CONSTRUCTORS(Window);
 };

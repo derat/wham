@@ -5,6 +5,7 @@
 #define __WINDOW_MANAGER_H__
 
 #include <map>
+#include <set>
 
 #include "anchor.h"
 #include "command.h"
@@ -16,6 +17,8 @@
 
 using namespace std;
 
+class WindowManagerTestSuite;
+
 namespace wham {
 
 class XWindow;
@@ -23,6 +26,7 @@ class XWindow;
 class WindowManager {
  public:
   WindowManager();
+  void SetupDefaultCrap();
 
   void HandleButtonPress(XWindow* x_window, int x, int y);
   void HandleButtonRelease(XWindow* x_window, int x, int y);
@@ -35,19 +39,36 @@ class WindowManager {
   void HandleCommand(const Command& cmd);
 
  private:
-  bool IsAnchorWindow(XWindow* x_window);
+  friend class ::WindowManagerTestSuite;
 
-  bool Exec(const string& command);
+  // Create a new desktop and switch to it.
+  Desktop* CreateDesktop();
 
-  WindowClassifier window_classifier_;
+  // Attached currently-tagged windows to 'anchor' and untag them.
+  void AttachTaggedWindows(Anchor* anchor);
 
+  // Toggle the tagged state of a window.
+  void ToggleWindowTag(Window* window);
+
+  // Check if the passed-in X window is an anchor titlebar or not.
+  bool IsAnchorWindow(XWindow* x_window) const;
+
+  bool Exec(const string& command) const;
+
+  // Get the active window from the focused anchor on the active desktop,
+  // or NULL if none exists.
+  Window* GetActiveWindow() const;
+
+  // Map from client windows to Window objects.
   typedef map<XWindow*, ref_ptr<Window> > WindowMap;
   WindowMap windows_;
 
   typedef vector<ref_ptr<Desktop> > DesktopVector;
   DesktopVector desktops_;
 
-  Desktop* current_desktop_;
+  Desktop* active_desktop_;
+
+  set<Window*> tagged_windows_;
 
   // Is a mouse button currently down?
   bool mouse_down_;

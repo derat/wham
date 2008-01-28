@@ -153,6 +153,17 @@ class WindowClassifier {
  public:
   WindowClassifier() {}
 
+  // Get the current classifier.
+  static WindowClassifier* Get() {
+    CHECK(singleton_.get());
+    return singleton_.get();
+  }
+
+  // Install a new classifier.
+  static void Swap(ref_ptr<WindowClassifier> new_classifier) {
+    singleton_.swap(new_classifier);
+  }
+
   void AddConfig(ref_ptr<WindowCriteriaVector> criteria,
                  ref_ptr<WindowConfigVector> configs);
 
@@ -165,6 +176,9 @@ class WindowClassifier {
                       ref_ptr<WindowConfigVector> > >
       WindowCriteriaConfigs;
   WindowCriteriaConfigs criteria_configs_;
+
+  // Singleton object.
+  static ref_ptr<WindowClassifier> singleton_;
 
   DISALLOW_EVIL_CONSTRUCTORS(WindowClassifier);
 };

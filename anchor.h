@@ -40,6 +40,7 @@ class Anchor {
   Gravity gravity() const { return gravity_; }
   const vector<Window*>& windows() const { return windows_; }
   const Window* active_window() const { return active_window_; }
+  Window* mutable_active_window() { return active_window_; }
 
   void SetName(const string& name);
 

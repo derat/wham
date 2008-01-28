@@ -19,6 +19,7 @@ namespace wham {
 class Command {
  public:
   enum Type {
+    ATTACH_TAGGED_WINDOWS,
     CLOSE_WINDOW,
     CREATE_ANCHOR,
     CYCLE_ANCHOR_GRAVITY,
@@ -27,6 +28,7 @@ class Command {
     SWITCH_NEAREST_ANCHOR,
     SWITCH_NTH_ANCHOR,
     SWITCH_NTH_WINDOW,
+    TOGGLE_TAG,
     UNKNOWN,
   };
 

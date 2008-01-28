@@ -37,6 +37,7 @@ int main(int argc, char** argv) {
   XServer::Get()->RegisterKeyBindings(bindings);
 
   WindowManager window_manager;
+  window_manager.SetupDefaultCrap();
   XServer::Get()->RunEventLoop(&window_manager);
   return 0;
 }

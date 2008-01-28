@@ -8,15 +8,13 @@
 
 namespace wham {
 
-WindowClassifier* Window::classifier_ = NULL;
-
-
 Window::Window(XWindow* x_window)
     : x_window_(x_window),
       width_(0),
       height_(0),
       props_(),
-      configs_() {
+      configs_(),
+      tagged_(false) {
   UpdateProperties();
   Classify();
 }
@@ -56,8 +54,7 @@ void Window::TakeFocus() {
 
 
 bool Window::Classify() {
-  CHECK(classifier_);
-  if (!classifier_->ClassifyWindow(props_, &configs_)) {
+  if (!WindowClassifier::Get()->ClassifyWindow(props_, &configs_)) {
     ERROR << "Unable to classify window";
     return false;
   }
