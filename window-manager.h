@@ -28,6 +28,8 @@ class WindowManager {
   WindowManager();
   void SetupDefaultCrap();
 
+  bool LoadConfig(const string& filename);
+
   void HandleButtonPress(XWindow* x_window, int x, int y);
   void HandleButtonRelease(XWindow* x_window, int x, int y);
   void HandleCreateWindow(XWindow* x_window);

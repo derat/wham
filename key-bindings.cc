@@ -9,6 +9,33 @@
 
 namespace wham {
 
+bool KeyBindings::Load(const ParsedConfig::Node& conf) {
+  for (vector<ref_ptr<ParsedConfig::Node> >::const_iterator it =
+         conf.children.begin(); it != conf.children.end(); ++it) {
+    const ParsedConfig::Node& node = *(it->get());
+    if (node.tokens.empty()) {
+      ERROR << "Got empty top-level node from config";
+      return false;
+    }
+    if (node.tokens[0] == "bind") {
+      if (node.tokens.size() < 3) {
+        ERROR << "\"bind\" requires at least 2 arguments; got "
+              << (node.tokens.size() - 1) << " instead";
+        return false;
+      }
+      vector<string> args;
+      for (size_t i = 3; i < node.tokens.size(); ++i) {
+        args.push_back(node.tokens[i]);
+      }
+      if (!AddBinding(node.tokens[1], node.tokens[2], args, NULL)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+
 bool KeyBindings::AddBinding(const string& combos_str,
                              const string& command_str,
                              const vector<string>& args,

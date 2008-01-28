@@ -44,6 +44,23 @@ void WindowManager::SetupDefaultCrap() {
 }
 
 
+bool WindowManager::LoadConfig(const string& filename) {
+  ParsedConfig parsed_config;
+  if (!ConfigParser::ParseFromFile(filename, &parsed_config, NULL)) {
+    ERROR << "Couldn't parse file";
+    return false;
+  }
+  ref_ptr<Config> config(new Config);
+  if (!config->Load(parsed_config)) {
+    ERROR << "Couldn't load config";
+    return false;
+  }
+  XServer::Get()->RegisterKeyBindings(config->key_bindings);
+  Config::Swap(config);
+  return true;
+}
+
+
 void WindowManager::HandleButtonPress(XWindow* x_window, int x, int y) {
   Anchor* anchor = active_desktop_->GetAnchorByTitlebar(x_window);
   CHECK(anchor);

@@ -4,13 +4,15 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+#include "key-bindings.h"
 #include "util.h"
+#include "window-classifier.h"
 
 using namespace std;
 
 namespace wham {
 
-struct Config;
+struct ParsedConfig;
 
 struct Config {
  public:
@@ -29,6 +31,11 @@ struct Config {
   static void Swap(ref_ptr<Config> new_config) {
     singleton_.swap(new_config);
   }
+
+  bool Load(const ParsedConfig& conf);
+
+  KeyBindings key_bindings;
+  WindowClassifier window_classifier;
 
   int dragging_threshold;
 
