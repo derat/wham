@@ -1,0 +1,32 @@
+key_bindings {
+  bind Ctrl+n create_anchor
+  bind Ctrl+t exec /usr/bin/urxvt
+  bind Ctrl+1 switch_nth_window 0
+  bind Ctrl+2 switch_nth_window 1
+  bind Ctrl+3 switch_nth_window 2
+  bind Ctrl+h switch_nearest_anchor left
+  bind Ctrl+l switch_nearest_anchor right
+  bind Ctrl+j switch_nearest_anchor down
+  bind Ctrl+k switch_nearest_anchor up
+  bind Ctrl+g cycle_anchor_gravity true
+  bind Ctrl+Shift+g cycle_anchor_gravity false
+  bind Ctrl+b cycle_window_config true
+}
+
+window_configs {
+  window {
+    criteria {
+      app_name rxvt
+    }
+    config default {
+      width 80u
+      height *
+    }
+  }
+  window {
+    config default {
+      width app
+      height app
+    }
+  }
+}

@@ -25,6 +25,11 @@ bool Config::Load(const ParsedConfig& conf) {
         ERROR << "Failed to parse bindings";
         return false;
       }
+    } else if (node.tokens.size() == 1 && node.tokens[0] == "window_configs") {
+      if (!window_classifier.Load(node)) {
+        ERROR << "Failed to parse window configs";
+        return false;
+      }
     } else {
       ERROR << "Got unknown node in config";
       return false;

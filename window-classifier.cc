@@ -94,6 +94,27 @@ const string& WindowCriteria::GetPropertyForCriterionType(
 }
 
 
+bool WindowClassifier::Load(const ParsedConfig::Node& conf) {
+  for (vector<ref_ptr<ParsedConfig::Node> >::const_iterator it =
+         conf.children.begin(); it != conf.children.end(); ++it) {
+    const ParsedConfig::Node& node = *(it->get());
+    if (node.tokens.empty()) {
+      // TODO: Just make this a warning?
+      ERROR << "Node with no tokens in \"window_configs\" block";
+      return false;
+    }
+    if (node.tokens[0] == "window" && node.tokens.size() == 1) {
+      if (!LoadWindow(node)) return false;
+    } else {
+      ERROR << "Got token " << node.tokens[0] << " with "
+            << (node.tokens.size() - 1) << " parameter(s)";
+      return false;
+    }
+  }
+  return true;
+}
+
+
 void WindowClassifier::AddConfig(ref_ptr<WindowCriteriaVector> criteria,
                                  ref_ptr<WindowConfigVector> configs) {
   criteria_configs_.push_back(make_pair(criteria, configs));
@@ -128,6 +149,65 @@ bool WindowClassifier::ClassifyWindow(
   }
 
   return classified;
+}
+
+
+bool WindowClassifier::LoadWindow(const ParsedConfig::Node& conf) {
+  CHECK(conf.tokens.size() == 1U && conf.tokens[0] == "window");
+
+  ref_ptr<WindowCriteriaVector> criteria_vector;
+
+  for (vector<ref_ptr<ParsedConfig::Node> >::const_iterator it =
+         conf.children.begin(); it != conf.children.end(); ++it) {
+    const ParsedConfig::Node& node = *(it->get());
+
+    if (node.tokens.empty()) {
+      // TODO: Just make this a warning?
+      ERROR << "Node with no tokens in \"window\" block";
+      return false;
+    }
+    if (node.tokens[0] == "criteria") {
+      ref_ptr<WindowCriteria> criteria(new WindowCriteria);
+      if (!LoadCriteria(node, criteria.get())) return false;
+      criteria_vector->push_back(criteria);
+    } else if (node.tokens[0] == "config") {
+    } else {
+      ERROR << "Got token \"" << node.tokens[0] << "\" with "
+            << (node.tokens.size() - 1) << " parameter(s)";
+      return false;
+    }
+  }
+  return true;
+}
+
+
+bool WindowClassifier::LoadCriteria(const ParsedConfig::Node& conf,
+                                    WindowCriteria* criteria) {
+  CHECK(criteria);
+  CHECK(conf.tokens.size() == 1U && conf.tokens[0] == "criteria");
+
+  for (vector<ref_ptr<ParsedConfig::Node> >::const_iterator it =
+         conf.children.begin(); it != conf.children.end(); ++it) {
+    const ParsedConfig::Node& node = *(it->get());
+
+    if (node.tokens.size() != 2U) {
+      ERROR << "criteria node with " << node.tokens.size()
+            << " token(s); expected 2";
+      return false;
+    }
+    WindowCriteria::CriterionType type =
+        WindowCriteria::StrToCriterionType(node.tokens[0]);
+    if (type == WindowCriteria::CRITERION_TYPE_UNKNOWN) {
+      ERROR << "Criterion with unknown type \"" << node.tokens[0] << "\"";
+      return false;
+    }
+    if (!criteria->AddCriterion(type, node.tokens[1])) {
+      ERROR << "Unable to add criterion of type " << type
+            << " with pattern \"" << node.tokens[1] << "\"";
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace wham

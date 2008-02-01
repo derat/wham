@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "config-parser.h"
 #include "util.h"
 
 using namespace std;
@@ -115,8 +116,17 @@ class WindowCriteria {
     CRITERION_TYPE_COMMAND,
     CRITERION_TYPE_APP_NAME,
     CRITERION_TYPE_APP_CLASS,
-    NUM_CRITERION_TYPES
+    CRITERION_TYPE_UNKNOWN,
   };
+
+  static CriterionType StrToCriterionType(const string& str) {
+    if (str == "window_name") return CRITERION_TYPE_WINDOW_NAME;
+    if (str == "icon_name")   return CRITERION_TYPE_ICON_NAME;
+    if (str == "command")     return CRITERION_TYPE_COMMAND;
+    if (str == "app_name")    return CRITERION_TYPE_APP_NAME;
+    if (str == "app_class")   return CRITERION_TYPE_APP_CLASS;
+    return CRITERION_TYPE_UNKNOWN;
+  }
 
   // Add a criterion of a particular type.
   // 'pattern' will be interpreted according to its contents:
@@ -164,6 +174,8 @@ class WindowClassifier {
     singleton_.swap(new_classifier);
   }
 
+  bool Load(const ParsedConfig::Node& conf);
+
   void AddConfig(ref_ptr<WindowCriteriaVector> criteria,
                  ref_ptr<WindowConfigVector> configs);
 
@@ -172,6 +184,14 @@ class WindowClassifier {
                       WindowConfigSet* configs) const;
 
  private:
+  // Load a "window" node from a "window_config" block.
+  // Called by Load().
+  bool LoadWindow(const ParsedConfig::Node& conf);
+
+  bool LoadCriteria(const ParsedConfig::Node& conf, WindowCriteria* criteria);
+
+  // FIXME: Think about this some more.  Is there a good reason to allow
+  // multiple criteria sets here, or does it just add useless flexibility?
   typedef vector<pair<ref_ptr<WindowCriteriaVector>,
                       ref_ptr<WindowConfigVector> > >
       WindowCriteriaConfigs;
