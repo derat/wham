@@ -255,11 +255,23 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
       CHECK(x_window);
       window_manager->HandleEnterWindow(x_window);
     } else if (event.type == Expose) {
-      XExposeEvent& e = event.xexpose;
-      //DEBUG << "Expose: window=0x" << hex << e.window;
-      XWindow* x_window = GetWindow(e.window, false);
-      CHECK(x_window);
-      window_manager->HandleExposeWindow(x_window);
+      // Coalesce expose events for the same window to avoid redrawing the
+      // same one more than necessary.
+      // TODO: Is this needed?  Doesn't appear to have much of an effect on
+      // my computer, but maybe with a slower machine or slower drawing
+      // code it could help.
+      set<XWindow*> exposed_windows;
+      do {
+        XExposeEvent& e = event.xexpose;
+        XWindow* x_window = GetWindow(e.window, false);
+        CHECK(x_window);
+        exposed_windows.insert(x_window);
+      } while (XCheckMaskEvent(display_, ExposureMask, &event) == True);
+      for (set<XWindow*>::iterator win = exposed_windows.begin();
+           win != exposed_windows.end(); ++win) {
+        //DEBUG << "Expose: window=0x" << hex << (*win)->id();
+        window_manager->HandleExposeWindow(*win);
+      }
     } else if (event.type == KeyPress) {
       XKeyEvent& e = event.xkey;
       DEBUG << "KeyPress: window=0x" << hex << e.window << dec
