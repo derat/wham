@@ -25,27 +25,15 @@ WindowManager::WindowManager()
 }
 
 
+// FIXME: get rid of this
 void WindowManager::SetupDefaultCrap() {
-  ref_ptr<WindowCriteria> crit(new WindowCriteria);
-  crit->AddCriterion(WindowCriteria::CRITERION_TYPE_APP_NAME, "rxvt");
-  ref_ptr<WindowCriteriaVector> criteria(new WindowCriteriaVector);
-  criteria->push_back(crit);
-  ref_ptr<WindowConfigVector> configs(new WindowConfigVector);
-  configs->push_back(ref_ptr<WindowConfig>(new WindowConfig("abc", 300, 300)));
-  WindowClassifier::Get()->AddConfig(criteria, configs);
-
-  criteria.reset(new WindowCriteriaVector);
-  configs.reset(new WindowConfigVector);
-  configs->push_back(ref_ptr<WindowConfig>(new WindowConfig("def", 400, 400)));
-  WindowClassifier::Get()->AddConfig(criteria, configs);
-
   CreateDesktop();
   active_desktop_->CreateAnchor("anchor1", 50, 50);
 }
 
 
 bool WindowManager::LoadConfig(const string& filename) {
-  ParsedConfig parsed_config;
+  ConfigNode parsed_config;
   if (!ConfigParser::ParseFromFile(filename, &parsed_config, NULL)) {
     ERROR << "Couldn't parse file";
     return false;
@@ -173,7 +161,12 @@ void WindowManager::HandleCommand(const Command &cmd) {
     if (anchor) anchor->SetActive(cmd.GetIntArg());
   } else if (cmd.type() == Command::TOGGLE_TAG) {
     Window* window = GetActiveWindow();
-    if (window) ToggleWindowTag(window);
+    if (window) {
+      ToggleWindowTag(window);
+      Anchor* anchor = active_desktop_->active_anchor();
+      CHECK(anchor);
+      anchor->DrawTitlebar();
+    }
   } else {
     ERROR << "Got unknown command " << cmd.type();
   }

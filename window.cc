@@ -3,7 +3,6 @@
 
 #include "window.h"
 
-#include "config.h"
 #include "x.h"
 
 namespace wham {
@@ -66,6 +65,7 @@ bool Window::Classify() {
 void Window::ApplyConfig() {
   const WindowConfig* config = configs_.GetActiveConfig();
   CHECK(config);
+  // FIXME: interpret non-pixel dimensions correctly
   Resize(config->width, config->height);
 }
 

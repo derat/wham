@@ -11,22 +11,22 @@ key_bindings {
   bind Ctrl+g cycle_anchor_gravity true
   bind Ctrl+Shift+g cycle_anchor_gravity false
   bind Ctrl+b cycle_window_config true
+  bind Ctrl+Shift+t toggle_tag
 }
 
-window_configs {
-  window {
-    criteria {
-      app_name rxvt
-    }
-    config default {
-      width 80u
-      height *
-    }
+window {
+  criteria {
+    app_name rxvt
   }
-  window {
-    config default {
-      width app
-      height app
-    }
+  config default {
+    width 80u
+    height *
+  }
+}
+
+window {
+  config default {
+    width app
+    height app
   }
 }

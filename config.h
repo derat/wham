@@ -12,7 +12,7 @@ using namespace std;
 
 namespace wham {
 
-struct ParsedConfig;
+struct ConfigNode;
 
 struct Config {
  public:
@@ -32,7 +32,7 @@ struct Config {
     singleton_.swap(new_config);
   }
 
-  bool Load(const ParsedConfig& conf);
+  bool Load(const ConfigNode& conf);
 
   KeyBindings key_bindings;
   WindowClassifier window_classifier;

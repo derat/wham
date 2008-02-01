@@ -209,4 +209,40 @@ class WindowClassifierTestSuite : public CxxTest::TestSuite {
     TS_ASSERT(classifier.ClassifyWindow(props, &matched_configs));
     TS_ASSERT_EQUALS(matched_configs.NumConfigs(), 1U);
   }
+
+  void testWindowClassifier_ParseDimensions() {
+    WindowConfig::DimensionType type;
+    uint dim = -1;
+
+    string str = "app";
+    TS_ASSERT(WindowClassifier::ParseDimensions(str, &type, &dim));
+    TS_ASSERT_EQUALS(type, WindowConfig::DIMENSION_APP);
+    TS_ASSERT_EQUALS(dim, 0U);
+
+    str = "*";
+    TS_ASSERT(WindowClassifier::ParseDimensions(str, &type, &dim));
+    TS_ASSERT_EQUALS(type, WindowConfig::DIMENSION_MAX);
+    TS_ASSERT_EQUALS(dim, 0U);
+
+    str = "300";
+    TS_ASSERT(WindowClassifier::ParseDimensions(str, &type, &dim));
+    TS_ASSERT_EQUALS(type, WindowConfig::DIMENSION_PIXELS);
+    TS_ASSERT_EQUALS(dim, 300U);
+
+    str = "80u";
+    TS_ASSERT(WindowClassifier::ParseDimensions(str, &type, &dim));
+    TS_ASSERT_EQUALS(type, WindowConfig::DIMENSION_UNITS);
+    TS_ASSERT_EQUALS(dim, 80U);
+
+    str = "120U";
+    TS_ASSERT(WindowClassifier::ParseDimensions(str, &type, &dim));
+    TS_ASSERT_EQUALS(type, WindowConfig::DIMENSION_UNITS);
+    TS_ASSERT_EQUALS(dim, 120U);
+
+    str = "bogus";
+    TS_ASSERT(!WindowClassifier::ParseDimensions(str, &type, &dim));
+
+    str = "-20";
+    TS_ASSERT(!WindowClassifier::ParseDimensions(str, &type, &dim));
+  }
 };

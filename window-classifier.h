@@ -33,10 +33,19 @@ struct WindowProperties {
 
 // Information about how a given window should be displayed.
 struct WindowConfig {
+  WindowConfig()
+      : name("default"),
+        width_type(DIMENSION_APP),
+        height_type(DIMENSION_APP),
+        width(0),
+        height(0) {
+  }
   WindowConfig(const string& name,
                int width,
                int height)
       : name(name),
+        width_type(DIMENSION_PIXELS),
+        height_type(DIMENSION_PIXELS),
         width(width),
         height(height) {
   }
@@ -47,10 +56,20 @@ struct WindowConfig {
   // This config's name.
   string name;
 
-  // Desired dimensions of the window.  -1 indicates that the window should
-  // be maximized.
-  int width;
-  int height;
+  // A bit of extra information about the window dimensions stored in this
+  // config.
+  enum DimensionType {
+    DIMENSION_PIXELS, // absolute pixels
+    DIMENSION_UNITS,  // app-supplied units
+    DIMENSION_APP,    // just use the size supplied by the app
+    DIMENSION_MAX,    // maximize the window
+  };
+  DimensionType width_type;
+  DimensionType height_type;
+
+  // Desired dimensions of the window.
+  uint width;
+  uint height;
 };
 
 typedef vector<ref_ptr<WindowConfig> > WindowConfigVector;
@@ -174,7 +193,8 @@ class WindowClassifier {
     singleton_.swap(new_classifier);
   }
 
-  bool Load(const ParsedConfig::Node& conf);
+  // Load a "window" node from a parsed config.
+  bool Load(const ConfigNode& conf);
 
   void AddConfig(ref_ptr<WindowCriteriaVector> criteria,
                  ref_ptr<WindowConfigVector> configs);
@@ -184,11 +204,16 @@ class WindowClassifier {
                       WindowConfigSet* configs) const;
 
  private:
-  // Load a "window" node from a "window_config" block.
-  // Called by Load().
-  bool LoadWindow(const ParsedConfig::Node& conf);
+  friend class ::WindowClassifierTestSuite;
 
-  bool LoadCriteria(const ParsedConfig::Node& conf, WindowCriteria* criteria);
+  static bool LoadWindowCriteria(
+      const ConfigNode& conf, WindowCriteria* criteria);
+  static bool LoadWindowConfig(
+      const ConfigNode& conf, WindowConfig* window_config);
+
+  static bool ParseDimensions(const string& str,
+                              WindowConfig::DimensionType* type,
+                              uint* dim);
 
   // FIXME: Think about this some more.  Is there a good reason to allow
   // multiple criteria sets here, or does it just add useless flexibility?

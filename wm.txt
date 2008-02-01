@@ -91,6 +91,12 @@ is restarted.  It should be possible to quickly define to which anchor new
 windows should be attached, and to toggle whether they should initially be
 focused or instead created as an inactive tab.
 
+The mouse is much better suited than the keyboard to some operations, like
+resizing or positioning a window.  It's perfectly reasonable to use the
+mouse for these things.  The window manager should use the keyboard for
+common tasks (moving focus, choosing which window to display, etc.) and use
+whichever input device is best suited for less-common tasks.
+
 
 commands:
 ---------

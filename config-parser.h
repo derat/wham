@@ -16,32 +16,28 @@ class ConfigParserTestSuite;
 
 namespace wham {
 
-// A structured representation of the tokens parsed from a config.
-struct ParsedConfig {
-  ParsedConfig() {}
-
-  // Return the parsed config as a string (for testing).
-  string Dump() {
-    return root.Dump(0);
-  }
-
-  // An individual node within a config, possibly containing tokens and
-  // references to sub-nodes.
-  struct Node {
-    Node() {}
-    string Dump(int level);
-    vector<string> tokens;
-    vector<ref_ptr<Node> > children;
-   private:
-    DISALLOW_EVIL_CONSTRUCTORS(Node);
-  };
-
-  // The top-level node in the config.  Contains only children.
-  Node root;
-
+// An individual node within a config, possibly containing tokens and
+// references to sub-nodes.
+struct ConfigNode {
+  ConfigNode() {}
+  string Dump() { return Dump(0); }
+  vector<string> tokens;
+  vector<ref_ptr<ConfigNode> > children;
+  int file_num;
+  int line_num;
  private:
-  DISALLOW_EVIL_CONSTRUCTORS(ParsedConfig);
+  string Dump(int level);
+  DISALLOW_EVIL_CONSTRUCTORS(ConfigNode);
 };
+
+
+// An error that occurred while parsing or reading a config file.
+struct ConfigError {
+  int file_num;
+  int line_num;
+  string message;
+};
+
 
 // Parses configurations.
 class ConfigParser {
@@ -50,8 +46,8 @@ class ConfigParser {
   // If 'errors' is non-NULL, errors will be logged there.
   // Returns true on success and false otherwise.
   static bool ParseFromFile(const string& filename,
-                            ParsedConfig* config,
-                            vector<string>* errors);
+                            ConfigNode* config,
+                            vector<ConfigError>* errors);
 
  private:
   friend class ::ConfigParserTestSuite;
@@ -74,12 +70,14 @@ class ConfigParser {
     // Get the next token from the stream.
     // Returns true if a token was returned and false otherwise.
     // The token is written to 'token', its type (relevant in the case of a
-    // bare token) is written to token_type, and 'error' is set if an error
-    // was encountered.  'error' only needs to be checked when false is
-    // returned.
+    // bare token) is written to 'token_type', the 1-indexed number of the
+    // line where it began is written to 'line_num', and 'error' is set if
+    // an error was encountered.  'error' only needs to be checked when
+    // false is returned.
     bool GetNextToken(
         string* token,
         TokenType* token_type,
+        int* line_num,
         bool* error);
 
    protected:
@@ -117,7 +115,7 @@ class ConfigParser {
     }
 
     bool done_;
-    bool line_num_;
+    int line_num_;
 
     int ungetted_char_;
     bool have_ungetted_char_;
@@ -180,7 +178,7 @@ class ConfigParser {
 
   // Parse a config.
   // Returns true on success and false otherwise.
-  static bool Parse(Tokenizer* tokenizer, ParsedConfig* config);
+  static bool Parse(Tokenizer* tokenizer, ConfigNode* config);
 
   DISALLOW_EVIL_CONSTRUCTORS(ConfigParser);
 };

@@ -9,10 +9,10 @@
 
 namespace wham {
 
-bool KeyBindings::Load(const ParsedConfig::Node& conf) {
-  for (vector<ref_ptr<ParsedConfig::Node> >::const_iterator it =
+bool KeyBindings::Load(const ConfigNode& conf) {
+  for (vector<ref_ptr<ConfigNode> >::const_iterator it =
          conf.children.begin(); it != conf.children.end(); ++it) {
-    const ParsedConfig::Node& node = *(it->get());
+    const ConfigNode& node = *(it->get());
     if (node.tokens.empty()) {
       ERROR << "Got empty top-level node from config";
       return false;

@@ -13,7 +13,7 @@ using namespace std;
 
 namespace wham {
 
-string ParsedConfig::Node::Dump(int level) {
+string ConfigNode::Dump(int level) {
   ostringstream out;
   for (int i = 0; i < level; ++i) out << "  ";
   for (vector<string>::const_iterator token = tokens.begin();
@@ -23,7 +23,7 @@ string ParsedConfig::Node::Dump(int level) {
     out << "\"" << *token << "\"";
   }
   out << "\n";
-  for (vector<ref_ptr<Node> >::const_iterator child = children.begin();
+  for (vector<ref_ptr<ConfigNode> >::const_iterator child = children.begin();
        child != children.end(); ++child) {
     out << (*child)->Dump(level + 1);
   }
@@ -32,8 +32,8 @@ string ParsedConfig::Node::Dump(int level) {
 
 
 bool ConfigParser::ParseFromFile(const string& filename,
-                                 ParsedConfig* config,
-                                 vector<string>* errors) {
+                                 ConfigNode* config,
+                                 vector<ConfigError>* errors) {
   CHECK(config);
   FileTokenizer tokenizer(filename);
   return Parse(&tokenizer, config);
@@ -49,9 +49,10 @@ ConfigParser::Tokenizer::Tokenizer()
 
 
 bool ConfigParser::Tokenizer::GetNextToken(
-    string* token, TokenType* token_type, bool* error) {
+    string* token, TokenType* token_type, int* line_num, bool* error) {
   CHECK(token);
   CHECK(token_type);
+  CHECK(line_num);
   CHECK(error);
 
   token->clear();
@@ -185,6 +186,7 @@ bool ConfigParser::Tokenizer::GetNextToken(
       bare_token = false;
       bare_last_char = false;
     }
+    if (token->empty()) *line_num = line_num_;
     *token += static_cast<char>(ch);
     in_token = true;
   }
@@ -192,21 +194,22 @@ bool ConfigParser::Tokenizer::GetNextToken(
 }
 
 
-bool ConfigParser::Parse(Tokenizer* tokenizer, ParsedConfig* config) {
+bool ConfigParser::Parse(Tokenizer* tokenizer, ConfigNode* config) {
   CHECK(tokenizer);
   CHECK(config);
 
-  stack<ParsedConfig::Node*> node_stack;
-  node_stack.push(&config->root);
+  stack<ConfigNode*> node_stack;
+  node_stack.push(config);
 
-  ParsedConfig::Node* current_node = NULL;
+  ConfigNode* current_node = NULL;
 
   bool in_concat = false;
 
   string token;
   TokenType token_type = NUM_TOKEN_TYPES;
+  int line_num = -1;
   bool error = false;
-  while (tokenizer->GetNextToken(&token, &token_type, &error)) {
+  while (tokenizer->GetNextToken(&token, &token_type, &line_num, &error)) {
     if (token_type == TOKEN_NEWLINE) {
       // If we're in a concatenation request, we'll ignore the terminator.
       if (in_concat) continue;
@@ -233,9 +236,9 @@ bool ConfigParser::Parse(Tokenizer* tokenizer, ParsedConfig* config) {
         continue;
       }
       if (!current_node) {
-        current_node = new ParsedConfig::Node;
+        current_node = new ConfigNode;
         node_stack.top()->children.push_back(
-            ref_ptr<ParsedConfig::Node>(current_node));
+            ref_ptr<ConfigNode>(current_node));
       }
       if (in_concat) {
         // Invariant: if we're concatenating, we already have a token.
@@ -244,6 +247,7 @@ bool ConfigParser::Parse(Tokenizer* tokenizer, ParsedConfig* config) {
         in_concat = false;
       } else {
         current_node->tokens.push_back(token);
+        current_node->line_num = line_num;
       }
     }
   }

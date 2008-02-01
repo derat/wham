@@ -94,27 +94,46 @@ const string& WindowCriteria::GetPropertyForCriterionType(
 }
 
 
-bool WindowClassifier::Load(const ParsedConfig::Node& conf) {
-  for (vector<ref_ptr<ParsedConfig::Node> >::const_iterator it =
+bool WindowClassifier::Load(const ConfigNode& conf) {
+  CHECK(!conf.tokens.empty());
+  CHECK(conf.tokens[0] == "window");
+
+  ref_ptr<WindowCriteriaVector> criteria_vector(new WindowCriteriaVector);
+  ref_ptr<WindowConfigVector> config_vector(new WindowConfigVector);
+
+  for (vector<ref_ptr<ConfigNode> >::const_iterator it =
          conf.children.begin(); it != conf.children.end(); ++it) {
-    const ParsedConfig::Node& node = *(it->get());
+    const ConfigNode& node = *(it->get());
+
     if (node.tokens.empty()) {
       // TODO: Just make this a warning?
-      ERROR << "Node with no tokens in \"window_configs\" block";
+      ERROR << "Node with no tokens in \"window\" block";
       return false;
     }
-    if (node.tokens[0] == "window" && node.tokens.size() == 1) {
-      if (!LoadWindow(node)) return false;
+    if (node.tokens[0] == "criteria") {
+      ref_ptr<WindowCriteria> criteria(new WindowCriteria);
+      if (!LoadWindowCriteria(node, criteria.get())) return false;
+      criteria_vector->push_back(criteria);
+    } else if (node.tokens[0] == "config") {
+      ref_ptr<WindowConfig> window_config(new WindowConfig);
+      if (!LoadWindowConfig(node, window_config.get())) return false;
+      config_vector->push_back(window_config);
     } else {
-      ERROR << "Got token " << node.tokens[0] << " with "
+      ERROR << "Got token \"" << node.tokens[0] << "\" with "
             << (node.tokens.size() - 1) << " parameter(s)";
       return false;
     }
   }
+  if (config_vector->empty()) {
+    ERROR << "No window configs defined";
+    return false;
+  }
+  AddConfig(criteria_vector, config_vector);
   return true;
 }
 
 
+// FIXME: remove this?
 void WindowClassifier::AddConfig(ref_ptr<WindowCriteriaVector> criteria,
                                  ref_ptr<WindowConfigVector> configs) {
   criteria_configs_.push_back(make_pair(criteria, configs));
@@ -152,45 +171,23 @@ bool WindowClassifier::ClassifyWindow(
 }
 
 
-bool WindowClassifier::LoadWindow(const ParsedConfig::Node& conf) {
-  CHECK(conf.tokens.size() == 1U && conf.tokens[0] == "window");
-
-  ref_ptr<WindowCriteriaVector> criteria_vector;
-
-  for (vector<ref_ptr<ParsedConfig::Node> >::const_iterator it =
-         conf.children.begin(); it != conf.children.end(); ++it) {
-    const ParsedConfig::Node& node = *(it->get());
-
-    if (node.tokens.empty()) {
-      // TODO: Just make this a warning?
-      ERROR << "Node with no tokens in \"window\" block";
-      return false;
-    }
-    if (node.tokens[0] == "criteria") {
-      ref_ptr<WindowCriteria> criteria(new WindowCriteria);
-      if (!LoadCriteria(node, criteria.get())) return false;
-      criteria_vector->push_back(criteria);
-    } else if (node.tokens[0] == "config") {
-    } else {
-      ERROR << "Got token \"" << node.tokens[0] << "\" with "
-            << (node.tokens.size() - 1) << " parameter(s)";
-      return false;
-    }
-  }
-  return true;
-}
-
-
-bool WindowClassifier::LoadCriteria(const ParsedConfig::Node& conf,
-                                    WindowCriteria* criteria) {
+bool WindowClassifier::LoadWindowCriteria(const ConfigNode& conf,
+                                          WindowCriteria* criteria) {
   CHECK(criteria);
-  CHECK(conf.tokens.size() == 1U && conf.tokens[0] == "criteria");
+  CHECK(!conf.tokens.empty());
+  CHECK(conf.tokens[0] == "criteria");
 
-  for (vector<ref_ptr<ParsedConfig::Node> >::const_iterator it =
+  if (conf.tokens.size() != 1) {
+    // FIXME: make this a warning?
+    ERROR << "criteria node has " << conf.tokens.size() << " tokens";
+    return false;
+  }
+
+  for (vector<ref_ptr<ConfigNode> >::const_iterator it =
          conf.children.begin(); it != conf.children.end(); ++it) {
-    const ParsedConfig::Node& node = *(it->get());
+    const ConfigNode& node = *(it->get());
 
-    if (node.tokens.size() != 2U) {
+    if (node.tokens.size() != 2) {
       ERROR << "criteria node with " << node.tokens.size()
             << " token(s); expected 2";
       return false;
@@ -206,6 +203,75 @@ bool WindowClassifier::LoadCriteria(const ParsedConfig::Node& conf,
             << " with pattern \"" << node.tokens[1] << "\"";
       return false;
     }
+  }
+  return true;
+}
+
+
+bool WindowClassifier::LoadWindowConfig(const ConfigNode& conf,
+                                        WindowConfig* window_config) {
+  CHECK(window_config);
+  CHECK(!conf.tokens.empty());
+  CHECK(conf.tokens[0] == "config");
+
+  if (conf.tokens.size() != 2) {
+    ERROR << "window config node has " << conf.tokens.size()
+          << " token(s); expected 2";
+    return false;
+  }
+  window_config->name = conf.tokens[1];
+
+  for (vector<ref_ptr<ConfigNode> >::const_iterator it =
+         conf.children.begin(); it != conf.children.end(); ++it) {
+    const ConfigNode& node = *(it->get());
+
+    if (node.tokens.empty()) {
+      // TODO: Just make this a warning?
+      ERROR << "Node with no tokens in window config block";
+      return false;
+    }
+
+    if (node.tokens[0] == "width" && node.tokens.size() == 2) {
+      if (!ParseDimensions(node.tokens[1],
+                           &(window_config->width_type),
+                           &(window_config->width))) {
+        return false;
+      }
+    } else if (node.tokens[0] == "height" && node.tokens.size() == 2) {
+      if (!ParseDimensions(node.tokens[1],
+                           &(window_config->height_type),
+                           &(window_config->height))) {
+        return false;
+      }
+    } else {
+      ERROR << "Got token " << node.tokens[0] << " with "
+            << (node.tokens.size() - 1) << " parameter(s)";
+      return false;
+    }
+  }
+  return true;
+}
+
+
+bool WindowClassifier::ParseDimensions(const string& str,
+                                       WindowConfig::DimensionType* type,
+                                       uint* dim) {
+  static pcrecpp::RE num_re("(?i)(\\d+)(u?)");
+
+  string unit;
+  if (str == "app") {
+    *type = WindowConfig::DIMENSION_APP;
+    *dim = 0;
+  } else if (str == "*") {
+    *type = WindowConfig::DIMENSION_MAX;
+    *dim = 0;
+  } else if (num_re.FullMatch(str, dim, &unit)) {
+    *type = unit.empty() ?
+            WindowConfig::DIMENSION_PIXELS :
+            WindowConfig::DIMENSION_UNITS;
+  } else {
+    ERROR << "Unable to parse dimensions \"" << str << "\"";
+    return false;
   }
   return true;
 }

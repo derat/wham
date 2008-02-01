@@ -19,7 +19,7 @@ namespace wham {
 
 class KeyBindings {
  public:
-  bool Load(const ParsedConfig::Node& conf);
+  bool Load(const ConfigNode& conf);
 
   bool AddBinding(const string& combos_str,
                   const string& command_str,

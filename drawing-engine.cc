@@ -111,6 +111,18 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor,
   uint awindow_padding = u(Style::FOCUSED_ANCHOR__ACTIVE_WINDOW__PADDING);
   uint iwindow_border = u(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__BORDER_WIDTH);
   uint iwindow_padding = u(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__PADDING);
+  const string& awindow_text =
+      s(Style::FOCUSED_ANCHOR__ACTIVE_WINDOW__TEXT_COLOR);
+  const string& iwindow_text =
+      s(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__TEXT_COLOR);
+  const string& awindow_bg =
+      s(Style::FOCUSED_ANCHOR__ACTIVE_WINDOW__BACKGROUND);
+  const string& iwindow_bg =
+      s(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__BACKGROUND);
+  const Style::Colors& awindow_border_colors =
+      c(Style::FOCUSED_ANCHOR__ACTIVE_WINDOW__BORDER_COLOR);
+  const Style::Colors& iwindow_border_colors =
+      c(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR);
 
   int ascent = 0, descent = 0;
   GetTextSize(font, kFullHeightString, NULL, &ascent, &descent);
@@ -176,24 +188,30 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor,
           static_cast<int>(roundf(i * (title_width + spacing) + title_width)) -
           x;
 
-      DrawBorders(win, x, y, this_width, *height - 2 * (border + padding),
-                  active ?
-                    s(Style::FOCUSED_ANCHOR__ACTIVE_WINDOW__BACKGROUND) :
-                    s(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__BACKGROUND),
-                  active ?
-                    c(Style::FOCUSED_ANCHOR__ACTIVE_WINDOW__BORDER_COLOR) :
-                    c(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR),
-                  active ?
-                    u(Style::FOCUSED_ANCHOR__ACTIVE_WINDOW__BORDER_WIDTH) :
-                    u(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__BORDER_WIDTH));
+      int this_height = *height - 2 * (border + padding);
+
+      DrawBorders(win, x, y, this_width, this_height,
+                  active ? awindow_bg : iwindow_bg,
+                  active ? awindow_border_colors : iwindow_border_colors,
+                  active ? awindow_border : iwindow_border);
 
       uint gap = active ?
           awindow_border + awindow_padding :
           iwindow_border + iwindow_padding;
       DrawText(win, x + gap, y + gap + ascent, (*window)->title(), font,
-          active ?
-            s(Style::FOCUSED_ANCHOR__ACTIVE_WINDOW__TEXT_COLOR) :
-            s(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__TEXT_COLOR));
+               active ? awindow_text : iwindow_text);
+
+      if ((*window)->tagged()) {
+        int tag_size = this_height - 2 * gap;
+        DrawBorders(win,
+                    x + this_width - gap - tag_size,
+                    y + gap,
+                    tag_size,
+                    tag_size,
+                    active ? awindow_bg : iwindow_bg,
+                    active ? awindow_border_colors : iwindow_border_colors,
+                    2);  // FIXME: make setting
+      }
     }
   }
 }

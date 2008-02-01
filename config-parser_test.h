@@ -78,9 +78,15 @@ class ConfigParserTestSuite : public CxxTest::TestSuite {
     TS_ASSERT(CompareTokens("\\}", "}", kNewline, NULL));
   }
 
+  void testTokenizer_GetNextToken_line_num() {
+    TS_ASSERT(CompareLineNums("a b\nc d", 1, 1, 1, 2, 2, 2, NULL));
+    TS_ASSERT(CompareLineNums("// blah\na", 1, 2, 2, NULL));
+    TS_ASSERT(CompareLineNums("\"a b\"", 1, 1, NULL));
+  }
+
   void testConfigParser_parse() {
     ConfigParser::FileTokenizer tokenizer("testdata/config-parser_test.cfg");
-    ParsedConfig config;
+    ConfigNode config;
     CHECK(ConfigParser::Parse(&tokenizer, &config));
     string parsed = config.Dump();
     //LOG << parsed;
@@ -107,11 +113,12 @@ class ConfigParserTestSuite : public CxxTest::TestSuite {
     ConfigParser::StringTokenizer tokenizer(input);
     string token;
     ConfigParser::TokenType token_type = ConfigParser::NUM_TOKEN_TYPES;
+    int line_num = -1;
     bool error = false;
     size_t num_tokens = 0;
 
     //LOG << "Testing input \"" << input << "\"";
-    while (tokenizer.GetNextToken(&token, &token_type, &error)) {
+    while (tokenizer.GetNextToken(&token, &token_type, &line_num, &error)) {
       if (error) return false;
       CHECK(num_tokens < expected_tokens.size());
       switch (token_type) {
@@ -128,6 +135,34 @@ class ConfigParserTestSuite : public CxxTest::TestSuite {
       num_tokens++;
     }
     TS_ASSERT_EQUALS(num_tokens, expected_tokens.size());
+    return true;
+  }
+
+  bool CompareLineNums(const string& input, ...) {
+    va_list argp;
+    va_start(argp, input);
+    vector<int> expected_line_nums;
+    while (int line_num = va_arg(argp, int)) {
+      expected_line_nums.push_back(line_num);
+    }
+    va_end(argp);
+
+    ConfigParser::StringTokenizer tokenizer(input);
+    string token;
+    ConfigParser::TokenType token_type = ConfigParser::NUM_TOKEN_TYPES;
+    int line_num = -1;
+    bool error = false;
+    size_t num_tokens = 0;
+
+    //LOG << "Testing input \"" << input << "\"";
+    while (tokenizer.GetNextToken(&token, &token_type, &line_num, &error)) {
+      if (error) return false;
+      //LOG << "Got " << token << " on line " << line_num;
+      CHECK(num_tokens < expected_line_nums.size());
+      TS_ASSERT_EQUALS(line_num, expected_line_nums[num_tokens]);
+      num_tokens++;
+    }
+    TS_ASSERT_EQUALS(num_tokens, expected_line_nums.size());
     return true;
   }
 
