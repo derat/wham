@@ -27,6 +27,7 @@ class Window {
   void Unmap();
   void Map();
   void TakeFocus();
+  void HandlePropertyChange();
 
   string title() const { return props_.window_name; }
 

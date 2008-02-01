@@ -137,6 +137,17 @@ void WindowManager::HandleMotion(XWindow* x_window, int x, int y) {
 }
 
 
+void WindowManager::HandlePropertyChange(XWindow* x_window) {
+  if (IsAnchorWindow(x_window)) return;
+
+  Window* window = FindWithDefault(windows_, x_window, ref_ptr<Window>()).get();
+  CHECK(window);
+  window->HandlePropertyChange();
+  Anchor* anchor = active_desktop_->GetAnchorContainingWindow(window);
+  if (anchor) anchor->DrawTitlebar();
+}
+
+
 void WindowManager::HandleCommand(const Command &cmd) {
   if (cmd.type() == Command::ATTACH_TAGGED_WINDOWS) {
     Anchor* anchor = active_desktop_->active_anchor();

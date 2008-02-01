@@ -14,8 +14,7 @@ Window::Window(XWindow* x_window)
       props_(),
       configs_(),
       tagged_(false) {
-  UpdateProperties();
-  Classify();
+  HandlePropertyChange();
 }
 
 
@@ -49,6 +48,12 @@ void Window::Map() {
 
 void Window::TakeFocus() {
   x_window_->TakeFocus();
+}
+
+
+void Window::HandlePropertyChange() {
+  UpdateProperties();
+  Classify();
 }
 
 

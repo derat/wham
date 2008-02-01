@@ -30,7 +30,12 @@ class Desktop {
   void RemoveWindow(Window* window);
 
   // Look up an anchor based on its titlebar.
+  // FIXME: Why can't I make 'titlebar' const?
   Anchor* GetAnchorByTitlebar(XWindow* titlebar) const;
+
+  // Find the anchor containing the passed-in window.
+  // Returns NULL if no such anchor exists.
+  Anchor* GetAnchorContainingWindow(Window* window) const;
 
   void SetActiveAnchor(Anchor* anchor);
 

@@ -187,7 +187,6 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor,
       int this_width = border + padding +
           static_cast<int>(roundf(i * (title_width + spacing) + title_width)) -
           x;
-
       int this_height = *height - 2 * (border + padding);
 
       DrawBorders(win, x, y, this_width, this_height,
@@ -203,14 +202,18 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor,
 
       if ((*window)->tagged()) {
         int tag_size = this_height - 2 * gap;
-        DrawBorders(win,
-                    x + this_width - gap - tag_size,
-                    y + gap,
-                    tag_size,
-                    tag_size,
-                    active ? awindow_bg : iwindow_bg,
-                    active ? awindow_border_colors : iwindow_border_colors,
-                    2);  // FIXME: make setting
+        DrawBox(win,
+                x + this_width - gap - tag_size,
+                y + gap,
+                tag_size,
+                tag_size,
+                active ? awindow_text : iwindow_text);
+        DrawBox(win,
+                x + this_width - gap - tag_size + 1,
+                y + gap + 1,
+                tag_size - 2,
+                tag_size - 2,
+                active ? awindow_bg : iwindow_bg);
       }
     }
   }

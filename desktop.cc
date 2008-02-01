@@ -45,8 +45,16 @@ void Desktop::RemoveWindow(Window* window) {
 
 
 Anchor* Desktop::GetAnchorByTitlebar(XWindow* titlebar) const {
+  CHECK(titlebar);
   return FindWithDefault(
       anchor_titlebars_, titlebar, static_cast<Anchor*>(NULL));
+}
+
+
+Anchor* Desktop::GetAnchorContainingWindow(Window* window) const {
+  CHECK(window);
+  return FindWithDefault(
+      window_anchors_, window, static_cast<Anchor*>(NULL));
 }
 
 

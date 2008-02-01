@@ -137,7 +137,7 @@ void XWindow::Map() {
 
 
 void XWindow::SelectEvents() {
-  XSelectInput(dpy(), id_, EnterWindowMask);
+  XSelectInput(dpy(), id_, EnterWindowMask | PropertyChangeMask);
 }
 
 
@@ -211,102 +211,80 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
   XEvent event;
   while (true) {
     XNextEvent(display_, &event);
-    switch (event.type) {
-      case ButtonPress:
-        {
-          XButtonEvent& e = event.xbutton;
-          DEBUG << "ButtonPress: window=0x" << hex << e.window;
-          XWindow* x_window = GetWindow(e.window, false);
-          window_manager->HandleButtonPress(x_window, e.x_root, e.y_root);
-        }
-        break;
-      case ButtonRelease:
-        {
-          XButtonEvent& e = event.xbutton;
-          DEBUG << "ButtonRelease: window=0x" << hex << e.window;
-          XWindow* x_window = GetWindow(e.window, false);
-          window_manager->HandleButtonRelease(x_window, e.x_root, e.y_root);
-        }
-        break;
-      case ConfigureNotify:
-        {
-          /*
-          XConfigureEvent& e = event.xconfigure;
-          DEBUG << "ConfigureNotify: window=0x" << hex << e.window << dec
-                << " x=" << e.x << " y=" << e.y
-                << " width=" << e.width << " height=" << e.height
-                << " border=" << e.border_width
-                << " above=" << static_cast<int>(e.above)
-                << " override=" << e.override_redirect;
-              */
-        }
-        break;
-      case CreateNotify:
-        {
-          XCreateWindowEvent& e = event.xcreatewindow;
-          DEBUG << "CreateNotify: window=0x" << hex << e.window
-                << " parent=0x" << e.parent << dec
-                << " x=" << e.x << " y=" << e.y
-                << " width=" << e.width << " height=" << e.height
-                << " border=" << e.border_width
-                << " override=" << e.override_redirect;
-          XWindow* x_window = GetWindow(e.window, true);
-          window_manager->HandleCreateWindow(x_window);
-        }
-        break;
-      case DestroyNotify:
-        {
-          XDestroyWindowEvent& e = event.xdestroywindow;
-          DEBUG << "DestroyNotify: window=0x" << hex << e.window;
-          XWindow* x_window = GetWindow(e.window, false);
-          CHECK(x_window);
-          window_manager->HandleDestroyWindow(x_window);
-        }
-        break;
-      case EnterNotify:
-        {
-          XCrossingEvent& e = event.xcrossing;
-          DEBUG << "Enter: window=0x" << hex << e.window;
-          XWindow* x_window = GetWindow(e.window, false);
-          CHECK(x_window);
-          window_manager->HandleEnterWindow(x_window);
-        }
-        break;
-      case Expose:
-        {
-          XExposeEvent& e = event.xexpose;
-          //DEBUG << "Expose: window=0x" << hex << e.window;
-          XWindow* x_window = GetWindow(e.window, false);
-          CHECK(x_window);
-          window_manager->HandleExposeWindow(x_window);
-        }
-        break;
-      case KeyPress:
-        {
-          XKeyEvent& e = event.xkey;
-          DEBUG << "KeyPress: window=0x" << hex << e.window << dec
-                << " keycode=" << e.keycode << " state=" << e.state;
-          HandleKeyPress(XLookupKeysym(&e, 0), e.state, window_manager);
-        }
-        break;
-      case KeyRelease:
-        {
-          XKeyEvent& e = event.xkey;
-          DEBUG << "KeyRelease: window=0x" << hex << e.window << dec
-                << " keycode=" << e.keycode << " state=" << e.state;
-        }
-        break;
-      case MotionNotify:
-        {
-          XMotionEvent& e = event.xmotion;
-          //DEBUG << "MotionNotify: window=0x" << hex << e.window << dec
-          //      << " x=" << e.x_root << " y=" << e.y_root;
-          XWindow* x_window = GetWindow(e.window, false);
-          window_manager->HandleMotion(x_window, e.x_root, e.y_root);
-        }
-        break;
-      default:
-        DEBUG << XEventTypeToName(event.type);
+
+    if (event.type == ButtonPress) {
+      XButtonEvent& e = event.xbutton;
+      DEBUG << "ButtonPress: window=0x" << hex << e.window;
+      XWindow* x_window = GetWindow(e.window, false);
+      window_manager->HandleButtonPress(x_window, e.x_root, e.y_root);
+    } else if (event.type == ButtonRelease) {
+      XButtonEvent& e = event.xbutton;
+      DEBUG << "ButtonRelease: window=0x" << hex << e.window;
+      XWindow* x_window = GetWindow(e.window, false);
+      window_manager->HandleButtonRelease(x_window, e.x_root, e.y_root);
+    } else if (event.type == ConfigureNotify) {
+      /*
+      XConfigureEvent& e = event.xconfigure;
+      DEBUG << "ConfigureNotify: window=0x" << hex << e.window << dec
+            << " x=" << e.x << " y=" << e.y
+            << " width=" << e.width << " height=" << e.height
+            << " border=" << e.border_width
+            << " above=" << static_cast<int>(e.above)
+            << " override=" << e.override_redirect;
+          */
+    } else if (event.type == CreateNotify) {
+      XCreateWindowEvent& e = event.xcreatewindow;
+      DEBUG << "CreateNotify: window=0x" << hex << e.window
+            << " parent=0x" << e.parent << dec
+            << " x=" << e.x << " y=" << e.y
+            << " width=" << e.width << " height=" << e.height
+            << " border=" << e.border_width
+            << " override=" << e.override_redirect;
+      XWindow* x_window = GetWindow(e.window, true);
+      window_manager->HandleCreateWindow(x_window);
+    } else if (event.type == DestroyNotify) {
+      XDestroyWindowEvent& e = event.xdestroywindow;
+      DEBUG << "DestroyNotify: window=0x" << hex << e.window;
+      XWindow* x_window = GetWindow(e.window, false);
+      CHECK(x_window);
+      window_manager->HandleDestroyWindow(x_window);
+    } else if (event.type == EnterNotify) {
+      XCrossingEvent& e = event.xcrossing;
+      DEBUG << "Enter: window=0x" << hex << e.window;
+      XWindow* x_window = GetWindow(e.window, false);
+      CHECK(x_window);
+      window_manager->HandleEnterWindow(x_window);
+    } else if (event.type == Expose) {
+      XExposeEvent& e = event.xexpose;
+      //DEBUG << "Expose: window=0x" << hex << e.window;
+      XWindow* x_window = GetWindow(e.window, false);
+      CHECK(x_window);
+      window_manager->HandleExposeWindow(x_window);
+    } else if (event.type == KeyPress) {
+      XKeyEvent& e = event.xkey;
+      DEBUG << "KeyPress: window=0x" << hex << e.window << dec
+            << " keycode=" << e.keycode << " state=" << e.state;
+      HandleKeyPress(XLookupKeysym(&e, 0), e.state, window_manager);
+    } else if (event.type == KeyRelease) {
+      XKeyEvent& e = event.xkey;
+      DEBUG << "KeyRelease: window=0x" << hex << e.window << dec
+            << " keycode=" << e.keycode << " state=" << e.state;
+    } else if (event.type == MotionNotify) {
+      XMotionEvent& e = event.xmotion;
+      //DEBUG << "MotionNotify: window=0x" << hex << e.window << dec
+      //      << " x=" << e.x_root << " y=" << e.y_root;
+      XWindow* x_window = GetWindow(e.window, false);
+      window_manager->HandleMotion(x_window, e.x_root, e.y_root);
+    } else if (event.type == PropertyNotify) {
+      XPropertyEvent& e = event.xproperty;
+      DEBUG << "PropertyNotify: window=0x" << hex << e.window << dec
+            << " atom=" << e.atom
+            << " state=" << (e.state == PropertyNewValue ?
+                             "PropertyNewValue" : "PropertyDeleted");
+      XWindow* x_window = GetWindow(e.window, false);
+      window_manager->HandlePropertyChange(x_window);
+    } else {
+      DEBUG << XEventTypeToName(event.type);
     }
   }
 }

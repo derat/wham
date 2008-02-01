@@ -37,6 +37,8 @@ class WindowManager {
   void HandleEnterWindow(XWindow* x_window);
   void HandleExposeWindow(XWindow* x_window);
   void HandleMotion(XWindow* x_window, int x, int y);
+  // FIXME: also pass changed property
+  void HandlePropertyChange(XWindow* x_window);
 
   void HandleCommand(const Command& cmd);
 
