@@ -1,0 +1,11 @@
+- anchor/window stacking order
+- Menu: write class and add to DrawingEngine
+- parse DrawingEngine styles from config
+- make config-parsing return ConfigErrors
+- handle "include" directive
+- include filename in ConfigErrors
+- maybe use Pango for drawing graphics
+- add select loop to add a timer
+- InfoWindow: write class and add to DrawingEngine
+- double-check fork() in exec
+- a million other things
