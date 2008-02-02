@@ -44,4 +44,12 @@ void MockXWindow::TakeFocus() {
 void MockXWindow::SetBorder(uint size) {
 }
 
+
+void MockXWindow::GetGeometry(int* x,
+                              int* y,
+                              uint* width,
+                              uint* height,
+                              uint* border_width) {
+}
+
 }  // namespace wham

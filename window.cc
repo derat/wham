@@ -14,6 +14,7 @@ Window::Window(XWindow* x_window)
       props_(),
       configs_(),
       tagged_(false) {
+  x_window_->GetGeometry(NULL, NULL, &width_, &height_, NULL);
   HandlePropertyChange();
 }
 

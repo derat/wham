@@ -24,6 +24,11 @@ class MockXWindow : public XWindow {
   void SelectEvents();
   void TakeFocus();
   void SetBorder(uint size);
+  virtual void GetGeometry(int* x,
+                           int* y,
+                           uint* width,
+                           uint* height,
+                           uint* border_width);
 
  private:
   ::Window id_;

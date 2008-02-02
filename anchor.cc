@@ -74,7 +74,7 @@ bool Anchor::Move(int x, int y) {
   x_ = x;
   y_ = y;
 
-  titlebar_->Move(x, y);
+  UpdateTitlebarPosition();
   if (active_window_) UpdateWindowPosition(active_window_);
   return true;
 }
@@ -115,6 +115,7 @@ bool Anchor::SetActive(uint index) {
 void Anchor::DrawTitlebar() {
   DrawingEngine::Get()->DrawAnchor(
       *this, titlebar_, &titlebar_width_, &titlebar_height_);
+  UpdateTitlebarPosition();
 }
 
 
@@ -141,6 +142,7 @@ void Anchor::CycleActiveWindowConfig(bool forward) {
 void Anchor::SetGravity(Anchor::Gravity gravity) {
   if (gravity_ == gravity) return;
   gravity_ = gravity;
+  UpdateTitlebarPosition();
   if (active_window_) UpdateWindowPosition(active_window_);
 }
 
@@ -151,13 +153,26 @@ void Anchor::CycleGravity(bool forward) {
 }
 
 
+void Anchor::UpdateTitlebarPosition() {
+  int x = (gravity_ == TOP_LEFT || gravity_ == BOTTOM_LEFT) ?
+      x_ :
+      x_ - titlebar_width_;
+  int y = (gravity_ == TOP_LEFT || gravity_ == TOP_RIGHT) ?
+      y_ :
+      y_ - titlebar_height_;
+  titlebar_->Move(x, y);
+}
+
+
 void Anchor::UpdateWindowPosition(Window* window) {
   CHECK(window);
   uint border = Config::Get()->window_border;
   int x = (gravity_ == TOP_LEFT || gravity_ == BOTTOM_LEFT) ?
-      x_ : x_ + titlebar_width_ - window->width() - 2 * border;
+      x_ :
+      x_ - window->width() - 2 * border;
   int y = (gravity_ == TOP_LEFT || gravity_ == TOP_RIGHT) ?
-      y_ + titlebar_height_ : y_ - window->height() - 2 * border;
+      y_ + titlebar_height_ :
+      y_ - titlebar_height_ - window->height() - 2 * border;
   window->Move(x, y);
 }
 

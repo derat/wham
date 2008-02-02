@@ -41,6 +41,11 @@ class XWindow {
   virtual void SelectEvents();
   virtual void TakeFocus();
   virtual void SetBorder(uint size);
+  virtual void GetGeometry(int* x,
+                           int* y,
+                           uint* width,
+                           uint* height,
+                           uint* border_width);
 
   virtual bool operator<(const XWindow& o) const {
     return id_ < o.id_;

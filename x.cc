@@ -151,6 +151,24 @@ void XWindow::SetBorder(uint size) {
 }
 
 
+void XWindow::GetGeometry(int* x,
+                          int* y,
+                          uint* width,
+                          uint* height,
+                          uint* border_width) {
+  ::Window root;
+  int tmp_x, tmp_y;
+  uint tmp_width, tmp_height, tmp_border_width, tmp_depth;
+  XGetGeometry(dpy(), id_, &root, &tmp_x, &tmp_y, &tmp_width, &tmp_height,
+               &tmp_border_width, &tmp_depth);
+  if (x) *x = tmp_x;
+  if (y) *y = tmp_y;
+  if (width) *width = tmp_width;
+  if (height) *height = tmp_height;
+  if (border_width) *border_width = tmp_border_width;
+}
+
+
 ::Display* XWindow::dpy() {
   return XServer::Get()->display();
 }

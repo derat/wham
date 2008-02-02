@@ -71,6 +71,7 @@ class Anchor {
   void CycleGravity(bool forward);
 
  private:
+  void UpdateTitlebarPosition();
   void UpdateWindowPosition(Window* window);
 
   string name_;
