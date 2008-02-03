@@ -56,6 +56,7 @@ void WindowManager::HandleButtonPress(XWindow* x_window, int x, int y) {
 
   // Make this the active anchor.
   active_desktop_->SetActiveAnchor(anchor);
+  anchor->Raise();
 
   mouse_down_ = true;
   drag_offset_x_ = x - anchor->x();
@@ -104,15 +105,21 @@ void WindowManager::HandleDestroyWindow(XWindow* x_window) {
 
 
 void WindowManager::HandleEnterWindow(XWindow* x_window) {
+  Anchor* anchor = NULL;
   if (IsAnchorWindow(x_window)) {
-    // Anchor titlebar; give its active window the focus.
-    Anchor* anchor = active_desktop_->GetAnchorByTitlebar(x_window);
-    CHECK(anchor);
-    anchor->FocusActiveWindow();
+    // anchor titlebar
+    anchor = active_desktop_->GetAnchorByTitlebar(x_window);
   } else {
-    // Client window; give it the focus.
-    x_window->TakeFocus();
+    // client window
+    Window* window =
+        FindWithDefault(windows_, x_window, ref_ptr<Window>()).get();
+    anchor = active_desktop_->GetAnchorContainingWindow(window);
   }
+  // In either case, we want to make this anchor active and focus its
+  // window.
+  CHECK(anchor);
+  active_desktop_->SetActiveAnchor(anchor);
+  anchor->FocusActiveWindow();
 }
 
 

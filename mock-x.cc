@@ -49,6 +49,14 @@ void MockXWindow::SetBorder(uint size) {
 }
 
 
+void MockXWindow::Raise() {
+}
+
+
+void MockXWindow::MakeSibling(const XWindow& leader) {
+}
+
+
 void MockXWindow::GetGeometry(int* x,
                               int* y,
                               uint* width,

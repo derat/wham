@@ -24,6 +24,8 @@ class MockXWindow : public XWindow {
   void SelectEvents();
   void TakeFocus();
   void SetBorder(uint size);
+  void Raise();
+  void MakeSibling(const XWindow& leader);
   virtual void GetGeometry(int* x,
                            int* y,
                            uint* width,

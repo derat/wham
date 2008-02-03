@@ -29,18 +29,18 @@ struct WindowProperties {
         app_class(""),
         x(0),
         y(0),
-        width(-1),
-        height(-1),
-        min_width(-1),
-        min_height(-1),
-        max_width(-1),
-        max_height(-1),
-        width_inc(-1),
-        height_inc(-1),
-        min_aspect(-1),
-        max_aspect(-1),
-        base_width(-1),
-        base_height(-1) {}
+        width(0),
+        height(0),
+        min_width(0),
+        min_height(0),
+        max_width(0),
+        max_height(0),
+        width_inc(0),
+        height_inc(0),
+        min_aspect(0),
+        max_aspect(0),
+        base_width(0),
+        base_height(0) {}
 
   string DebugString() const;
 

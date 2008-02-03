@@ -55,7 +55,10 @@ class Anchor {
   void RemoveWindow(Window* window);
 
   // Move the anchor to a new position.
-  bool Move(int x, int y);
+  void Move(int x, int y);
+
+  // Raise this anchor to the top of the stacking order.
+  void Raise();
 
   // Set which (zero-indexed) window should be currently displayed.
   bool SetActive(uint index);

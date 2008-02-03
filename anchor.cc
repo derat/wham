@@ -68,13 +68,18 @@ void Anchor::RemoveWindow(Window* window) {
 }
 
 
-bool Anchor::Move(int x, int y) {
+void Anchor::Move(int x, int y) {
   x_ = x;
   y_ = y;
 
   UpdateTitlebarPosition();
   if (active_window_) UpdateWindowPosition(active_window_);
-  return true;
+}
+
+
+void Anchor::Raise() {
+  titlebar_->Raise();
+  if (active_window_) active_window_->MakeSibling(*titlebar_);
 }
 
 
@@ -102,6 +107,7 @@ bool Anchor::SetActive(uint index) {
   active_window_ = windows_[active_index_];
   CHECK(active_window_);
   UpdateWindowPosition(active_window_);
+  active_window_->MakeSibling(*titlebar_);
   active_window_->Map();
   active_window_->TakeFocus();
 

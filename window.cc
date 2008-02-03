@@ -53,6 +53,16 @@ void Window::TakeFocus() {
 }
 
 
+void Window::Raise() {
+  x_window_->Raise();
+}
+
+
+void Window::MakeSibling(const XWindow& leader) {
+  x_window_->MakeSibling(leader);
+}
+
+
 void Window::HandlePropertyChange() {
   bool changed = false;
   UpdateProperties(&changed);

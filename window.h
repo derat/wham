@@ -27,6 +27,8 @@ class Window {
   void Unmap();
   void Map();
   void TakeFocus();
+  void Raise();
+  void MakeSibling(const XWindow& leader);
   void HandlePropertyChange();
 
   string title() const { return props_.window_name; }

@@ -41,6 +41,8 @@ class XWindow {
   virtual void SelectEvents();
   virtual void TakeFocus();
   virtual void SetBorder(uint size);
+  virtual void Raise();
+  virtual void MakeSibling(const XWindow& leader);
   virtual void GetGeometry(int* x,
                            int* y,
                            uint* width,

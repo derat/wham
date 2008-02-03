@@ -202,6 +202,19 @@ void XWindow::SetBorder(uint size) {
 }
 
 
+void XWindow::Raise() {
+  XRaiseWindow(dpy(), id_);
+}
+
+
+void XWindow::MakeSibling(const XWindow& leader) {
+  XWindowChanges changes;
+  changes.sibling = leader.id();
+  changes.stack_mode = Below;
+  XConfigureWindow(dpy(), id_, CWSibling | CWStackMode, &changes);
+}
+
+
 void XWindow::GetGeometry(int* x,
                           int* y,
                           uint* width,
