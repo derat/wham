@@ -35,12 +35,7 @@ class DrawingEngine {
   }
 
   // Draw an anchor's titlebar.
-  // The titlebar's dimensions are stored in 'titlebar_width' and
-  // 'titlebar_height'.
-  void DrawAnchor(const Anchor& anchor,
-                  XWindow* titlebar,
-                  uint* titlebar_width,
-                  uint* titlebar_height);
+  void DrawAnchor(const Anchor& anchor, XWindow* titlebar);
 
  private:
   class Style {

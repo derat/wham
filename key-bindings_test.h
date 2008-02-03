@@ -32,7 +32,7 @@ class ValueTraits<KeyBindings::Combo> {
 
 class KeyBindingsTestSuite : public CxxTest::TestSuite {
  public:
-  void testKeyBindings_ParseCombos() {
+  void testParseCombos() {
     // Test a sequence of two bindings, each of which has modifiers.
     vector<KeyBindings::Combo> expected_seq;
     expected_seq.push_back(

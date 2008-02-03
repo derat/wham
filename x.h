@@ -51,6 +51,17 @@ class XWindow {
     return id_ < o.id_;
   }
 
+  int x() const { return x_; }
+  int y() const { return y_; }
+  uint width() const { return width_; }
+  uint height() const { return height_; }
+
+ protected:
+  int x_;
+  int y_;
+  uint width_;
+  uint height_;
+
  private:
   // Convenience methods.
   static ::Display* dpy();

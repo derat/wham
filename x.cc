@@ -66,20 +66,25 @@ XWindow::XWindow(::Window id)
 
 
 XWindow* XWindow::Create(int x, int y, uint width, uint height) {
-  ::Window win;
+  ::Window id;
   if (XServer::Testing()) {
     static int win_id = 1;
-    win = win_id++;
+    id = win_id++;
   } else {
-    win = XCreateSimpleWindow(
-              dpy(), root(), x, y, width, height, 0 /* border */,
-              BlackPixel(dpy(), scr()),
-              WhitePixel(dpy(), scr()));
-    XSelectInput(dpy(), win,
+    id = XCreateSimpleWindow(
+             dpy(), root(), x, y, width, height, 0 /* border */,
+             BlackPixel(dpy(), scr()),
+             WhitePixel(dpy(), scr()));
+    XSelectInput(dpy(), id,
                  ButtonPressMask | ButtonReleaseMask | EnterWindowMask |
                  ExposureMask | PointerMotionMask | PropertyChangeMask);
   }
-  return XServer::Get()->GetWindow(win, true);
+  XWindow* win = XServer::Get()->GetWindow(id, true);
+  win->x_ = x;
+  win->y_ = y;
+  win->width_ = width;
+  win->height_ = height;
+  return win;
 }
 
 
@@ -117,11 +122,15 @@ bool XWindow::GetProperties(WindowProperties* props) {
 
 
 void XWindow::Move(int x, int y) {
+  x_ = x;
+  y_ = y;
   XMoveWindow(dpy(), id_, x, y);
 }
 
 
 void XWindow::Resize(uint width, uint height) {
+  width_ = width;
+  height_ = height;
   XResizeWindow(dpy(), id_, width, height);
 }
 

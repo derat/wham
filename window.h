@@ -31,8 +31,10 @@ class Window {
 
   string title() const { return props_.window_name; }
 
-  uint width() const { return width_; }
-  uint height() const { return height_; }
+  int x() const;
+  int y() const;
+  uint width() const;
+  uint height() const;
 
   bool tagged() const { return tagged_; }
   void set_tagged(bool tagged) { tagged_ = tagged; }

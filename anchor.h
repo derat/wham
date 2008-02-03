@@ -10,6 +10,8 @@
 
 using namespace std;
 
+class AnchorTestSuite;
+
 namespace wham {
 
 class Window;         // from window.h
@@ -71,6 +73,8 @@ class Anchor {
   void CycleGravity(bool forward);
 
  private:
+  friend class ::AnchorTestSuite;
+
   void UpdateTitlebarPosition();
   void UpdateWindowPosition(Window* window);
 
@@ -91,8 +95,6 @@ class Anchor {
   Gravity gravity_;
 
   XWindow* titlebar_;
-  uint titlebar_width_;
-  uint titlebar_height_;
 
   DISALLOW_EVIL_CONSTRUCTORS(Anchor);
 };

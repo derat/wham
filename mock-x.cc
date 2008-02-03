@@ -18,10 +18,14 @@ bool MockXWindow::GetProperties(WindowProperties* props) {
 
 
 void MockXWindow::Move(int x, int y) {
+  x_ = x;
+  y_ = y;
 }
 
 
 void MockXWindow::Resize(uint width, uint height) {
+  width_ = width;
+  height_ = height;
 }
 
 

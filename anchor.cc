@@ -21,9 +21,7 @@ Anchor::Anchor(const string& name, int x, int y)
       active_index_(0),
       active_window_(NULL),
       gravity_(TOP_LEFT),
-      titlebar_(XWindow::Create(x, y, 1, 1)),
-      titlebar_width_(0),
-      titlebar_height_(0) {
+      titlebar_(XWindow::Create(x, y, 1, 1)) {
   CHECK(titlebar_);
   SetName(name);
   DrawTitlebar();
@@ -113,15 +111,14 @@ bool Anchor::SetActive(uint index) {
 
 
 void Anchor::DrawTitlebar() {
-  DrawingEngine::Get()->DrawAnchor(
-      *this, titlebar_, &titlebar_width_, &titlebar_height_);
+  DrawingEngine::Get()->DrawAnchor(*this, titlebar_);
   UpdateTitlebarPosition();
 }
 
 
 void Anchor::ActivateWindowAtCoordinates(int x, int y) {
   if (windows_.empty()) return;
-  int index = (x - x_) * windows_.size() / titlebar_width_;
+  int index = (x - x_) * windows_.size() / titlebar_->width();
   SetActive(index);
 }
 
@@ -156,10 +153,10 @@ void Anchor::CycleGravity(bool forward) {
 void Anchor::UpdateTitlebarPosition() {
   int x = (gravity_ == TOP_LEFT || gravity_ == BOTTOM_LEFT) ?
       x_ :
-      x_ - titlebar_width_;
+      x_ - titlebar_->width();
   int y = (gravity_ == TOP_LEFT || gravity_ == TOP_RIGHT) ?
       y_ :
-      y_ - titlebar_height_;
+      y_ - titlebar_->height();
   titlebar_->Move(x, y);
 }
 
@@ -171,8 +168,8 @@ void Anchor::UpdateWindowPosition(Window* window) {
       x_ :
       x_ - window->width() - 2 * border;
   int y = (gravity_ == TOP_LEFT || gravity_ == TOP_RIGHT) ?
-      y_ + titlebar_height_ :
-      y_ - titlebar_height_ - window->height() - 2 * border;
+      y_ + titlebar_->height() :
+      y_ - titlebar_->height() - window->height() - 2 * border;
   window->Move(x, y);
 }
 

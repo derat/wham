@@ -20,7 +20,7 @@ class DesktopTestSuite : public CxxTest::TestSuite {
     desktop_.reset(new Desktop);
   }
 
-  void testDesktop_CreateAnchor() {
+  void testCreateAnchor() {
     TS_ASSERT_EQUALS(desktop_->anchors_.size(), 0U);
     TS_ASSERT_EQUALS(desktop_->active_anchor(), static_cast<Anchor*>(NULL));
 
@@ -44,14 +44,15 @@ class DesktopTestSuite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(desktop_->active_anchor(), anchor);
   }
 
-  void testDesktop_AddWindow() {
+  void testAddWindow() {
+    // FIXME
     /*
     wham::Window window(XWindow::Create(10, 10, 50, 50));;
     desktop_->AddWindow(&window);
     */
   }
 
-  void testDesktop_GetAnchorByTitlebar() {
+  void testGetAnchorByTitlebar() {
     Anchor* anchor = desktop_->CreateAnchor("test", 10, 20);
     TS_ASSERT_EQUALS(desktop_->GetAnchorByTitlebar(anchor->titlebar()), anchor);
 
@@ -61,7 +62,7 @@ class DesktopTestSuite : public CxxTest::TestSuite {
                      static_cast<Anchor*>(NULL));
   }
 
-  void testDesktop_SetActiveAnchor() {
+  void testSetActiveAnchor() {
     Anchor* anchor = desktop_->CreateAnchor("test", 10, 20);
     Anchor* anchor2 = desktop_->CreateAnchor("test2", 30, 40);
     TS_ASSERT_EQUALS(desktop_->active_anchor(), anchor);
@@ -69,7 +70,7 @@ class DesktopTestSuite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(desktop_->active_anchor(), anchor2);
   }
 
-  void testDesktop_IsTitlebarWindow() {
+  void testIsTitlebarWindow() {
     Anchor* anchor = desktop_->CreateAnchor("test", 10, 20);
     TS_ASSERT_EQUALS(desktop_->IsTitlebarWindow(anchor->titlebar()), true);
 
@@ -77,7 +78,7 @@ class DesktopTestSuite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(desktop_->IsTitlebarWindow(x_window), false);
   }
 
-  void testDesktop_GetNearestAnchor() {
+  void testGetNearestAnchor() {
     Anchor* anchor = desktop_->CreateAnchor("test", 10, 20);
     Anchor* anchor2 = desktop_->CreateAnchor("test2", 20, 20);
     Anchor* anchor3 = desktop_->CreateAnchor("test3", 30, 20);

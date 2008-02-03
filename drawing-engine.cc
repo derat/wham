@@ -82,14 +82,7 @@ DrawingEngine::DrawingEngine()
 }
 
 
-void DrawingEngine::DrawAnchor(const Anchor& anchor,
-                               XWindow* titlebar,
-                               uint* width,
-                               uint* height) {
-  CHECK(titlebar);
-  CHECK(height);
-  CHECK(width);
-
+void DrawingEngine::DrawAnchor(const Anchor& anchor, XWindow* titlebar) {
   InitIfNeeded();
   ::Window win = titlebar->id();
 
@@ -97,6 +90,8 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor,
   if (XServer::Testing()) {
     return;
   }
+
+  uint width = 0, height = 0;
 
   const Config* conf = Config::Get();
 
@@ -126,17 +121,17 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor,
 
   int ascent = 0, descent = 0;
   GetTextSize(font, kFullHeightString, NULL, &ascent, &descent);
-  *height = ascent + descent + 2 * padding + 2 * border +
+  height = ascent + descent + 2 * padding + 2 * border +
       2 * max(awindow_border, iwindow_border) +
       2 * max(awindow_padding, iwindow_padding);
 
   // Include the outer border and padding in the total width.
-  *width = 2 * (border + padding);
+  width = 2 * (border + padding);
   const vector<Window*>& windows = anchor.windows();
   if (windows.empty()) {
     int name_width = 0;
     GetTextSize(font, anchor_name, &name_width, NULL, NULL);
-    *width += name_width + 2 * (iwindow_padding + iwindow_border);
+    width += name_width + 2 * (iwindow_padding + iwindow_border);
   } else {
     int max_title_width = 0;
     for (vector<Window*>::const_iterator window = windows.begin();
@@ -145,15 +140,15 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor,
       GetTextSize(font, (*window)->title(), &title_width, NULL, NULL);
       max_title_width = max(max_title_width, title_width);
     }
-    *width += max_title_width + 2 * (awindow_padding + awindow_border) +
+    width += max_title_width + 2 * (awindow_padding + awindow_border) +
         (windows.size() - 1) *
         (max_title_width + iwindow_border + iwindow_padding + spacing);
   }
-  *width = min(max(*width, conf->anchor_min_width), conf->anchor_max_width);
+  width = min(max(width, conf->anchor_min_width), conf->anchor_max_width);
 
   titlebar->SetBorder(0);
-  titlebar->Resize(*width, *height);
-  DrawBorders(win, 0, 0, *width, *height,
+  titlebar->Resize(width, height);
+  DrawBorders(win, 0, 0, width, height,
               s(Style::FOCUSED_ANCHOR__BACKGROUND),
               c(Style::FOCUSED_ANCHOR__BORDER_COLOR),
               u(Style::FOCUSED_ANCHOR__BORDER_WIDTH));
@@ -162,8 +157,8 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor,
 
   if (windows.empty()) {
     DrawBorders(win, border + padding, border + padding,
-                *width - 2 * (border + padding),
-                *height - 2 * (border + padding),
+                width - 2 * (border + padding),
+                height - 2 * (border + padding),
                 s(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__BACKGROUND),
                 c(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR),
                 iwindow_border);
@@ -174,7 +169,7 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor,
              s(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__TEXT_COLOR));
   } else {
     uint width_for_titles =
-        *width - 2 * (border + padding) - (windows.size() - 1) * spacing;
+        width - 2 * (border + padding) - (windows.size() - 1) * spacing;
     float title_width = static_cast<float>(width_for_titles) / windows.size();
 
     int i = 0;
@@ -187,7 +182,7 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor,
       int this_width = border + padding +
           static_cast<int>(roundf(i * (title_width + spacing) + title_width)) -
           x;
-      int this_height = *height - 2 * (border + padding);
+      int this_height = height - 2 * (border + padding);
 
       DrawBorders(win, x, y, this_width, this_height,
                   active ? awindow_bg : iwindow_bg,

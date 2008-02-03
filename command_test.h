@@ -11,7 +11,7 @@ using namespace wham;
 
 class KeyBindingsTestSuite : public CxxTest::TestSuite {
  public:
-  void testCommand_NoArg() {
+  void testNoArg() {
     vector<string> args;
 
     Command cmd("create_anchor", args);
@@ -24,7 +24,7 @@ class KeyBindingsTestSuite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(cmd.Valid(), false);
   }
 
-  void testCommand_IntArg() {
+  void testIntArg() {
     vector<string> args;
 
     // no args
@@ -53,7 +53,7 @@ class KeyBindingsTestSuite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(cmd.Valid(), false);
   }
 
-  void testCommand_BoolArg() {
+  void testBoolArg() {
     vector<string> args;
 
     // no args
@@ -90,7 +90,7 @@ class KeyBindingsTestSuite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(cmd.Valid(), false);
   }
 
-  void testCommand_StringArg() {
+  void testStringArg() {
     vector<string> args;
 
     // no args
@@ -112,7 +112,7 @@ class KeyBindingsTestSuite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(cmd.Valid(), false);
   }
 
-  void testCommand_DirectionArg() {
+  void testDirectionArg() {
     vector<string> args;
 
     // no args
@@ -149,7 +149,7 @@ class KeyBindingsTestSuite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(cmd.Valid(), false);
   }
 
-  void testCommand_BogusCommand() {
+  void testBogusCommand() {
     Command cmd;
     TS_ASSERT_EQUALS(cmd.type(), Command::UNKNOWN);
     TS_ASSERT_EQUALS(cmd.Valid(), false);
@@ -160,17 +160,17 @@ class KeyBindingsTestSuite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(cmd.Valid(), false);
   }
 
-  void testCommand_ToName() {
+  void testToName() {
     TS_ASSERT_EQUALS(Command::ToName(Command::CREATE_ANCHOR), "create_anchor");
     TS_ASSERT_EQUALS(Command::ToName(Command::UNKNOWN), "unknown");
   }
 
-  void testCommand_ToType() {
+  void testToType() {
     TS_ASSERT_EQUALS(Command::ToType("create_anchor"), Command::CREATE_ANCHOR);
     TS_ASSERT_EQUALS(Command::ToType("foo"), Command::UNKNOWN);
   }
 
-  void testCommand_NumArgs() {
+  void testGetArgType() {
     TS_ASSERT_EQUALS(Command::GetArgType(Command::CREATE_ANCHOR),
                      Command::NO_ARG);
     TS_ASSERT_EQUALS(Command::GetArgType(Command::EXEC),

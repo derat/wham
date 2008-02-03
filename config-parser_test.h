@@ -84,7 +84,7 @@ class ConfigParserTestSuite : public CxxTest::TestSuite {
     TS_ASSERT(CompareLineNums("\"a b\"", 1, 1, NULL));
   }
 
-  void testConfigParser_parse() {
+  void testConfigParser_Parse() {
     ConfigParser::FileTokenizer tokenizer("testdata/config-parser_test.cfg");
     ConfigNode config;
     CHECK(ConfigParser::Parse(&tokenizer, &config));

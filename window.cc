@@ -14,6 +14,7 @@ Window::Window(XWindow* x_window)
       props_(),
       configs_(),
       tagged_(false) {
+  CHECK(x_window_);
   x_window_->GetGeometry(NULL, NULL, &width_, &height_, NULL);
   HandlePropertyChange();
 }
@@ -58,6 +59,18 @@ void Window::HandlePropertyChange() {
 }
 
 
+int Window::x() const { return x_window_->x(); }
+
+
+int Window::y() const { return x_window_->y(); }
+
+
+uint Window::width() const { return x_window_->width(); }
+
+
+uint Window::height() const { return x_window_->height(); }
+
+
 bool Window::Classify() {
   if (!WindowClassifier::Get()->ClassifyWindow(props_, &configs_)) {
     ERROR << "Unable to classify window";
@@ -77,7 +90,6 @@ void Window::ApplyConfig() {
 
 
 bool Window::UpdateProperties() {
-  CHECK(x_window_);
   if (!x_window_->GetProperties(&props_)) return false;
   return true;
 }
