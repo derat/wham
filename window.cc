@@ -93,8 +93,7 @@ void Window::ApplyConfig() {
   if (config->width_type == WindowConfig::DIMENSION_PIXELS) {
     width = config->width;
   } else if (config->width_type == WindowConfig::DIMENSION_UNITS) {
-    DEBUG << "width=" << config->width << " inc=" << props_.width_inc;
-    width = config->width * props_.width_inc;
+    width = props_.base_width + config->width * props_.width_inc;
   } else if (config->width_type == WindowConfig::DIMENSION_APP) {
     width = props_.width;
   } else if (config->width_type == WindowConfig::DIMENSION_MAX) {
@@ -107,7 +106,7 @@ void Window::ApplyConfig() {
   if (config->height_type == WindowConfig::DIMENSION_PIXELS) {
     height = config->height;
   } else if (config->height_type == WindowConfig::DIMENSION_UNITS) {
-    height = config->height * props_.height_inc;
+    height = props_.base_height + config->height * props_.height_inc;
   } else if (config->height_type == WindowConfig::DIMENSION_APP) {
     height = props_.height;
   } else if (config->height_type == WindowConfig::DIMENSION_MAX) {
