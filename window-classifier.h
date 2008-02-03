@@ -21,13 +21,77 @@ namespace wham {
 // manager hints (window and icon name, etc.) and is used to
 // classify the window.
 struct WindowProperties {
-  WindowProperties() {}
+  WindowProperties()
+      : window_name(""),
+        icon_name(""),
+        command(""),
+        app_name(""),
+        app_class(""),
+        x(0),
+        y(0),
+        width(-1),
+        height(-1),
+        min_width(-1),
+        min_height(-1),
+        max_width(-1),
+        max_height(-1),
+        width_inc(-1),
+        height_inc(-1),
+        min_aspect(-1),
+        max_aspect(-1),
+        base_width(-1),
+        base_height(-1) {}
+
+  string DebugString() const;
+
+  bool operator==(const WindowProperties& o) {
+    // Yuck.
+    return window_name == o.window_name &&
+           icon_name == o.icon_name &&
+           command == o.command &&
+           app_name == o.app_name &&
+           app_class == o.app_class &&
+           x == o.x &&
+           y == o.y &&
+           width == o.width &&
+           height == o.height &&
+           min_width == o.min_width &&
+           min_height == o.min_height &&
+           max_width == o.max_width &&
+           max_height == o.max_height &&
+           width_inc == o.width_inc &&
+           height_inc == o.height_inc &&
+           min_aspect == o.min_aspect &&
+           max_aspect == o.max_aspect &&
+           base_width == o.base_width &&
+           base_height == o.base_height;
+  }
+  bool operator!=(const WindowProperties& o) {
+    return (!operator==(o));
+  }
 
   string window_name;  // from XFetchName()
   string icon_name;    // from XGetIconName()
   string command;      // from XGetCommand()
   string app_name;     // from XGetClassHint()
   string app_class;    // from XGetClassHint()
+
+  // from XGetWMSizeHints()
+  int x;
+  int y;
+  int width;
+  int height;
+  int min_width;
+  int min_height;
+  int max_width;
+  int max_height;
+  int width_inc;
+  int height_inc;
+  float min_aspect;
+  float max_aspect;
+  int base_width;
+  int base_height;
+  // TODO: add win_gravity?
 };
 
 

@@ -9,7 +9,19 @@ using namespace std;
 
 namespace wham {
 
-ref_ptr<Config> Config::singleton_(new Config());
+ref_ptr<Config> Config::singleton_(new Config);
+
+
+Config::Config()
+    : window_classifier(new WindowClassifier),
+      dragging_threshold(1),
+      anchor_min_width(200),
+      anchor_max_width(800),
+      window_border(1) {}
+
+
+Config::~Config() {}
+
 
 bool Config::Load(const ConfigNode& conf) {
   for (vector<ref_ptr<ConfigNode> >::const_iterator it =
@@ -25,7 +37,7 @@ bool Config::Load(const ConfigNode& conf) {
         return false;
       }
     } else if (node.tokens[0] == "window") {
-      if (!window_classifier.Load(node)) {
+      if (!window_classifier->Load(node)) {
         ERROR << "Failed to parse window";
         return false;
       }

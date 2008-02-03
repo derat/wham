@@ -47,7 +47,7 @@ class Window {
   void ApplyConfig();
 
   // Update 'props_' with this window's properties.
-  bool UpdateProperties();
+  bool UpdateProperties(bool* changed);
 
   // A pointer to information about the X window; used for interacting with
   // the server

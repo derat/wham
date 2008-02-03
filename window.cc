@@ -54,8 +54,12 @@ void Window::TakeFocus() {
 
 
 void Window::HandlePropertyChange() {
-  UpdateProperties();
-  Classify();
+  bool changed = false;
+  UpdateProperties(&changed);
+  if (changed) {
+    DEBUG << "Properties changed; reclassifying";
+    Classify();
+  }
 }
 
 
@@ -84,13 +88,48 @@ bool Window::Classify() {
 void Window::ApplyConfig() {
   const WindowConfig* config = configs_.GetActiveConfig();
   CHECK(config);
-  // FIXME: interpret non-pixel dimensions correctly
-  Resize(config->width, config->height);
+
+  uint width = 0;
+  if (config->width_type == WindowConfig::DIMENSION_PIXELS) {
+    width = config->width;
+  } else if (config->width_type == WindowConfig::DIMENSION_UNITS) {
+    DEBUG << "width=" << config->width << " inc=" << props_.width_inc;
+    width = config->width * props_.width_inc;
+  } else if (config->width_type == WindowConfig::DIMENSION_APP) {
+    width = props_.width;
+  } else if (config->width_type == WindowConfig::DIMENSION_MAX) {
+    width = XServer::Get()->width(); // FIXME: ugly
+  } else {
+    ERROR << "Unknown width type " << config->width_type;
+  }
+
+  uint height = 0;
+  if (config->height_type == WindowConfig::DIMENSION_PIXELS) {
+    height = config->height;
+  } else if (config->height_type == WindowConfig::DIMENSION_UNITS) {
+    height = config->height * props_.height_inc;
+  } else if (config->height_type == WindowConfig::DIMENSION_APP) {
+    height = props_.height;
+  } else if (config->height_type == WindowConfig::DIMENSION_MAX) {
+    height = XServer::Get()->height(); // FIXME: ugly
+  } else {
+    ERROR << "Unknown height type " << config->height_type;
+  }
+
+  if (width <= 0 || height <= 0) {
+    ERROR << "Not resizing to (" << width << ", " << height << ")";
+    return;
+  }
+  Resize(width, height);
 }
 
 
-bool Window::UpdateProperties() {
-  if (!x_window_->GetProperties(&props_)) return false;
+bool Window::UpdateProperties(bool* changed) {
+  CHECK(changed);
+  WindowProperties new_props;
+  if (!x_window_->GetProperties(&new_props)) return false;
+  *changed = (new_props != props_);
+  props_ = new_props;
   return true;
 }
 

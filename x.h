@@ -123,6 +123,8 @@ class XServer {
   Display* display() { return display_; }
   int screen_num() { return screen_num_; }
   ::Window root() { return root_; }
+  uint width() const { return width_; }
+  uint height() const { return height_; }
 
   XWindow* GetWindow(::Window id, bool create);
 
@@ -150,6 +152,10 @@ class XServer {
   Display* display_;
   int screen_num_;
   ::Window root_;
+
+  // Dimensions of the root window.
+  uint width_;
+  uint height_;
 
   bool initialized_;
 

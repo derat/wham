@@ -16,12 +16,8 @@ struct ConfigNode;
 
 struct Config {
  public:
-  Config()
-      : dragging_threshold(1),
-        anchor_min_width(200),
-        anchor_max_width(800),
-        window_border(1) {
-  }
+  Config();
+  ~Config();
 
   static Config* Get() {
     CHECK(singleton_.get());
@@ -35,7 +31,7 @@ struct Config {
   bool Load(const ConfigNode& conf);
 
   KeyBindings key_bindings;
-  WindowClassifier window_classifier;
+  ref_ptr<WindowClassifier> window_classifier;
 
   int dragging_threshold;
 

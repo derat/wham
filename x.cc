@@ -89,6 +89,8 @@ XWindow* XWindow::Create(int x, int y, uint width, uint height) {
 
 
 bool XWindow::GetProperties(WindowProperties* props) {
+  CHECK(props);
+
   char* window_name = NULL;
   if (!XFetchName(dpy(), id_, &window_name)) {
     ERROR << "XFetchName() failed for 0x" << hex << id_;
@@ -116,6 +118,46 @@ bool XWindow::GetProperties(WindowProperties* props) {
   props->app_class = class_hint.res_class ? class_hint.res_class : "";
   if (class_hint.res_name) XFree(class_hint.res_name);
   if (class_hint.res_class) XFree(class_hint.res_class);
+
+  XSizeHints* size_hints = XAllocSizeHints();
+  CHECK(size_hints);
+  long supplied_hints = 0;
+  if (!XGetWMNormalHints(dpy(), id_, size_hints, &supplied_hints)) {
+    ERROR << "XGetWMNormalHints() failed for 0x" << hex << id_;
+    XFree(size_hints);
+    return false;
+  }
+  if (size_hints->flags & USPosition || size_hints->flags & PPosition) {
+    props->x = size_hints->x;
+    props->y = size_hints->y;
+  }
+  if (size_hints->flags & USSize || size_hints->flags & PSize) {
+    props->width = size_hints->width;
+    props->height = size_hints->height;
+  }
+  if (size_hints->flags & PMinSize) {
+    props->min_width = size_hints->min_width;
+    props->min_height = size_hints->min_height;
+  }
+  if (size_hints->flags & PMaxSize) {
+    props->max_width = size_hints->max_width;
+    props->max_height = size_hints->max_height;
+  }
+  if (size_hints->flags & PResizeInc) {
+    props->width_inc = size_hints->width_inc;
+    props->height_inc = size_hints->height_inc;
+  }
+  if (size_hints->flags & PAspect) {
+    props->min_aspect =
+        static_cast<float>(size_hints->min_aspect.x) / size_hints->min_aspect.y;
+    props->max_aspect =
+        static_cast<float>(size_hints->max_aspect.x) / size_hints->max_aspect.y;
+  }
+  if (size_hints->flags & PBaseSize) {
+    props->base_width = size_hints->base_width;
+    props->base_height = size_hints->base_height;
+  }
+  XFree(size_hints);
 
   return true;
 }
@@ -196,6 +238,8 @@ int XWindow::scr() {
 XServer::XServer()
     : display_(NULL),
       screen_num_(-1),
+      width_(0),
+      height_(0),
       initialized_(false),
       in_progress_binding_(NULL) {
 }
@@ -220,10 +264,14 @@ bool XServer::Init() {
     screen_num_ = DefaultScreen(display_);
     root_ = RootWindow(display_, screen_num_);
 
-    // debugging
-    //XSynchronize(display_, True);
+    ::Window root_ret;
+    int x, y;
+    uint border_width, depth;
+    XGetGeometry(display_, root_, &root_ret, &x, &y,
+                 &width_, &height_, &border_width, &depth);
 
     XSelectInput(display_, root_, SubstructureNotifyMask);
+
   }
 
   initialized_ = true;

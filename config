@@ -16,10 +16,14 @@ key_bindings {
 
 window {
   criteria {
-    app_name rxvt
+    app_name urxvt
   }
   config default {
     width 80u
+    height *
+  }
+  config wide {
+    width 120u
     height *
   }
 }

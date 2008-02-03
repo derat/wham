@@ -44,6 +44,7 @@ bool WindowManager::LoadConfig(const string& filename) {
     return false;
   }
   XServer::Get()->RegisterKeyBindings(config->key_bindings);
+  WindowClassifier::Swap(config->window_classifier);
   Config::Swap(config);
   return true;
 }
