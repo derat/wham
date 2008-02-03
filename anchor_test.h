@@ -27,6 +27,59 @@ class AnchorTestSuite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(anchor.gravity(), Anchor::TOP_LEFT);
   }
 
+  void testSetName() {
+    Anchor anchor("test", 10, 20);
+    TS_ASSERT_EQUALS(anchor.name(), "test");
+    anchor.SetName("foo");
+    TS_ASSERT_EQUALS(anchor.name(), "foo");
+  }
+
+  void testAddWindow_RemoveWindow() {
+    Anchor anchor("test", 10, 20);
+    TS_ASSERT(anchor.windows().empty());
+    TS_ASSERT_EQUALS(anchor.active_window(), static_cast<wham::Window*>(NULL));
+
+    wham::Window window(XWindow::Create(50, 60, 640, 480));
+    anchor.AddWindow(&window);
+    TS_ASSERT_EQUALS(anchor.windows().size(), 1U);
+    TS_ASSERT_EQUALS(anchor.active_window(), &window);
+
+    wham::Window window2(XWindow::Create(50, 60, 640, 480));
+    anchor.AddWindow(&window2);
+    TS_ASSERT_EQUALS(anchor.windows().size(), 2U);
+    // The first window should still be active.
+    TS_ASSERT_EQUALS(anchor.active_window(), &window);
+
+    anchor.RemoveWindow(&window);
+    TS_ASSERT_EQUALS(anchor.windows().size(), 1U);
+    // The second window should be active now.
+    TS_ASSERT_EQUALS(anchor.active_window(), &window2);
+
+    anchor.RemoveWindow(&window2);
+    TS_ASSERT(anchor.windows().empty());
+    TS_ASSERT_EQUALS(anchor.active_window(), static_cast<wham::Window*>(NULL));
+  }
+
+  void testMove() {
+    Anchor anchor("test", 10, 20);
+    wham::Window window(XWindow::Create(50, 60, 640, 480));
+    anchor.AddWindow(&window);
+
+    int x = 100, y = 200;
+    anchor.Move(x, y);
+    TS_ASSERT_EQUALS(anchor.x(), x);
+    TS_ASSERT_EQUALS(anchor.y(), y);
+    TS_ASSERT_EQUALS(anchor.titlebar_->x(), x);
+    TS_ASSERT_EQUALS(anchor.titlebar_->y(), y);
+    TS_ASSERT_EQUALS(window.x(), x);
+    TS_ASSERT_EQUALS(window.y(),
+                     y + static_cast<int>(anchor.titlebar_->height()));
+  }
+
+  void testSetActive() {
+    // FIXME: write this
+  }
+
   void testUpdateTitlebarPosition() {
     int x = 10, y = 20;
     Anchor anchor("test", x, y);
@@ -62,8 +115,7 @@ class AnchorTestSuite : public CxxTest::TestSuite {
     Anchor anchor("test", x, y);
     anchor.titlebar_->Resize(100, 15);
 
-    XWindow* x_window = XWindow::Create(50, 60, 640, 480);
-    wham::Window window(x_window);
+    wham::Window window(XWindow::Create(50, 60, 640, 480));
     anchor.AddWindow(&window);
 
     int border = static_cast<int>(Config::Get()->window_border);

@@ -29,7 +29,7 @@ void Desktop::AddWindow(Window* window) {
   // current anchor.
   CHECK(active_anchor_);
   active_anchor_->AddWindow(window);
-  active_anchor_->SetActive(active_anchor_->NumWindows()-1);
+  active_anchor_->SetActive(active_anchor_->windows().size()-1);
   window_anchors_.insert(make_pair(window, active_anchor_));
 }
 

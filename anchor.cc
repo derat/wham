@@ -116,7 +116,7 @@ void Anchor::DrawTitlebar() {
 }
 
 
-void Anchor::ActivateWindowAtCoordinates(int x, int y) {
+void Anchor::ActivateWindowAtTitlebarCoordinates(int x, int y) {
   if (windows_.empty()) return;
   int index = (x - x_) * windows_.size() / titlebar_->width();
   SetActive(index);

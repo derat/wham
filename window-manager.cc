@@ -71,7 +71,7 @@ void WindowManager::HandleButtonRelease(XWindow* x_window, int x, int y) {
   } else {
     Anchor* anchor = active_desktop_->GetAnchorByTitlebar(x_window);
     CHECK(anchor);
-    anchor->ActivateWindowAtCoordinates(x, y);
+    anchor->ActivateWindowAtTitlebarCoordinates(x, y);
   }
 }
 

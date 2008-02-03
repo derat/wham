@@ -14,8 +14,8 @@ class AnchorTestSuite;
 
 namespace wham {
 
-class Window;         // from window.h
-class XWindow;        // from x.h
+class Window;   // from window.h
+class XWindow;  // from x.h
 
 // A collection of windows, exactly one of which is visible at any given
 // time.
@@ -44,9 +44,11 @@ class Anchor {
   const Window* active_window() const { return active_window_; }
   Window* mutable_active_window() { return active_window_; }
 
+  // Set the anchor's name.
   void SetName(const string& name);
 
   // Add a window to the anchor.
+  // If no other windows are present, the new window will be made active.
   void AddWindow(Window* window);
 
   // Remove a window from the anchor.
@@ -58,11 +60,9 @@ class Anchor {
   // Set which (zero-indexed) window should be currently displayed.
   bool SetActive(uint index);
 
-  uint NumWindows() const { return windows_.size(); }
-
   void DrawTitlebar();
 
-  void ActivateWindowAtCoordinates(int x, int y);
+  void ActivateWindowAtTitlebarCoordinates(int x, int y);
 
   void FocusActiveWindow();
 
