@@ -329,14 +329,15 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
             << " width=" << e.width << " height=" << e.height
             << " border=" << e.border_width
             << " override=" << e.override_redirect;
-      XWindow* x_window = GetWindow(e.window, true);
-      if (!e.override_redirect) window_manager->HandleCreateWindow(x_window);
+      //XWindow* x_window = GetWindow(e.window, true);
     } else if (event.type == DestroyNotify) {
       XDestroyWindowEvent& e = event.xdestroywindow;
       DEBUG << "DestroyNotify: window=0x" << hex << e.window;
       XWindow* x_window = GetWindow(e.window, false);
-      CHECK(x_window);
-      window_manager->HandleDestroyWindow(x_window);
+      if (x_window) {
+        window_manager->HandleDestroyWindow(x_window);
+        DeleteWindow(e.window);
+      }
     } else if (event.type == EnterNotify) {
       XCrossingEvent& e = event.xcrossing;
       DEBUG << "Enter: window=0x" << hex << e.window;
@@ -370,6 +371,14 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
       XKeyEvent& e = event.xkey;
       DEBUG << "KeyRelease: window=0x" << hex << e.window << dec
             << " keycode=" << e.keycode << " state=" << e.state;
+    } else if (event.type == MapNotify) {
+      XMapEvent& e = event.xmap;
+      DEBUG << "MapNotify: window=0x" << hex << e.window << dec
+            << " override=" << e.override_redirect;
+      if (!e.override_redirect) {
+        XWindow* x_window = GetWindow(e.window, true);
+        window_manager->HandleMapWindow(x_window);
+      }
     } else if (event.type == MotionNotify) {
       XMotionEvent& e = event.xmotion;
       //DEBUG << "MotionNotify: window=0x" << hex << e.window << dec
@@ -398,6 +407,11 @@ XWindow* XServer::GetWindow(::Window id, bool create) {
   ref_ptr<XWindow> window(testing_ ? new MockXWindow(id) : new XWindow(id));
   windows_.insert(make_pair(id, window));
   return window.get();
+}
+
+
+void XServer::DeleteWindow(::Window id) {
+  windows_.erase(id);
 }
 
 

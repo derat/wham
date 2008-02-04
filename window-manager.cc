@@ -78,29 +78,10 @@ void WindowManager::HandleButtonRelease(XWindow* x_window, int x, int y) {
 }
 
 
-void WindowManager::HandleCreateWindow(XWindow* x_window) {
-  // We don't want to manage anchor titlebars.
-  if (IsAnchorWindow(x_window)) return;
-
-  x_window->SetBorder(Config::Get()->window_border);
-  x_window->SelectEvents();
-  ref_ptr<Window> window(new Window(x_window));
-  windows_.insert(make_pair(x_window, window));
-  active_desktop_->AddWindow(window.get());
-}
-
-
 void WindowManager::HandleDestroyWindow(XWindow* x_window) {
-  // FIXME: Do I need to handle anchor titlebars here?
   if (IsAnchorWindow(x_window)) return;
 
   Window* window = FindWithDefault(windows_, x_window, ref_ptr<Window>()).get();
-  if (!window) {
-    // We ignore create events for windows that have override_redirect set.
-    // FIXME: this doesn't seem right
-    DEBUG << "Couldn't find window 0x" << hex << x_window->id();
-    return;
-  }
   CHECK(window);
   for (DesktopVector::iterator desktop = desktops_.begin();
        desktop != desktops_.end(); ++desktop) {
@@ -132,6 +113,20 @@ void WindowManager::HandleExposeWindow(XWindow* x_window) {
   Anchor* anchor = active_desktop_->GetAnchorByTitlebar(x_window);
   CHECK(anchor);
   anchor->DrawTitlebar();
+}
+
+
+void WindowManager::HandleMapWindow(XWindow* x_window) {
+  // We don't want to manage anchor titlebars.
+  if (IsAnchorWindow(x_window)) return;
+
+  if (windows_.find(x_window) == windows_.end()) {
+    x_window->SetBorder(Config::Get()->window_border);
+    x_window->SelectEvents();
+    ref_ptr<Window> window(new Window(x_window));
+    windows_.insert(make_pair(x_window, window));
+    active_desktop_->AddWindow(window.get());
+  }
 }
 
 

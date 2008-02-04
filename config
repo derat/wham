@@ -19,7 +19,7 @@ key_bindings {
   bind Ctrl+g cycle_anchor_gravity true
   bind Ctrl+Shift+g cycle_anchor_gravity false
   bind Ctrl+b cycle_window_config true
-  bind Ctrl+Shift+t toggle_tag
+  bind Ctrl+t toggle_tag
 }
 
 window {
@@ -33,6 +33,16 @@ window {
   config wide {
     width 120u
     height *
+  }
+}
+
+window {
+  criteria {
+    app_name Gecko
+  }
+  config default {
+    width 800
+    height 600
   }
 }
 

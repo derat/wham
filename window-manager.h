@@ -32,10 +32,10 @@ class WindowManager {
 
   void HandleButtonPress(XWindow* x_window, int x, int y);
   void HandleButtonRelease(XWindow* x_window, int x, int y);
-  void HandleCreateWindow(XWindow* x_window);
   void HandleDestroyWindow(XWindow* x_window);
   void HandleEnterWindow(XWindow* x_window);
   void HandleExposeWindow(XWindow* x_window);
+  void HandleMapWindow(XWindow* x_window);
   void HandleMotion(XWindow* x_window, int x, int y);
   // FIXME: also pass changed property
   void HandlePropertyChange(XWindow* x_window);

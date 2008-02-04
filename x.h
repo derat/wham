@@ -129,6 +129,7 @@ class XServer {
   uint height() const { return height_; }
 
   XWindow* GetWindow(::Window id, bool create);
+  void DeleteWindow(::Window id);
 
   void RegisterKeyBindings(const KeyBindings& bindings);
 
