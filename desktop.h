@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "anchor.h"
+#include "command.h"
 #include "util.h"
 
 using namespace std;
@@ -45,12 +46,12 @@ class Desktop {
 
   Anchor* active_anchor() { return active_anchor_; }
 
- private:
-  friend class ::DesktopTestSuite;
-
   // Get the anchor nearest to the currently-active anchor in the
   // specified direction.
-  Anchor* GetNearestAnchor(const string& direction) const;
+  Anchor* GetNearestAnchor(Command::Direction dir) const;
+
+ private:
+  friend class ::DesktopTestSuite;
 
   // Anchors contained within this desktop.
   typedef vector<ref_ptr<Anchor> > AnchorVector;

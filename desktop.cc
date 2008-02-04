@@ -62,15 +62,16 @@ void Desktop::SetActiveAnchor(Anchor* anchor) {
   if (anchor == active_anchor_) return;
   CHECK(find(anchors_.begin(), anchors_.end(), anchor) != anchors_.end());
   active_anchor_ = anchor;
+  anchor->FocusActiveWindow();
 }
 
 
-Anchor* Desktop::GetNearestAnchor(const string& direction) const {
+Anchor* Desktop::GetNearestAnchor(Command::Direction dir) const {
   int dx = 0, dy = 0;
-  if (direction == "left")       dx = -1;
-  else if (direction == "right") dx =  1;
-  else if (direction == "up")    dy = -1;
-  else if (direction == "down")  dy =  1;
+  if (dir == Command::LEFT)       dx = -1;
+  else if (dir == Command::RIGHT) dx =  1;
+  else if (dir == Command::UP)    dy = -1;
+  else if (dir == Command::DOWN)  dy =  1;
   else return NULL;
 
   Anchor* nearest = NULL;

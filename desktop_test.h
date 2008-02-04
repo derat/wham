@@ -83,11 +83,11 @@ class DesktopTestSuite : public CxxTest::TestSuite {
     Anchor* anchor2 = desktop_->CreateAnchor("test2", 20, 20);
     Anchor* anchor3 = desktop_->CreateAnchor("test3", 30, 20);
     TS_ASSERT_EQUALS(desktop_->active_anchor(), anchor);
-    TS_ASSERT_EQUALS(desktop_->GetNearestAnchor("right"), anchor2);
+    TS_ASSERT_EQUALS(desktop_->GetNearestAnchor(Command::RIGHT), anchor2);
 
     desktop_->SetActiveAnchor(anchor2);
-    TS_ASSERT_EQUALS(desktop_->GetNearestAnchor("right"), anchor3);
-    TS_ASSERT_EQUALS(desktop_->GetNearestAnchor("left"), anchor);
+    TS_ASSERT_EQUALS(desktop_->GetNearestAnchor(Command::RIGHT), anchor3);
+    TS_ASSERT_EQUALS(desktop_->GetNearestAnchor(Command::LEFT), anchor);
   }
 
   ref_ptr<Desktop> desktop_;

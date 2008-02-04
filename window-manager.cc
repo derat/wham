@@ -95,6 +95,12 @@ void WindowManager::HandleDestroyWindow(XWindow* x_window) {
   if (IsAnchorWindow(x_window)) return;
 
   Window* window = FindWithDefault(windows_, x_window, ref_ptr<Window>()).get();
+  if (!window) {
+    // We ignore create events for windows that have override_redirect set.
+    // FIXME: this doesn't seem right
+    DEBUG << "Couldn't find window 0x" << hex << x_window->id();
+    return;
+  }
   CHECK(window);
   for (DesktopVector::iterator desktop = desktops_.begin();
        desktop != desktops_.end(); ++desktop) {
@@ -115,11 +121,10 @@ void WindowManager::HandleEnterWindow(XWindow* x_window) {
         FindWithDefault(windows_, x_window, ref_ptr<Window>()).get();
     anchor = active_desktop_->GetAnchorContainingWindow(window);
   }
-  // In either case, we want to make this anchor active and focus its
-  // window.
+  // In either case, we want to make this anchor active (which will also
+  // focus its window).
   CHECK(anchor);
   active_desktop_->SetActiveAnchor(anchor);
-  anchor->FocusActiveWindow();
 }
 
 
@@ -171,10 +176,8 @@ void WindowManager::HandleCommand(const Command &cmd) {
   } else if (cmd.type() == Command::EXEC) {
     Exec(cmd.GetStringArg());
   } else if (cmd.type() == Command::SWITCH_NEAREST_ANCHOR) {
-    /*
-    Anchor* anchor = GetNearestAnchor(cmd.args[0]);
-    LOG << "anchor=" << hex << anchor;
-    */
+    Anchor* anchor = active_desktop_->GetNearestAnchor(cmd.GetDirectionArg());
+    if (anchor) active_desktop_->SetActiveAnchor(anchor);
   } else if (cmd.type() == Command::SWITCH_NTH_WINDOW) {
     Anchor* anchor = active_desktop_->active_anchor();
     if (anchor) anchor->SetActive(cmd.GetIntArg());

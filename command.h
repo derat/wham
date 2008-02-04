@@ -70,7 +70,7 @@ class Command {
     LEFT,
     RIGHT
   };
-  Direction GetDirectionArg() {
+  Direction GetDirectionArg() const {
     CHECK(GetArgType(type_) == DIRECTION_ARG);
     CHECK(Valid());
     return arg_.dir;
