@@ -18,6 +18,7 @@ Window::Window(XWindow* x_window)
   CHECK(x_window_);
   x_window_->GetGeometry(NULL, NULL, &width_, &height_, NULL);
   props_.UpdateAll(x_window_);
+  Classify();
 }
 
 
@@ -87,6 +88,7 @@ uint Window::height() const { return x_window_->height(); }
 
 
 bool Window::Classify() {
+  DEBUG << "Classifying for " << props_.DebugString();
   if (!WindowClassifier::Get()->ClassifyWindow(props_, &configs_)) {
     ERROR << "Unable to classify window";
     return false;
@@ -99,6 +101,7 @@ bool Window::Classify() {
 void Window::ApplyConfig() {
   const WindowConfig* config = configs_.GetActiveConfig();
   CHECK(config);
+  DEBUG << "Applying config " << config->DebugString();
 
   uint width = 0;
   if (config->width_type == WindowConfig::DIMENSION_PIXELS) {
@@ -137,7 +140,7 @@ void Window::ApplyConfig() {
 bool Window::UpdateProperties(WindowProperties::ChangeType type,
                               bool* changed) {
   CHECK(changed);
-  WindowProperties new_props;
+  WindowProperties new_props(props_);
   if (!x_window_->UpdateProperties(&new_props, type)) return false;
   *changed = (new_props != props_);
   props_ = new_props;

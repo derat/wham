@@ -41,6 +41,8 @@ struct WindowConfig {
   // Merge another config into this one.
   void Merge(const WindowConfig& config);
 
+  string DebugString() const;
+
   // This config's name.
   string name;
 
@@ -52,6 +54,15 @@ struct WindowConfig {
     DIMENSION_APP,    // just use the size supplied by the app
     DIMENSION_MAX,    // maximize the window
   };
+
+  static string DimensionTypeToStr(DimensionType type) {
+    if (type == DIMENSION_PIXELS) return "pixels";
+    if (type == DIMENSION_UNITS)  return "units";
+    if (type == DIMENSION_APP)    return "app";
+    if (type == DIMENSION_MAX)    return "max";
+    return "unknown";
+  }
+
   DimensionType width_type;
   DimensionType height_type;
 

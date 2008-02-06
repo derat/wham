@@ -4,9 +4,22 @@
 #include "window-properties.h"
 
 #include <sstream>
+
+#include "util.h"
 #include "x.h"
 
 namespace wham {
+
+string WindowProperties::ChangeTypeToStr(WindowProperties::ChangeType type) {
+  if (type == WINDOW_NAME_CHANGE) return "window name";
+  if (type == ICON_NAME_CHANGE) return "icon name";
+  if (type == COMMAND_CHANGE) return "command";
+  if (type == CLASS_CHANGE) return "class";
+  if (type == WM_HINTS_CHANGE) return "wm hints";
+  if (type == TRANSIENT_CHANGE) return "transient";
+  else return StringPrintf("other (%d)", type);
+}
+
 
 string WindowProperties::DebugString() const {
   ostringstream out;

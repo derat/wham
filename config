@@ -1,7 +1,7 @@
 key_bindings {
   bind Ctrl+n create_anchor
   bind Ctrl+F1 exec /usr/bin/urxvt
-  bind Ctrl+F2 exec $HOME/local/firefox/firefox
+  bind Ctrl+F2 exec firefox
   bind Ctrl+1 switch_nth_window 0
   bind Ctrl+2 switch_nth_window 1
   bind Ctrl+3 switch_nth_window 2
@@ -38,7 +38,7 @@ window {
 
 window {
   criteria {
-    app_name Gecko
+    app_name [gG]ecko
   }
   config default {
     width 800

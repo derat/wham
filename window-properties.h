@@ -27,6 +27,8 @@ struct WindowProperties {
     OTHER_CHANGE,
   };
 
+  static string ChangeTypeToStr(ChangeType type);
+
   WindowProperties()
       : window_name(""),
         icon_name(""),

@@ -3,6 +3,8 @@
 
 #include "window-classifier.h"
 
+#include <sstream>
+
 #include "window.h"
 
 namespace wham {
@@ -21,6 +23,17 @@ void WindowConfig::Merge(const WindowConfig& config) {
     height_type = config.height_type;
     height = config.height;
   }
+}
+
+
+string WindowConfig::DebugString() const {
+  ostringstream out;
+  out << "name=" << name
+      << " width=" << width
+      << " (" << DimensionTypeToStr(width_type) << ")"
+      << " height=" << height
+      << " (" << DimensionTypeToStr(height_type) << ")";
+  return out.str();
 }
 
 

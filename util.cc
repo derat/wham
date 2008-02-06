@@ -3,6 +3,7 @@
 
 #include "util.h"
 
+#include <cstdarg>
 #include <cstdlib>
 #include <ctime>
 #include <iomanip>
@@ -67,6 +68,16 @@ vector<string> SplitString(const string& str) {
   vector<string> parts;
   SplitString(str, &parts);
   return parts;
+}
+
+
+string StringPrintf(const char* format, ...) {
+  char buffer[1024];  // FIXME: remove magic number?
+  va_list argp;
+  va_start(argp, format);
+  vsnprintf(buffer, sizeof(buffer), format, argp);
+  va_end(argp);
+  return string(buffer);
 }
 
 }  // namespace wham

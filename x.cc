@@ -397,10 +397,6 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
       window_manager->HandleMotion(x_window, e.x_root, e.y_root);
     } else if (event.type == PropertyNotify) {
       XPropertyEvent& e = event.xproperty;
-      DEBUG << "PropertyNotify: window=0x" << hex << e.window << dec
-            << " atom=" << e.atom
-            << " state=" << (e.state == PropertyNewValue ?
-                             "PropertyNewValue" : "PropertyDeleted");
       XWindow* x_window = GetWindow(e.window, false);
       WindowProperties::ChangeType type = WindowProperties::OTHER_CHANGE;
       switch (e.atom) {
@@ -414,6 +410,11 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
              type = WindowProperties::TRANSIENT_CHANGE; break;
         default: type = WindowProperties::OTHER_CHANGE;
       }
+      DEBUG << "PropertyNotify: window=0x" << hex << e.window << dec
+            << " atom=" << e.atom
+            << " type=" << WindowProperties::ChangeTypeToStr(type)
+            << " state=" << (e.state == PropertyNewValue ?
+                             "PropertyNewValue" : "PropertyDeleted");
       if (type != WindowProperties::OTHER_CHANGE) {
         window_manager->HandlePropertyChange(x_window, type);
       }
