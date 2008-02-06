@@ -169,14 +169,28 @@ bool XWindow::UpdateProperties(WindowProperties* props,
       props->base_height = size_hints->base_height;
     }
     XFree(size_hints);
-  } else if (type == WindowProperties::TRANSIENT_CHANGE) {
-    // FIXME: handle this
   } else {
-    ERROR << "Unable to handle property change of type " << type;
+    ERROR << "Unable to handle property change of type "
+          << WindowProperties::ChangeTypeToStr(type);
     CHECK(false);
   }
 
   return true;
+}
+
+
+XWindow* XWindow::GetTransientFor() {
+  ::Window win_id;
+  if (!XGetTransientForHint(dpy(), id_, &win_id)) {
+    ERROR << "XGetTransientForHint() failed for 0x" << hex << id_;
+    return NULL;
+  }
+  XWindow* win = XServer::Get()->GetWindow(win_id, false);
+  if (win == NULL) {
+    ERROR << hex << "0x" << id_ << " claims to be a transient for 0x"
+          << win_id << ", which isn't registered";
+  }
+  return win;
 }
 
 
@@ -429,7 +443,10 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
             << " state=" << (e.state == PropertyNewValue ?
                              "PropertyNewValue" : "PropertyDeleted");
       if (type != WindowProperties::OTHER_CHANGE) {
-        window_manager->HandlePropertyChange(x_window, type);
+        if (type == WindowProperties::TRANSIENT_CHANGE) {
+        } else {
+          window_manager->HandlePropertyChange(x_window, type);
+        }
       }
     } else {
       DEBUG << XEventTypeToName(event.type);

@@ -151,9 +151,21 @@ void WindowManager::HandlePropertyChange(
 
   Window* window = FindWithDefault(windows_, x_window, ref_ptr<Window>()).get();
   CHECK(window);
-  window->HandlePropertyChange(type);
-  Anchor* anchor = active_desktop_->GetAnchorContainingWindow(window);
-  if (anchor) anchor->DrawTitlebar();
+
+  if (type == WindowProperties::TRANSIENT_CHANGE) {
+    XWindow* x_parent = x_window->GetTransientFor();
+    if (x_parent == NULL) return;
+    Window* parent = FindWithDefault(
+        windows_, x_parent, ref_ptr<Window>()).get();
+    CHECK(parent);  // FIXME: add an error message here
+    MakeTransientFor(window, parent);
+  } else {
+    bool need_to_redraw = window->HandlePropertyChange(type);
+    if (need_to_redraw) {
+      Anchor* anchor = active_desktop_->GetAnchorContainingWindow(window);
+      if (anchor) anchor->DrawTitlebar();
+    }
+  }
 }
 
 
@@ -257,6 +269,10 @@ bool WindowManager::Exec(const string& command) const {
   }
   wait(0);
   return true;
+}
+
+
+void WindowManager::MakeTransientFor(Window* transient, Window* win) {
 }
 
 

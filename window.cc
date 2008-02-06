@@ -65,13 +65,14 @@ void Window::MakeSibling(const XWindow& leader) {
 }
 
 
-void Window::HandlePropertyChange(WindowProperties::ChangeType type) {
+bool Window::HandlePropertyChange(WindowProperties::ChangeType type) {
   bool changed = false;
   UpdateProperties(type, &changed);
   if (changed) {
     DEBUG << "Properties changed; reclassifying";
     Classify();
   }
+  return changed;
 }
 
 

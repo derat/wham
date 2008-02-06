@@ -55,7 +55,11 @@ class WindowManager {
   // Check if the passed-in X window is an anchor titlebar or not.
   bool IsAnchorWindow(XWindow* x_window) const;
 
+  // Execute the passed-in command.
   bool Exec(const string& command) const;
+
+  // Handle 'transient' declaring itself as a transient window for 'win'.
+  void MakeTransientFor(Window* transient, Window* win);
 
   // Get the active window from the focused anchor on the active desktop,
   // or NULL if none exists.

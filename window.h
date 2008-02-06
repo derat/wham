@@ -31,7 +31,11 @@ class Window {
   void TakeFocus();
   void Raise();
   void MakeSibling(const XWindow& leader);
-  void HandlePropertyChange(WindowProperties::ChangeType type);
+
+  // Handle a property change event on this window, reclassifying the
+  // window if necessary.  Returns 'true' if the titlebar needs to be
+  // redrawn.
+  bool HandlePropertyChange(WindowProperties::ChangeType type);
 
   string title() const { return props_.window_name; }
 

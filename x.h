@@ -34,8 +34,13 @@ class XWindow {
 
   ::Window id() const { return id_; }
 
+  // Update 'props' with this window's current properties of type 'type'.
   virtual bool UpdateProperties(WindowProperties* props,
                                 WindowProperties::ChangeType type);
+
+  // Get the window for which this window is a transient.
+  // Returns NULL if no such window exists.
+  virtual XWindow* GetTransientFor();
 
   virtual void Move(int x, int y);
   virtual void Resize(uint width, uint height);
