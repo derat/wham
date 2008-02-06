@@ -8,31 +8,6 @@
 
 namespace wham {
 
-string WindowProperties::DebugString() const {
-  ostringstream out;
-  out << "window_name=\"" << window_name << "\"\n"
-      << "icon_name=\"" << icon_name << "\"\n"
-      << "command=\"" << command << "\"\n"
-      << "app_name=\"" << app_name << "\"\n"
-      << "app_class=\"" << app_class << "\"\n"
-      << "x=" << x << "\n"
-      << "y=" << y << "\n"
-      << "width=" << width << "\n"
-      << "height=" << height << "\n"
-      << "min_width=" << min_width << "\n"
-      << "min_height=" << min_height << "\n"
-      << "max_width=" << max_width << "\n"
-      << "max_height=" << max_height << "\n"
-      << "width_inc=" << width_inc << "\n"
-      << "height_inc=" << height_inc << "\n"
-      << "min_aspect=" << min_aspect << "\n"
-      << "max_aspect=" << max_aspect << "\n"
-      << "base_width=" << base_width << "\n"
-      << "base_height=" << base_height << "\n";
-  return out.str();
-}
-
-
 Window::Window(XWindow* x_window)
     : x_window_(x_window),
       width_(0),
@@ -42,7 +17,7 @@ Window::Window(XWindow* x_window)
       tagged_(false) {
   CHECK(x_window_);
   x_window_->GetGeometry(NULL, NULL, &width_, &height_, NULL);
-  HandlePropertyChange();
+  props_.UpdateAll(x_window_);
 }
 
 
@@ -89,9 +64,9 @@ void Window::MakeSibling(const XWindow& leader) {
 }
 
 
-void Window::HandlePropertyChange() {
+void Window::HandlePropertyChange(WindowProperties::ChangeType type) {
   bool changed = false;
-  UpdateProperties(&changed);
+  UpdateProperties(type, &changed);
   if (changed) {
     DEBUG << "Properties changed; reclassifying";
     Classify();
@@ -159,10 +134,11 @@ void Window::ApplyConfig() {
 }
 
 
-bool Window::UpdateProperties(bool* changed) {
+bool Window::UpdateProperties(WindowProperties::ChangeType type,
+                              bool* changed) {
   CHECK(changed);
   WindowProperties new_props;
-  if (!x_window_->GetProperties(&new_props)) return false;
+  if (!x_window_->UpdateProperties(&new_props, type)) return false;
   *changed = (new_props != props_);
   props_ = new_props;
   return true;

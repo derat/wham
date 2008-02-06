@@ -6,14 +6,14 @@ CXXTESTINCLUDE=-I/home/derat/local/include
 
 TESTLIBS=anchor.o command.o config.o config-parser.o desktop.o \
 	 drawing-engine.o key-bindings.o mock-x.o util.o window.o \
-	 window-classifier.o window-manager.o x.o
+	 window-classifier.o window-manager.o window-properties.o x.o
 
 PROGNAME=wham
 
 $(PROGNAME): \
   main.cc anchor.o command.o config.o config-parser.o desktop.o \
   drawing-engine.o key-bindings.o mock-x.o util.o window.o \
-  window-classifier.o window-manager.o x.o
+  window-classifier.o window-manager.o window-properties.o x.o
 	$(CC) -o $@ $(LIBS) $^
 
 anchor.o: anchor.cc anchor.h config.h util.h window.h x.h
@@ -54,6 +54,9 @@ window-classifier.o: window-classifier.cc window-classifier.h util.h
 window-manager.o: window-manager.cc window-manager.h \
   anchor.h command.h config.h key-bindings.h util.h window.h \
   window-classifier.h
+	$(CC) -c $<
+
+window-properties.o: window-properties.cc window-properties.h x.h
 	$(CC) -c $<
 
 x.o: x.cc x.h command.h key-bindings.h util.h window-classifier.h \

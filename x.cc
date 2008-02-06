@@ -4,12 +4,14 @@
 #include "x.h"
 
 #include <iostream>
+#include "X11/Xatom.h"
 
 #include "key-bindings.h"
 #include "mock-x.h"
 #include "util.h"
 #include "window-classifier.h"
 #include "window-manager.h"
+#include "window-properties.h"
 
 using namespace std;
 
@@ -88,76 +90,84 @@ XWindow* XWindow::Create(int x, int y, uint width, uint height) {
 }
 
 
-bool XWindow::GetProperties(WindowProperties* props) {
+bool XWindow::UpdateProperties(WindowProperties* props,
+                               WindowProperties::ChangeType type) {
   CHECK(props);
 
-  char* window_name = NULL;
-  if (!XFetchName(dpy(), id_, &window_name)) {
-    ERROR << "XFetchName() failed for 0x" << hex << id_;
-    return false;
-  }
-  props->window_name = window_name ? window_name : "";
-  if (window_name) XFree(window_name);
-
-  char* icon_name = NULL;
-  if (!XGetIconName(dpy(), id_, &icon_name)) {
-    ERROR << "XGetIconName() failed for 0x" << hex << id_;
-    return false;
-  }
-  props->icon_name = icon_name ? icon_name : "";
-  if (icon_name) XFree(icon_name);
-
-  // FIXME: get command with XGetCommand()
-
-  XClassHint class_hint;
-  if (!XGetClassHint(dpy(), id_, &class_hint)) {
-    ERROR << "XGetClassHint() failed for 0x" << hex << id_;
-    return false;
-  }
-  props->app_name = class_hint.res_name ? class_hint.res_name : "";
-  props->app_class = class_hint.res_class ? class_hint.res_class : "";
-  if (class_hint.res_name) XFree(class_hint.res_name);
-  if (class_hint.res_class) XFree(class_hint.res_class);
-
-  XSizeHints* size_hints = XAllocSizeHints();
-  CHECK(size_hints);
-  long supplied_hints = 0;
-  if (!XGetWMNormalHints(dpy(), id_, size_hints, &supplied_hints)) {
-    ERROR << "XGetWMNormalHints() failed for 0x" << hex << id_;
+  if (type == WindowProperties::WINDOW_NAME_CHANGE) {
+    char* window_name = NULL;
+    if (!XFetchName(dpy(), id_, &window_name)) {
+      ERROR << "XFetchName() failed for 0x" << hex << id_;
+      return false;
+    }
+    props->window_name = window_name ? window_name : "";
+    if (window_name) XFree(window_name);
+  } else if (type == WindowProperties::ICON_NAME_CHANGE) {
+    char* icon_name = NULL;
+    if (!XGetIconName(dpy(), id_, &icon_name)) {
+      ERROR << "XGetIconName() failed for 0x" << hex << id_;
+      return false;
+    }
+    props->icon_name = icon_name ? icon_name : "";
+    if (icon_name) XFree(icon_name);
+  } else if (type == WindowProperties::COMMAND_CHANGE) {
+    // FIXME: get command with XGetCommand()
+  } else if (type == WindowProperties::CLASS_CHANGE) {
+    XClassHint class_hint;
+    if (!XGetClassHint(dpy(), id_, &class_hint)) {
+      ERROR << "XGetClassHint() failed for 0x" << hex << id_;
+      return false;
+    }
+    props->app_name = class_hint.res_name ? class_hint.res_name : "";
+    props->app_class = class_hint.res_class ? class_hint.res_class : "";
+    if (class_hint.res_name) XFree(class_hint.res_name);
+    if (class_hint.res_class) XFree(class_hint.res_class);
+  } else if (type == WindowProperties::WM_HINTS_CHANGE) {
+    XSizeHints* size_hints = XAllocSizeHints();
+    CHECK(size_hints);
+    long supplied_hints = 0;
+    if (!XGetWMNormalHints(dpy(), id_, size_hints, &supplied_hints)) {
+      ERROR << "XGetWMNormalHints() failed for 0x" << hex << id_;
+      XFree(size_hints);
+      return false;
+    }
+    if (size_hints->flags & USPosition || size_hints->flags & PPosition) {
+      props->x = size_hints->x;
+      props->y = size_hints->y;
+    }
+    if (size_hints->flags & USSize || size_hints->flags & PSize) {
+      props->width = size_hints->width;
+      props->height = size_hints->height;
+    }
+    if (size_hints->flags & PMinSize) {
+      props->min_width = size_hints->min_width;
+      props->min_height = size_hints->min_height;
+    }
+    if (size_hints->flags & PMaxSize) {
+      props->max_width = size_hints->max_width;
+      props->max_height = size_hints->max_height;
+    }
+    if (size_hints->flags & PResizeInc) {
+      props->width_inc = size_hints->width_inc;
+      props->height_inc = size_hints->height_inc;
+    }
+    if (size_hints->flags & PAspect) {
+      props->min_aspect = static_cast<float>(size_hints->min_aspect.x) /
+                          size_hints->min_aspect.y;
+      props->max_aspect = static_cast<float>(size_hints->max_aspect.x) /
+                          size_hints->max_aspect.y;
+    }
+    if (size_hints->flags & PBaseSize) {
+      props->base_width = size_hints->base_width;
+      props->base_height = size_hints->base_height;
+    }
     XFree(size_hints);
-    return false;
+  } else if (type == WindowProperties::TRANSIENT_CHANGE) {
+    // FIXME: handle this
+  } else {
+    ERROR << "Unable to handle property change of type " << type;
+    CHECK(false);
   }
-  if (size_hints->flags & USPosition || size_hints->flags & PPosition) {
-    props->x = size_hints->x;
-    props->y = size_hints->y;
-  }
-  if (size_hints->flags & USSize || size_hints->flags & PSize) {
-    props->width = size_hints->width;
-    props->height = size_hints->height;
-  }
-  if (size_hints->flags & PMinSize) {
-    props->min_width = size_hints->min_width;
-    props->min_height = size_hints->min_height;
-  }
-  if (size_hints->flags & PMaxSize) {
-    props->max_width = size_hints->max_width;
-    props->max_height = size_hints->max_height;
-  }
-  if (size_hints->flags & PResizeInc) {
-    props->width_inc = size_hints->width_inc;
-    props->height_inc = size_hints->height_inc;
-  }
-  if (size_hints->flags & PAspect) {
-    props->min_aspect =
-        static_cast<float>(size_hints->min_aspect.x) / size_hints->min_aspect.y;
-    props->max_aspect =
-        static_cast<float>(size_hints->max_aspect.x) / size_hints->max_aspect.y;
-  }
-  if (size_hints->flags & PBaseSize) {
-    props->base_width = size_hints->base_width;
-    props->base_height = size_hints->base_height;
-  }
-  XFree(size_hints);
 
   return true;
 }
@@ -392,7 +402,21 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
             << " state=" << (e.state == PropertyNewValue ?
                              "PropertyNewValue" : "PropertyDeleted");
       XWindow* x_window = GetWindow(e.window, false);
-      window_manager->HandlePropertyChange(x_window);
+      WindowProperties::ChangeType type = WindowProperties::OTHER_CHANGE;
+      switch (e.atom) {
+        case XA_WM_NAME: type = WindowProperties::WINDOW_NAME_CHANGE; break;
+        case XA_WM_ICON_NAME: type = WindowProperties::ICON_NAME_CHANGE; break;
+        case XA_WM_COMMAND: type = WindowProperties::COMMAND_CHANGE; break;
+        case XA_WM_CLASS: type = WindowProperties::CLASS_CHANGE; break;
+        case XA_WM_NORMAL_HINTS:
+             type = WindowProperties::WM_HINTS_CHANGE; break;
+        case XA_WM_TRANSIENT_FOR:
+             type = WindowProperties::TRANSIENT_CHANGE; break;
+        default: type = WindowProperties::OTHER_CHANGE;
+      }
+      if (type != WindowProperties::OTHER_CHANGE) {
+        window_manager->HandlePropertyChange(x_window, type);
+      }
     } else {
       DEBUG << XEventTypeToName(event.type);
     }

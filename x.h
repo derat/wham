@@ -11,6 +11,7 @@
 
 #include "command.h"
 #include "util.h"
+#include "window-properties.h"
 
 using namespace std;
 
@@ -32,7 +33,8 @@ class XWindow {
 
   ::Window id() const { return id_; }
 
-  virtual bool GetProperties(WindowProperties* props);
+  virtual bool UpdateProperties(WindowProperties* props,
+                                WindowProperties::ChangeType type);
 
   virtual void Move(int x, int y);
   virtual void Resize(uint width, uint height);

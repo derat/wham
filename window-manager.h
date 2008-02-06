@@ -14,14 +14,13 @@
 #include "util.h"
 #include "window.h"
 #include "window-classifier.h"
+#include "x.h"
 
 using namespace std;
 
 class WindowManagerTestSuite;
 
 namespace wham {
-
-class XWindow;
 
 class WindowManager {
  public:
@@ -37,9 +36,8 @@ class WindowManager {
   void HandleExposeWindow(XWindow* x_window);
   void HandleMapWindow(XWindow* x_window);
   void HandleMotion(XWindow* x_window, int x, int y);
-  // FIXME: also pass changed property
-  void HandlePropertyChange(XWindow* x_window);
-
+  void HandlePropertyChange(XWindow* x_window,
+                            WindowProperties::ChangeType type);
   void HandleCommand(const Command& cmd);
 
  private:
