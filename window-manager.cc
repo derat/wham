@@ -177,6 +177,13 @@ void WindowManager::HandleCommand(const Command &cmd) {
   } else if (cmd.type() == Command::SWITCH_NTH_WINDOW) {
     Anchor* anchor = active_desktop_->active_anchor();
     if (anchor) anchor->SetActive(cmd.GetIntArg());
+  } else if (cmd.type() == Command::TOGGLE_ANCHOR_PERSISTENCE) {
+    Anchor* anchor = active_desktop_->active_anchor();
+    if (anchor) {
+      anchor->set_persistent(!anchor->persistent());
+      DEBUG << "Set persistence on anchor " << anchor->name()
+            << " to " << anchor->persistent();
+    }
   } else if (cmd.type() == Command::TOGGLE_TAG) {
     Window* window = GetActiveWindow();
     if (window) {

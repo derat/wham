@@ -64,4 +64,9 @@ void MockXWindow::GetGeometry(int* x,
                               uint* border_width) {
 }
 
+
+void MockXWindow::Destroy() {
+  // TODO: Maybe call XServer::DeleteWindow() here.
+}
+
 }  // namespace wham

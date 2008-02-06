@@ -38,6 +38,8 @@ class Anchor {
   string name() const { return name_; }
   int x() const { return x_; }
   int y() const { return y_; }
+  bool persistent() const { return persistent_; }
+  void set_persistent(bool persistent) { persistent_ = persistent; }
   XWindow* titlebar() { return titlebar_; }
   Gravity gravity() const { return gravity_; }
   const vector<Window*>& windows() const { return windows_; }
@@ -83,9 +85,17 @@ class Anchor {
 
   string name_;
 
+  // The anchor's position on the screen.  This is the top-left point of
+  // the titlebar if gravity_ is TOP_LEFT, the bottom-right point of the
+  // titlebar for BOTTOM_RIGHt, and so on.
   int x_;
   int y_;
 
+  // Should this anchor remain present even when its last window has been
+  // closed or moved away?
+  bool persistent_;
+
+  // Pointers to windows stored within this anchor
   typedef vector<Window*> WindowVector;
   WindowVector windows_;  // not owned
 
@@ -97,6 +107,7 @@ class Anchor {
   // Where an anchor should appear in relation to its windows.
   Gravity gravity_;
 
+  // Titlebar window; not owned.
   XWindow* titlebar_;
 
   DISALLOW_EVIL_CONSTRUCTORS(Anchor);

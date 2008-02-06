@@ -111,7 +111,14 @@ bool XWindow::UpdateProperties(WindowProperties* props,
     props->icon_name = icon_name ? icon_name : "";
     if (icon_name) XFree(icon_name);
   } else if (type == WindowProperties::COMMAND_CHANGE) {
-    // FIXME: get command with XGetCommand()
+    char **argv = NULL;
+    int argc = 0;
+    if (!XGetCommand(dpy(), id_, &argv, &argc)) {
+      ERROR << "XGetCommand() failed for 0x" << hex << id_;
+      return false;
+    }
+    // FIXME: update command
+    XFreeStringList(argv);
   } else if (type == WindowProperties::CLASS_CHANGE) {
     XClassHint class_hint;
     if (!XGetClassHint(dpy(), id_, &class_hint)) {
@@ -241,6 +248,12 @@ void XWindow::GetGeometry(int* x,
   if (width) *width = tmp_width;
   if (height) *height = tmp_height;
   if (border_width) *border_width = tmp_border_width;
+}
+
+
+void XWindow::Destroy() {
+  XServer::Get()->DeleteWindow(id_);
+  XDestroyWindow(dpy(), id_);
 }
 
 
@@ -425,6 +438,20 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
 }
 
 
+void XServer::RegisterKeyBindings(const KeyBindings& bindings) {
+  // Ungrab old bindings, update our map, and grab all of the top-level
+  // bindings.
+  XUngrabKey(display_, AnyKey, AnyModifier, root_);
+  UpdateKeyBindingMap(bindings, &bindings_);
+  for (XKeyBindingMap::const_iterator it = bindings_.begin();
+       it != bindings_.end(); ++it) {
+    KeyCode keycode = XKeysymToKeycode(display_, it->second->keysym);
+    XGrabKey(display_, keycode, it->second->required_mods,
+             root_, False, GrabModeAsync, GrabModeAsync);
+  }
+}
+
+
 XWindow* XServer::GetWindow(::Window id, bool create) {
   XWindowMap::iterator it = windows_.find(id);
   if (it != windows_.end()) return it->second.get();
@@ -437,20 +464,6 @@ XWindow* XServer::GetWindow(::Window id, bool create) {
 
 void XServer::DeleteWindow(::Window id) {
   windows_.erase(id);
-}
-
-
-void XServer::RegisterKeyBindings(const KeyBindings& bindings) {
-  // Ungrab old bindings, update our map, and grab all of the top-level
-  // bindings.
-  XUngrabKey(display_, AnyKey, AnyModifier, root_);
-  UpdateKeyBindingMap(bindings, &bindings_);
-  for (XKeyBindingMap::const_iterator it = bindings_.begin();
-       it != bindings_.end(); ++it) {
-    KeyCode keycode = XKeysymToKeycode(display_, it->second->keysym);
-    XGrabKey(display_, keycode, it->second->required_mods,
-             root_, False, GrabModeAsync, GrabModeAsync);
-  }
 }
 
 

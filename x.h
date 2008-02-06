@@ -1,6 +1,7 @@
 // Copyright 2007 Daniel Erat <dan@erat.org>
 // All rights reserved.
 
+// FIXME: split into x-window.h and x-server.h
 #ifndef __X_H__
 #define __X_H__
 
@@ -50,6 +51,7 @@ class XWindow {
                            uint* width,
                            uint* height,
                            uint* border_width);
+  virtual void Destroy();
 
   virtual bool operator<(const XWindow& o) const {
     return id_ < o.id_;
@@ -130,9 +132,6 @@ class XServer {
   uint width() const { return width_; }
   uint height() const { return height_; }
 
-  XWindow* GetWindow(::Window id, bool create);
-  void DeleteWindow(::Window id);
-
   void RegisterKeyBindings(const KeyBindings& bindings);
 
   static void SetTesting(bool testing) { testing_ = testing; }
@@ -140,6 +139,10 @@ class XServer {
 
  private:
   friend class ::XTestSuite;
+  friend class XWindow;
+
+  XWindow* GetWindow(::Window id, bool create);
+  void DeleteWindow(::Window id);
 
   // Convert a vector containing string representations of modifiers keys
   // into a bitmap consisting of the corresponding X modifier masks.

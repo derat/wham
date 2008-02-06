@@ -26,11 +26,12 @@ class MockXWindow : public XWindow {
   void SetBorder(uint size);
   void Raise();
   void MakeSibling(const XWindow& leader);
-  virtual void GetGeometry(int* x,
-                           int* y,
-                           uint* width,
-                           uint* height,
-                           uint* border_width);
+  void GetGeometry(int* x,
+                   int* y,
+                   uint* width,
+                   uint* height,
+                   uint* border_width);
+  void Destroy();
 
  private:
   ::Window id_;

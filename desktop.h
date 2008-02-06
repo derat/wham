@@ -53,6 +53,12 @@ class Desktop {
  private:
   friend class ::DesktopTestSuite;
 
+  void DestroyAnchor(Anchor* anchor);
+
+  // Get the index of 'anchor' within 'anchors_'.
+  // Returns -1 if it's not present.
+  int GetAnchorIndex(Anchor* anchor);
+
   // Anchors contained within this desktop.
   typedef vector<ref_ptr<Anchor> > AnchorVector;
   AnchorVector anchors_;

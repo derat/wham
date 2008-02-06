@@ -18,6 +18,7 @@ Anchor::Anchor(const string& name, int x, int y)
     : name_(),
       x_(x),
       y_(y),
+      persistent_(true),
       active_index_(0),
       active_window_(NULL),
       gravity_(TOP_LEFT),
@@ -31,6 +32,7 @@ Anchor::Anchor(const string& name, int x, int y)
 
 
 Anchor::~Anchor() {
+  titlebar_->Destroy();
   active_window_ = NULL;
   titlebar_ = NULL;
 }

@@ -40,6 +40,9 @@ void Desktop::RemoveWindow(Window* window) {
   if (anchor) {
     anchor->RemoveWindow(window);
     window_anchors_.erase(window);
+    if (anchor->windows().empty() && !anchor->persistent()) {
+      DestroyAnchor(anchor);
+    }
   }
 }
 
@@ -95,6 +98,40 @@ Anchor* Desktop::GetNearestAnchor(Command::Direction dir) const {
     }
   }
   return nearest;
+}
+
+
+void Desktop::DestroyAnchor(Anchor* anchor) {
+  CHECK(anchor);
+  // FIXME: figure out what should be done wrt closing anchors that still
+  // contain windows
+  CHECK(anchor->windows().empty());
+
+  DEBUG << "Destroying anchor " << anchor->name();
+  anchor_titlebars_.erase(anchor->titlebar());
+  int index = GetAnchorIndex(anchor);
+  CHECK(index >= 0);
+  anchors_.erase(anchors_.begin() + index);
+
+  if (active_anchor_ == anchor) {
+    if (anchors_.empty()) {
+      active_anchor_ = NULL;
+    } else {
+      // FIXME: Do something more intelligent here.
+      active_anchor_ = anchors_[0].get();
+    }
+  }
+}
+
+
+int Desktop::GetAnchorIndex(Anchor* anchor) {
+  CHECK(anchor);
+  for (uint i = 0; i < anchors_.size(); ++i) {
+    if (anchors_[i].get() == anchor) {
+      return static_cast<int>(i);
+    }
+  }
+  return -1;
 }
 
 }  // namespace wham
