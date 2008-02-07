@@ -12,7 +12,8 @@ MockXWindow::MockXWindow(::Window id)
 }
 
 
-bool MockXWindow::GetProperties(WindowProperties* props) {
+bool MockXWindow::UpdateProperties(WindowProperties* props,
+                                   WindowProperties::ChangeType type) {
   return true;
 }
 

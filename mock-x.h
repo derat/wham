@@ -15,7 +15,8 @@ class MockXWindow : public XWindow {
   MockXWindow(::Window id);
   ~MockXWindow() {}
 
-  bool GetProperties(WindowProperties* props);
+  bool UpdateProperties(WindowProperties* props,
+                        WindowProperties::ChangeType type);
 
   void Move(int x, int y);
   void Resize(uint width, uint height);

@@ -5,6 +5,8 @@
 
 #include "window-classifier.h"
 
+#include "window-properties.h"
+
 using namespace wham;
 
 class WindowClassifierTestSuite : public CxxTest::TestSuite {
