@@ -81,6 +81,65 @@ class AnchorTestSuite : public CxxTest::TestSuite {
     // FIXME: write this
   }
 
+  void testSetGravity() {
+    int x = 10, y = 20;
+    Anchor anchor("test", x, y);
+    anchor.titlebar_->Resize(100, 15);
+    TS_ASSERT_EQUALS(anchor.gravity_, Anchor::TOP_LEFT);
+    TS_ASSERT_EQUALS(anchor.titlebar_->x(), x);
+    TS_ASSERT_EQUALS(anchor.titlebar_->y(), y);
+
+    anchor.SetGravity(Anchor::TOP_RIGHT);
+    TS_ASSERT_EQUALS(anchor.gravity_, Anchor::TOP_RIGHT);
+    TS_ASSERT_EQUALS(anchor.titlebar_->x(), x);
+    TS_ASSERT_EQUALS(anchor.titlebar_->y(), y);
+    // TODO: Maybe check that the active window is also getting moved.
+
+    anchor.SetGravity(Anchor::BOTTOM_RIGHT);
+    TS_ASSERT_EQUALS(anchor.gravity_, Anchor::BOTTOM_RIGHT);
+    TS_ASSERT_EQUALS(anchor.titlebar_->x(), x);
+    TS_ASSERT_EQUALS(anchor.titlebar_->y(), y);
+
+    anchor.SetGravity(Anchor::BOTTOM_LEFT);
+    TS_ASSERT_EQUALS(anchor.gravity_, Anchor::BOTTOM_LEFT);
+    TS_ASSERT_EQUALS(anchor.titlebar_->x(), x);
+    TS_ASSERT_EQUALS(anchor.titlebar_->y(), y);
+
+    anchor.SetGravity(Anchor::TOP_LEFT);
+    TS_ASSERT_EQUALS(anchor.gravity_, Anchor::TOP_LEFT);
+    TS_ASSERT_EQUALS(anchor.titlebar_->x(), x);
+    TS_ASSERT_EQUALS(anchor.titlebar_->y(), y);
+  }
+
+  void testCycleGravity() {
+    Anchor anchor("test", 10, 20);
+    TS_ASSERT_EQUALS(anchor.gravity_, Anchor::TOP_LEFT);
+
+    anchor.CycleGravity(true);
+    TS_ASSERT_EQUALS(anchor.gravity_, Anchor::TOP_RIGHT);
+
+    anchor.CycleGravity(true);
+    TS_ASSERT_EQUALS(anchor.gravity_, Anchor::BOTTOM_RIGHT);
+
+    anchor.CycleGravity(true);
+    TS_ASSERT_EQUALS(anchor.gravity_, Anchor::BOTTOM_LEFT);
+
+    anchor.CycleGravity(true);
+    TS_ASSERT_EQUALS(anchor.gravity_, Anchor::TOP_LEFT);
+
+    anchor.CycleGravity(false);
+    TS_ASSERT_EQUALS(anchor.gravity_, Anchor::BOTTOM_LEFT);
+
+    anchor.CycleGravity(false);
+    TS_ASSERT_EQUALS(anchor.gravity_, Anchor::BOTTOM_RIGHT);
+
+    anchor.CycleGravity(false);
+    TS_ASSERT_EQUALS(anchor.gravity_, Anchor::TOP_RIGHT);
+
+    anchor.CycleGravity(false);
+    TS_ASSERT_EQUALS(anchor.gravity_, Anchor::TOP_LEFT);
+  }
+
   void testUpdateTitlebarPosition() {
     int x = 10, y = 20;
     Anchor anchor("test", x, y);
