@@ -71,18 +71,34 @@ class Anchor {
 
   void FocusActiveWindow();
 
+  // Cycle the config of the active window, updating the window's position
+  // onscreen if necessary.
   void CycleActiveWindowConfig(bool forward);
 
   // Change the anchor's gravity.
+  // The anchor's position is shifted such that the position of the
+  // titlebar remains the same.
   void SetGravity(Gravity gravity);
+
+  // Move the anchor's gravity forward or backward in the progression (top
+  // left, top right, bottom right, bottom left).
   void CycleGravity(bool forward);
 
  private:
   friend class ::AnchorTestSuite;
 
+  // Move the titlebar window to the appropriate position, given the
+  // position of the anchor and its gravity.
   void UpdateTitlebarPosition();
+
+  // Move 'window' to the appropriate position.
   void UpdateWindowPosition(Window* window);
 
+  // Get the position of the titlebar window, given the anchor's current
+  // position and its gravity.
+  void GetTitlebarPosition(int* x, int* y);
+
+  // The anchor's name.
   string name_;
 
   // The anchor's position on the screen.  This is the top-left point of

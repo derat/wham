@@ -146,9 +146,18 @@ void Anchor::CycleActiveWindowConfig(bool forward) {
 
 void Anchor::SetGravity(Anchor::Gravity gravity) {
   if (gravity_ == gravity) return;
+
+  int old_titlebar_x, old_titlebar_y;
+  GetTitlebarPosition(&old_titlebar_x, &old_titlebar_y);
+
   gravity_ = gravity;
-  UpdateTitlebarPosition();
-  if (active_window_) UpdateWindowPosition(active_window_);
+
+  // Get the offset in the titlebar's position so we can move it back to
+  // the same place it was before.
+  int new_titlebar_x, new_titlebar_y;
+  GetTitlebarPosition(&new_titlebar_x, &new_titlebar_y);
+  Move(x_ - (new_titlebar_x - old_titlebar_x),
+       y_ - (new_titlebar_y - old_titlebar_y));
 }
 
 
@@ -159,12 +168,8 @@ void Anchor::CycleGravity(bool forward) {
 
 
 void Anchor::UpdateTitlebarPosition() {
-  int x = (gravity_ == TOP_LEFT || gravity_ == BOTTOM_LEFT) ?
-      x_ :
-      x_ - titlebar_->width();
-  int y = (gravity_ == TOP_LEFT || gravity_ == TOP_RIGHT) ?
-      y_ :
-      y_ - titlebar_->height();
+  int x, y;
+  GetTitlebarPosition(&x, &y);
   titlebar_->Move(x, y);
 }
 
@@ -179,6 +184,16 @@ void Anchor::UpdateWindowPosition(Window* window) {
       y_ + titlebar_->height() :
       y_ - titlebar_->height() - window->height() - 2 * border;
   window->Move(x, y);
+}
+
+
+void Anchor::GetTitlebarPosition(int* x, int* y) {
+  *x = (gravity_ == TOP_LEFT || gravity_ == BOTTOM_LEFT) ?
+      x_ :
+      x_ - titlebar_->width();
+  *y = (gravity_ == TOP_LEFT || gravity_ == TOP_RIGHT) ?
+      y_ :
+      y_ - titlebar_->height();
 }
 
 }  // namespace wham
