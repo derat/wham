@@ -8,7 +8,8 @@
 #include "anchor.h"
 #include "config.h"
 #include "window.h"
-#include "x.h"
+#include "x-server.h"
+#include "x-window.h"
 
 namespace wham {
 

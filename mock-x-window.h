@@ -1,10 +1,10 @@
 // Copyright 2008 Daniel Erat <dan@erat.org>
 // All rights reserved.
 
-#ifndef __MOCK_X_H__
-#define __MOCK_X_H__
+#ifndef __MOCK_X_WINDOW_H__
+#define __MOCK_X_WINDOW_H__
 
-#include "x.h"
+#include "x-window.h"
 
 using namespace std;
 

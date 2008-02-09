@@ -2,7 +2,7 @@
 #include "drawing-engine.h"
 #include "key-bindings.h"
 #include "window-manager.h"
-#include "x.h"
+#include "x-server.h"
 
 using namespace wham;
 

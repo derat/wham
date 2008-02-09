@@ -1,7 +1,7 @@
 // Copyright 2008 Daniel Erat <dan@erat.org>
 // All rights reserved.
 
-#include "mock-x.h"
+#include "mock-x-window.h"
 
 using namespace std;
 

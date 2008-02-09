@@ -5,18 +5,20 @@ CXXTESTGEN=cxxtestgen.pl
 CXXTESTINCLUDE=-I/home/derat/local/include
 
 TESTLIBS=anchor.o command.o config.o config-parser.o desktop.o \
-	 drawing-engine.o key-bindings.o mock-x.o util.o window.o \
-	 window-classifier.o window-manager.o window-properties.o x.o
+	 drawing-engine.o key-bindings.o mock-x-window.o util.o window.o \
+	 window-classifier.o window-manager.o window-properties.o \
+	 x-server.o x-window.o
 
 PROGNAME=wham
 
 $(PROGNAME): \
   main.cc anchor.o command.o config.o config-parser.o desktop.o \
-  drawing-engine.o key-bindings.o mock-x.o util.o window.o \
-  window-classifier.o window-manager.o window-properties.o x.o
+  drawing-engine.o key-bindings.o mock-x-window.o util.o window.o \
+  window-classifier.o window-manager.o window-properties.o \
+  x-server.o x-window.o
 	$(CC) -o $@ $(LIBS) $^
 
-anchor.o: anchor.cc anchor.h config.h util.h window.h x.h
+anchor.o: anchor.cc anchor.h config.h util.h window.h x-window.h
 	$(CC) -c $<
 
 command.o: command.cc command.h util.h
@@ -32,20 +34,20 @@ desktop.o: desktop.cc desktop.h anchor.h util.h
 	$(CC) -c $<
 
 drawing-engine.o: drawing-engine.cc drawing-engine.h \
-  anchor.h config.h window.h util.h x.h
+  anchor.h config.h window.h util.h x-window.h
 	$(CC) -c $<
 
 key-bindings.o: key-bindings.cc key-bindings.h command.h util.h
 	$(CC) -c $<
 
-mock-x.o: mock-x.cc mock-x.h
+mock-x-window.o: mock-x-window.cc mock-x-window.h
 	$(CC) -c $<
 
 util.o: util.cc util.h
 	$(CC) -c $<
 
 window.o: window.cc window.h \
-  config.h util.h window-classifier.h x.h
+  config.h util.h window-classifier.h x-window.h
 	$(CC) -c $<
 
 window-classifier.o: window-classifier.cc window-classifier.h util.h
@@ -56,11 +58,15 @@ window-manager.o: window-manager.cc window-manager.h \
   window-classifier.h
 	$(CC) -c $<
 
-window-properties.o: window-properties.cc window-properties.h x.h
+window-properties.o: window-properties.cc window-properties.h x-window.h
 	$(CC) -c $<
 
-x.o: x.cc x.h command.h key-bindings.h util.h window-classifier.h \
-  window-manager.h
+x-server.o: x-server.cc x-server.h \
+  command.h key-bindings.h util.h window-manager.h window-properties.h
+	$(CC) -c $<
+
+x-window.o: x-window.cc x-window.h \
+  command.h key-bindings.h util.h window-classifier.h window-manager.h
 	$(CC) -c $<
 
 clean:

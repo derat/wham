@@ -5,8 +5,9 @@
 
 #include "window.h"
 
-#include "mock-x.h"
-#include "x.h"
+#include "mock-x-window.h"
+#include "x-server.h"
+#include "x-window.h"
 
 using namespace wham;
 

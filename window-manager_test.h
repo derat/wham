@@ -9,7 +9,7 @@
 #include "desktop.h"
 #include "util.h"
 #include "window.h"
-#include "x.h"
+#include "x-server.h"
 
 using namespace wham;
 

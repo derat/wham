@@ -9,7 +9,8 @@
 #include "drawing-engine.h"
 #include "util.h"
 #include "window.h"
-#include "x.h"
+#include "x-server.h"
+#include "x-window.h"
 
 using namespace wham;
 

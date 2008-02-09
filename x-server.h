@@ -1,9 +1,8 @@
-// Copyright 2007 Daniel Erat <dan@erat.org>
+// Copyright 2008 Daniel Erat <dan@erat.org>
 // All rights reserved.
 
-// FIXME: split into x-window.h and x-server.h
-#ifndef __X_H__
-#define __X_H__
+#ifndef __X_SERVER_H__
+#define __X_SERVER_H__
 
 #include <map>
 #include <string>
@@ -12,86 +11,16 @@
 
 #include "command.h"
 #include "util.h"
-#include "window-properties.h"
+#include "x-window.h"
 
 using namespace std;
 
-class XTestSuite;  // from x_test.h
+class XServerTestSuite;  // from x-server_test.h
 
 namespace wham {
 
 class KeyBindings;
 class WindowManager;
-class WindowProperties;
-class XServer;
-
-class XWindow {
- public:
-  XWindow(::Window id);
-  virtual ~XWindow() {}
-
-  static XWindow* Create(int x, int y, uint width, uint height);
-
-  ::Window id() const { return id_; }
-
-  // Update 'props' with this window's current properties of type 'type'.
-  virtual bool UpdateProperties(WindowProperties* props,
-                                WindowProperties::ChangeType type);
-
-  virtual void Move(int x, int y);
-  virtual void Resize(uint width, uint height);
-  virtual void Unmap();
-  virtual void Map();
-  virtual void SelectEvents();
-  virtual void TakeFocus();
-  virtual void SetBorder(uint size);
-  virtual void Raise();
-  virtual void MakeSibling(const XWindow& leader);
-  // FIXME: change this to UpdateGeometry() and just update in-object vals
-  virtual void GetGeometry(int* x,
-                           int* y,
-                           uint* width,
-                           uint* height,
-                           uint* border_width);
-  virtual void Destroy();
-
-  virtual bool operator<(const XWindow& o) const {
-    return id_ < o.id_;
-  }
-
-  int x() const { return x_; }
-  int y() const { return y_; }
-  uint width() const { return width_; }
-  uint height() const { return height_; }
-
-  int initial_x() const { return initial_x_; }
-  int initial_y() const { return initial_y_; }
-  uint initial_width() const { return initial_width_; }
-  uint initial_height() const { return initial_height_; }
-
- protected:
-  int x_;
-  int y_;
-  uint width_;
-  uint height_;
-
-  int initial_x_;
-  int initial_y_;
-  uint initial_width_;
-  uint initial_height_;
-
- private:
-  // Convenience methods.
-  static ::Display* dpy();
-  static int scr();
-  static ::Window root();
-
-  // Get the window for which this window is a transient.
-  // Returns NULL if no such window exists.
-  virtual XWindow* GetTransientFor();
-
-  ::Window id_;
-};
 
 
 struct XKeyBinding {
@@ -154,7 +83,7 @@ class XServer {
   static bool Testing() { return testing_; }
 
  private:
-  friend class ::XTestSuite;
+  friend class ::XServerTestSuite;
   friend class XWindow;
 
   XWindow* GetWindow(::Window id, bool create);

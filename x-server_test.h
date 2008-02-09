@@ -6,13 +6,13 @@
 #include "command.h"
 #include "key-bindings.h"
 #include "util.h"
-#include "x.h"
+#include "x-server.h"
 
 using namespace wham;
 
-class XTestSuite : public CxxTest::TestSuite {
+class XServerTestSuite : public CxxTest::TestSuite {
  public:
-  void testXServer_GetModifiers() {
+  void testGetModifiers() {
     vector<string> mods;
     uint mod_bits = 0;
 
@@ -36,7 +36,7 @@ class XTestSuite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(mod_bits, static_cast<uint>(Mod1Mask));
   }
 
-  void testXServer_UpdateKeyBindingMap() {
+  void testUpdateKeyBindingMap() {
     KeyBindings bindings;
     XServer::XKeyBindingMap binding_map;
 

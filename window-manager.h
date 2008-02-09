@@ -14,13 +14,14 @@
 #include "util.h"
 #include "window.h"
 #include "window-classifier.h"
-#include "x.h"
 
 using namespace std;
 
 class WindowManagerTestSuite;
 
 namespace wham {
+
+class XWindow;
 
 class WindowManager {
  public:

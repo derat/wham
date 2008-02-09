@@ -6,7 +6,7 @@
 #include <sstream>
 
 #include "util.h"
-#include "x.h"
+#include "x-window.h"
 
 namespace wham {
 

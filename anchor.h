@@ -15,7 +15,7 @@ class AnchorTestSuite;
 namespace wham {
 
 class Window;   // from window.h
-class XWindow;  // from x.h
+class XWindow;  // from x-window.h
 
 // A collection of windows, exactly one of which is visible at any given
 // time.

@@ -16,8 +16,8 @@ namespace wham {
 
 class Anchor;   // from anchor.h
 class Window;   // from window.h
-class XWindow;  // from x.h
-class XServer;  // from x.h
+class XWindow;  // from x-window.h
+class XServer;  // from x-server.h
 
 class DrawingEngine {
  public:

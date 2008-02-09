@@ -10,7 +10,8 @@
 #include "window-manager.h"
 
 #include "config.h"
-#include "x.h"
+#include "x-server.h"
+#include "x-window.h"
 
 namespace wham {
 
