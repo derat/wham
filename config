@@ -1,6 +1,6 @@
 key_bindings {
   bind Ctrl+F1 exec /usr/bin/urxvt
-  bind Ctrl+F2 exec firefox
+  bind Ctrl+F2 exec /home/derat/local/firefox/firefox
 
   bind Ctrl+0 switch_nth_window 9
   bind Ctrl+1 switch_nth_window 0
@@ -21,7 +21,6 @@ key_bindings {
   bind Ctrl+k switch_nearest_anchor up
   bind Ctrl+l switch_nearest_anchor right
   bind Ctrl+n create_anchor
-  bind Ctrl+p toggle_anchor_persistence
   bind Ctrl+t toggle_tag
 }
 
@@ -41,17 +40,28 @@ window {
 
 window {
   criteria {
-    app_name [gG]ecko
+    app_class Firefox-bin
+    transient false
   }
   config default {
-    width 800
-    height 600
+    width 640
+    height 480
   }
 }
 
 window {
+  criteria {
+    transient true
+  }
   config default {
     width app
     height app
   }
 }
+
+//window {
+//  config default {
+//    width app
+//    height app
+//  }
+//}

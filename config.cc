@@ -42,7 +42,7 @@ bool Config::Load(const ConfigNode& conf) {
         return false;
       }
     } else {
-      ERROR << "Got unknown node in config";
+      ERROR << "Got unknown node \"" << node.tokens[0] << "\" in config";
       return false;
     }
   }

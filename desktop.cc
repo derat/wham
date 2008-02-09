@@ -21,16 +21,21 @@ Anchor* Desktop::CreateAnchor(const string& name, int x, int y) {
 
 
 void Desktop::AddWindow(Window* window) {
-  CHECK(!IsTitlebarWindow(window->x_window()));
-
   // FIXME: Add logic here to determine to which anchor the new
   // window is added, where it appears in the list, and whether it's
   // automatically focused, instead of just adding it at the end of the
   // current anchor.
-  CHECK(active_anchor_);
-  active_anchor_->AddWindow(window);
-  active_anchor_->SetActive(active_anchor_->windows().size()-1);
-  window_anchors_.insert(make_pair(window, active_anchor_));
+  AddWindowToAnchor(window, active_anchor_);
+}
+
+
+void Desktop::AddWindowToAnchor(Window* window, Anchor* anchor) {
+  CHECK(window);
+  CHECK(anchor);
+  CHECK(!IsTitlebarWindow(window->x_window()));
+  anchor->AddWindow(window);
+  anchor->SetActive(anchor->windows().size()-1);
+  window_anchors_.insert(make_pair(window, anchor));
 }
 
 
@@ -40,7 +45,7 @@ void Desktop::RemoveWindow(Window* window) {
   if (anchor) {
     anchor->RemoveWindow(window);
     window_anchors_.erase(window);
-    if (anchor->windows().empty() && !anchor->persistent()) {
+    if (anchor->windows().empty() && anchor->transient()) {
       DestroyAnchor(anchor);
     }
   }

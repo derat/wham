@@ -48,7 +48,8 @@ struct WindowProperties {
         min_aspect(0),
         max_aspect(0),
         base_width(0),
-        base_height(0) {}
+        base_height(0),
+        transient_for(NULL) {}
 
   string DebugString() const;
 
@@ -72,7 +73,8 @@ struct WindowProperties {
            min_aspect == o.min_aspect &&
            max_aspect == o.max_aspect &&
            base_width == o.base_width &&
-           base_height == o.base_height;
+           base_height == o.base_height &&
+           transient_for == o.transient_for;
   }
 
   bool operator!=(const WindowProperties& o) {
@@ -104,6 +106,8 @@ struct WindowProperties {
   int base_width;
   int base_height;
   // TODO: add win_gravity?
+
+  XWindow* transient_for;
 };
 
 }  // namespace wham

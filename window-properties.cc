@@ -41,7 +41,9 @@ string WindowProperties::DebugString() const {
       << "min_aspect=" << min_aspect << "\n"
       << "max_aspect=" << max_aspect << "\n"
       << "base_width=" << base_width << "\n"
-      << "base_height=" << base_height << "\n";
+      << "base_height=" << base_height << "\n"
+      << "transient_for=0x" << hex
+      << (transient_for ? transient_for->id() : 0) << "\n";
   return out.str();
 }
 

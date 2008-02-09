@@ -58,8 +58,13 @@ class WindowManager {
   // Execute the passed-in command.
   bool Exec(const string& command) const;
 
+  // Get the window for which 'transient' is a transient.
+  // Returns NULL if no transient-for window is set, or if the
+  // transient-for window doesn't exist.
+  Window* GetTransientFor(Window* transient) const;
+
   // Handle 'transient' declaring itself as a transient window for 'win'.
-  void MakeTransientFor(Window* transient, Window* win);
+  void HandleTransientFor(Window* transient, Window* win);
 
   // Get the active window from the focused anchor on the active desktop,
   // or NULL if none exists.

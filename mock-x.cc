@@ -8,7 +8,8 @@ using namespace std;
 namespace wham {
 
 MockXWindow::MockXWindow(::Window id)
-    : XWindow(id) {
+    : XWindow(id),
+      mapped_(false) {
 }
 
 
@@ -31,10 +32,12 @@ void MockXWindow::Resize(uint width, uint height) {
 
 
 void MockXWindow::Unmap() {
+  mapped_ = false;
 }
 
 
 void MockXWindow::Map() {
+  mapped_ = true;
 }
 
 

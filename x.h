@@ -38,10 +38,6 @@ class XWindow {
   virtual bool UpdateProperties(WindowProperties* props,
                                 WindowProperties::ChangeType type);
 
-  // Get the window for which this window is a transient.
-  // Returns NULL if no such window exists.
-  virtual XWindow* GetTransientFor();
-
   virtual void Move(int x, int y);
   virtual void Resize(uint width, uint height);
   virtual void Unmap();
@@ -51,6 +47,7 @@ class XWindow {
   virtual void SetBorder(uint size);
   virtual void Raise();
   virtual void MakeSibling(const XWindow& leader);
+  // FIXME: change this to UpdateGeometry() and just update in-object vals
   virtual void GetGeometry(int* x,
                            int* y,
                            uint* width,
@@ -67,17 +64,31 @@ class XWindow {
   uint width() const { return width_; }
   uint height() const { return height_; }
 
+  int initial_x() const { return initial_x_; }
+  int initial_y() const { return initial_y_; }
+  uint initial_width() const { return initial_width_; }
+  uint initial_height() const { return initial_height_; }
+
  protected:
   int x_;
   int y_;
   uint width_;
   uint height_;
 
+  int initial_x_;
+  int initial_y_;
+  uint initial_width_;
+  uint initial_height_;
+
  private:
   // Convenience methods.
   static ::Display* dpy();
   static int scr();
   static ::Window root();
+
+  // Get the window for which this window is a transient.
+  // Returns NULL if no such window exists.
+  virtual XWindow* GetTransientFor();
 
   ::Window id_;
 };

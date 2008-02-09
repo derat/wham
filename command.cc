@@ -17,7 +17,6 @@ const Command::Info Command::info_[] = {
   { "switch_nearest_anchor",     SWITCH_NEAREST_ANCHOR,     DIRECTION_ARG },
   { "switch_nth_anchor",         SWITCH_NTH_ANCHOR,         INT_ARG },
   { "switch_nth_window",         SWITCH_NTH_WINDOW,         INT_ARG },
-  { "toggle_anchor_persistence", TOGGLE_ANCHOR_PERSISTENCE, NO_ARG },
   { "toggle_tag",                TOGGLE_TAG,                NO_ARG },
   { "unknown",                   UNKNOWN,                   NO_ARG },
 };

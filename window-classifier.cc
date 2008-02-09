@@ -99,6 +99,8 @@ bool WindowCriteria::Matches(const WindowProperties& props) const {
 
 const string& WindowCriteria::GetPropertyForCriterionType(
     const WindowProperties& props, CriterionType type) {
+  static const string true_str = "true";
+  static const string false_str = "false";
   switch (type) {
     case CRITERION_TYPE_WINDOW_NAME:
       return props.window_name;
@@ -110,6 +112,8 @@ const string& WindowCriteria::GetPropertyForCriterionType(
       return props.app_name;
     case CRITERION_TYPE_APP_CLASS:
       return props.app_class;
+    case CRITERION_TYPE_TRANSIENT:
+      return (props.transient_for != NULL) ? true_str : false_str;
     default:
       ERROR << "Window property requested for unknown criterion type " << type;
       CHECK(false);

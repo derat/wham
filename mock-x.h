@@ -34,8 +34,12 @@ class MockXWindow : public XWindow {
                    uint* border_width);
   void Destroy();
 
+  bool mapped() { return mapped_; }
+
  private:
   ::Window id_;
+
+  bool mapped_;
 };
 
 }  // namespace wham

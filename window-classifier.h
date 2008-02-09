@@ -134,6 +134,7 @@ class WindowCriteria {
     CRITERION_TYPE_COMMAND,
     CRITERION_TYPE_APP_NAME,
     CRITERION_TYPE_APP_CLASS,
+    CRITERION_TYPE_TRANSIENT,
     CRITERION_TYPE_UNKNOWN,
   };
 
@@ -143,6 +144,7 @@ class WindowCriteria {
     if (str == "command")     return CRITERION_TYPE_COMMAND;
     if (str == "app_name")    return CRITERION_TYPE_APP_NAME;
     if (str == "app_class")   return CRITERION_TYPE_APP_CLASS;
+    if (str == "transient")   return CRITERION_TYPE_TRANSIENT;
     return CRITERION_TYPE_UNKNOWN;
   }
 

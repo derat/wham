@@ -18,7 +18,7 @@ Anchor::Anchor(const string& name, int x, int y)
     : name_(),
       x_(x),
       y_(y),
-      persistent_(true),
+      transient_(false),
       active_index_(0),
       active_window_(NULL),
       gravity_(TOP_LEFT),

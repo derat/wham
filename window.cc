@@ -16,7 +16,6 @@ Window::Window(XWindow* x_window)
       configs_(),
       tagged_(false) {
   CHECK(x_window_);
-  x_window_->GetGeometry(NULL, NULL, &width_, &height_, NULL);
   props_.UpdateAll(x_window_);
   Classify();
 }
@@ -34,19 +33,18 @@ void Window::Move(int x, int y) {
 
 
 void Window::Resize(uint width, uint height) {
+  DEBUG << "Resizing to (" << width << ", " << height << ")";
   x_window_->Resize(width, height);
-  width_ = width;
-  height_ = height;
-}
-
-
-void Window::Unmap() {
-  x_window_->Unmap();
 }
 
 
 void Window::Map() {
   x_window_->Map();
+}
+
+
+void Window::Unmap() {
+  x_window_->Unmap();
 }
 
 
@@ -110,7 +108,7 @@ void Window::ApplyConfig() {
   } else if (config->width_type == WindowConfig::DIMENSION_UNITS) {
     width = props_.base_width + config->width * props_.width_inc;
   } else if (config->width_type == WindowConfig::DIMENSION_APP) {
-    width = props_.width;
+    width = props_.width > 0 ? props_.width : x_window_->initial_width();
   } else if (config->width_type == WindowConfig::DIMENSION_MAX) {
     width = XServer::Get()->width(); // FIXME: ugly
   } else {
@@ -123,11 +121,25 @@ void Window::ApplyConfig() {
   } else if (config->height_type == WindowConfig::DIMENSION_UNITS) {
     height = props_.base_height + config->height * props_.height_inc;
   } else if (config->height_type == WindowConfig::DIMENSION_APP) {
-    height = props_.height;
+    height = props_.height > 0 ? props_.height : x_window_->initial_height();
   } else if (config->height_type == WindowConfig::DIMENSION_MAX) {
     height = XServer::Get()->height(); // FIXME: ugly
   } else {
     ERROR << "Unknown height type " << config->height_type;
+  }
+
+  if (props_.min_width > 0) {
+    width = max(width, static_cast<uint>(props_.min_width));
+  }
+  if (props_.max_width > 0) {
+    width = min(width, static_cast<uint>(props_.max_width));
+  }
+
+  if (props_.min_height > 0) {
+    height = max(height, static_cast<uint>(props_.min_height));
+  }
+  if (props_.max_height > 0) {
+    height = min(height, static_cast<uint>(props_.max_height));
   }
 
   if (width <= 0 || height <= 0) {

@@ -27,7 +27,14 @@ class Desktop {
   // Create a new anchor.
   Anchor* CreateAnchor(const string& name, int x, int y);
 
+  // Add 'window' to the active anchor.
   void AddWindow(Window* window);
+
+  // Add 'window' to 'anchor' on this desktop.
+  void AddWindowToAnchor(Window* window, Anchor* anchor);
+
+  // Remove 'window' from an anchor on this desktop, if it's present in
+  // one.  Does nothing if it's not.
   void RemoveWindow(Window* window);
 
   // Look up an anchor based on its titlebar.

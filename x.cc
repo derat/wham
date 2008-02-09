@@ -64,6 +64,11 @@ static const char* XEventTypeToName(int type) {
 
 XWindow::XWindow(::Window id)
     : id_(id) {
+  GetGeometry(&x_, &y_, &width_, &height_, NULL);
+  initial_x_ = x_;
+  initial_y_ = y_;
+  initial_width_ = width_;
+  initial_height_ = height_;
 }
 
 
@@ -82,10 +87,6 @@ XWindow* XWindow::Create(int x, int y, uint width, uint height) {
                  ExposureMask | PointerMotionMask | PropertyChangeMask);
   }
   XWindow* win = XServer::Get()->GetWindow(id, true);
-  win->x_ = x;
-  win->y_ = y;
-  win->width_ = width;
-  win->height_ = height;
   return win;
 }
 
@@ -169,6 +170,8 @@ bool XWindow::UpdateProperties(WindowProperties* props,
       props->base_height = size_hints->base_height;
     }
     XFree(size_hints);
+  } else if (type == WindowProperties::TRANSIENT_CHANGE) {
+    props->transient_for = GetTransientFor();
   } else {
     ERROR << "Unable to handle property change of type "
           << WindowProperties::ChangeTypeToStr(type);
@@ -176,21 +179,6 @@ bool XWindow::UpdateProperties(WindowProperties* props,
   }
 
   return true;
-}
-
-
-XWindow* XWindow::GetTransientFor() {
-  ::Window win_id;
-  if (!XGetTransientForHint(dpy(), id_, &win_id)) {
-    ERROR << "XGetTransientForHint() failed for 0x" << hex << id_;
-    return NULL;
-  }
-  XWindow* win = XServer::Get()->GetWindow(win_id, false);
-  if (win == NULL) {
-    ERROR << hex << "0x" << id_ << " claims to be a transient for 0x"
-          << win_id << ", which isn't registered";
-  }
-  return win;
 }
 
 
@@ -283,6 +271,21 @@ int XWindow::scr() {
 
 ::Window XWindow::root() {
   return XServer::Get()->root();
+}
+
+
+XWindow* XWindow::GetTransientFor() {
+  ::Window win_id;
+  if (!XGetTransientForHint(dpy(), id_, &win_id)) {
+    ERROR << "XGetTransientForHint() failed for 0x" << hex << id_;
+    return NULL;
+  }
+  XWindow* win = XServer::Get()->GetWindow(win_id, false);
+  if (win == NULL) {
+    ERROR << hex << "0x" << id_ << " claims to be a transient for 0x"
+          << win_id << ", which isn't registered";
+  }
+  return win;
 }
 
 
@@ -443,10 +446,7 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
             << " state=" << (e.state == PropertyNewValue ?
                              "PropertyNewValue" : "PropertyDeleted");
       if (type != WindowProperties::OTHER_CHANGE) {
-        if (type == WindowProperties::TRANSIENT_CHANGE) {
-        } else {
-          window_manager->HandlePropertyChange(x_window, type);
-        }
+        window_manager->HandlePropertyChange(x_window, type);
       }
     } else {
       DEBUG << XEventTypeToName(event.type);

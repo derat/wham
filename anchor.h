@@ -38,8 +38,8 @@ class Anchor {
   string name() const { return name_; }
   int x() const { return x_; }
   int y() const { return y_; }
-  bool persistent() const { return persistent_; }
-  void set_persistent(bool persistent) { persistent_ = persistent; }
+  bool transient() const { return transient_; }
+  void set_transient(bool transient) { transient_ = transient; }
   XWindow* titlebar() { return titlebar_; }
   Gravity gravity() const { return gravity_; }
   const vector<Window*>& windows() const { return windows_; }
@@ -91,9 +91,8 @@ class Anchor {
   int x_;
   int y_;
 
-  // Should this anchor remain present even when its last window has been
-  // closed or moved away?
-  bool persistent_;
+  // Was this anchor just created to hold a transient window?
+  bool transient_;
 
   // Pointers to windows stored within this anchor
   typedef vector<Window*> WindowVector;

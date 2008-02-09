@@ -125,7 +125,12 @@ void WindowManager::HandleMapWindow(XWindow* x_window) {
     x_window->SelectEvents();
     ref_ptr<Window> window(new Window(x_window));
     windows_.insert(make_pair(x_window, window));
-    active_desktop_->AddWindow(window.get());
+    Window* transient_for = GetTransientFor(window.get());
+    if (transient_for == NULL) {
+      active_desktop_->AddWindow(window.get());
+    } else {
+      HandleTransientFor(window.get(), transient_for);
+    }
   }
 }
 
@@ -153,12 +158,7 @@ void WindowManager::HandlePropertyChange(
   CHECK(window);
 
   if (type == WindowProperties::TRANSIENT_CHANGE) {
-    XWindow* x_parent = x_window->GetTransientFor();
-    if (x_parent == NULL) return;
-    Window* parent = FindWithDefault(
-        windows_, x_parent, ref_ptr<Window>()).get();
-    CHECK(parent);  // FIXME: add an error message here
-    MakeTransientFor(window, parent);
+    // FIXME: handle this?
   } else {
     bool need_to_redraw = window->HandlePropertyChange(type);
     if (need_to_redraw) {
@@ -189,13 +189,6 @@ void WindowManager::HandleCommand(const Command &cmd) {
   } else if (cmd.type() == Command::SWITCH_NTH_WINDOW) {
     Anchor* anchor = active_desktop_->active_anchor();
     if (anchor) anchor->SetActive(cmd.GetIntArg());
-  } else if (cmd.type() == Command::TOGGLE_ANCHOR_PERSISTENCE) {
-    Anchor* anchor = active_desktop_->active_anchor();
-    if (anchor) {
-      anchor->set_persistent(!anchor->persistent());
-      DEBUG << "Set persistence on anchor " << anchor->name()
-            << " to " << anchor->persistent();
-    }
   } else if (cmd.type() == Command::TOGGLE_TAG) {
     Window* window = GetActiveWindow();
     if (window) {
@@ -272,7 +265,26 @@ bool WindowManager::Exec(const string& command) const {
 }
 
 
-void WindowManager::MakeTransientFor(Window* transient, Window* win) {
+Window* WindowManager::GetTransientFor(Window* transient) const {
+  CHECK(transient);
+  XWindow* xwin = transient->transient_for();
+  return FindWithDefault(windows_, xwin, ref_ptr<Window>()).get();
+}
+
+
+void WindowManager::HandleTransientFor(Window* transient, Window* win) {
+  CHECK(transient);
+  CHECK(win);
+
+  // FIXME: find the right desktop(s)
+  Anchor* win_anchor = active_desktop_->GetAnchorContainingWindow(win);
+  CHECK(win_anchor);
+
+  int x = win->x() + win->width() / 2 - transient->width() / 2;
+  int y = win->y() + win->height() / 2 - transient->height() / 2;
+  Anchor* anchor = active_desktop_->CreateAnchor("transient", x, y);
+  anchor->set_transient(true);
+  active_desktop_->AddWindowToAnchor(transient, anchor);
 }
 
 

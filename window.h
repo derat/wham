@@ -26,8 +26,8 @@ class Window {
 
   void Move(int x, int y);
   void Resize(uint width, uint height);
-  void Unmap();
   void Map();
+  void Unmap();
   void TakeFocus();
   void Raise();
   void MakeSibling(const XWindow& leader);
@@ -48,6 +48,7 @@ class Window {
   void set_tagged(bool tagged) { tagged_ = tagged; }
 
   XWindow* x_window() const { return x_window_; }
+  XWindow* transient_for() const { return props_.transient_for; }
 
  private:
   bool Classify();
