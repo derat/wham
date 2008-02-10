@@ -8,4 +8,9 @@
 - add select loop to add a timer
 - InfoWindow: write class and add to DrawingEngine
 - double-check fork() in exec
+- redraw anchor titlebar when window name changes
+- bound anchor titlebar to within root window
+- clip window name text in anchor
+- subtract titlebar height from maximized window height
+- add different style for active windows in non-active anchors
 - a million other things
