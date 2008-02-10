@@ -145,6 +145,7 @@ bool XWindow::UpdateProperties(WindowProperties* props,
 
 
 void XWindow::Move(int x, int y) {
+  if (x == x_ && y == y_) return;
   x_ = x;
   y_ = y;
   XMoveWindow(dpy(), id_, x, y);
@@ -152,6 +153,7 @@ void XWindow::Move(int x, int y) {
 
 
 void XWindow::Resize(uint width, uint height) {
+  if (width == width_ && height == height_) return;
   width_ = width;
   height_ = height;
   XResizeWindow(dpy(), id_, width, height);

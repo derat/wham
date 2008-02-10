@@ -57,6 +57,7 @@ class Anchor {
   void RemoveWindow(Window* window);
 
   // Move the anchor to a new position.
+  // The anchor will be constrained within the root window's dimensions.
   void Move(int x, int y);
 
   // Raise this anchor to the top of the stacking order.

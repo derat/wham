@@ -10,6 +10,7 @@
 #include "drawing-engine.h"
 #include "util.h"
 #include "window.h"
+#include "x-server.h"
 #include "x-window.h"
 
 namespace wham {
@@ -71,6 +72,20 @@ void Anchor::RemoveWindow(Window* window) {
 
 
 void Anchor::Move(int x, int y) {
+  // Constrain the anchor within the root window's dimensions.
+  int min_x = (gravity_ == TOP_LEFT || gravity_ == BOTTOM_LEFT) ?
+      0 : titlebar_->width();
+  int max_x = (gravity_ == TOP_LEFT || gravity_ == BOTTOM_LEFT) ?
+      XServer::Get()->width() - titlebar_->width() :
+      XServer::Get()->width();
+  int min_y = (gravity_ == TOP_LEFT || gravity_ == TOP_RIGHT) ?
+      0 : titlebar_->height();
+  int max_y = (gravity_ == TOP_LEFT || gravity_ == TOP_RIGHT) ?
+      XServer::Get()->height() - titlebar_->height() :
+      XServer::Get()->height();
+  x = min(max(min_x, x), max_x);
+  y = min(max(min_y, y), max_y);
+
   x_ = x;
   y_ = y;
 
@@ -120,7 +135,9 @@ bool Anchor::SetActive(uint index) {
 
 void Anchor::DrawTitlebar() {
   DrawingEngine::Get()->DrawAnchor(*this, titlebar_);
-  UpdateTitlebarPosition();
+  // Move the window to its current position to handle the case where the
+  // titlebar might've been cut off.
+  Move(x_, y_);
 }
 
 
