@@ -101,14 +101,11 @@ class WindowConfigSet {
 
   // Cycle the active config either forward or backward, wrapping if
   // necessary.
-  void CycleActiveConfig(bool forward) {
-    if (configs_.size() <= 1) return;
-    active_ = (active_ + configs_.size() + (forward ? 1 : -1)) %
-        configs_.size();
-  }
+  void CycleActiveConfig(bool forward);
 
-  // Get the number of configs in this set.
-  size_t NumConfigs() const { return configs_.size(); }
+  // Switch to the config named 'name'.
+  // Returns true if successful and false otherwise.
+  bool SetActiveConfigByName(const string& name);
 
  private:
   friend class ::WindowClassifierTestSuite;

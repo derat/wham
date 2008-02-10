@@ -59,18 +59,18 @@ class WindowClassifierTestSuite : public CxxTest::TestSuite {
 
   void testWindowConfigSet_misc() {
     WindowConfigSet configs;
-    TS_ASSERT_EQUALS(configs.NumConfigs(), 0U);
+    TS_ASSERT(configs.configs_.empty());
 
     WindowConfig config("default", 100, 100);
     configs.MergeConfig(config);
-    TS_ASSERT_EQUALS(configs.NumConfigs(), 1U);
+    TS_ASSERT_EQUALS(configs.configs_.size(), 1U);
 
     WindowConfig config2("foo", 100, 100);
     configs.MergeConfig(config2);
-    TS_ASSERT_EQUALS(configs.NumConfigs(), 2U);
+    TS_ASSERT_EQUALS(configs.configs_.size(), 2U);
 
     configs.Clear();
-    TS_ASSERT_EQUALS(configs.NumConfigs(), 0U);
+    TS_ASSERT_EQUALS(configs.configs_.size(), 0U);
   }
 
   void testWindowConfigSet_CycleActiveConfig() {
@@ -199,17 +199,17 @@ class WindowClassifierTestSuite : public CxxTest::TestSuite {
     props.app_name = "rxvt";
     WindowConfigSet matched_configs;
     TS_ASSERT(classifier.ClassifyWindow(props, &matched_configs));
-    TS_ASSERT_EQUALS(matched_configs.NumConfigs(), 2U);
+    TS_ASSERT_EQUALS(matched_configs.configs_.size(), 2U);
 
     props.app_name = "xterm";
     matched_configs.Clear();
     TS_ASSERT(classifier.ClassifyWindow(props, &matched_configs));
-    TS_ASSERT_EQUALS(matched_configs.NumConfigs(), 2U);
+    TS_ASSERT_EQUALS(matched_configs.configs_.size(), 2U);
 
     props.app_name = "blah";
     matched_configs.Clear();
     TS_ASSERT(classifier.ClassifyWindow(props, &matched_configs));
-    TS_ASSERT_EQUALS(matched_configs.NumConfigs(), 1U);
+    TS_ASSERT_EQUALS(matched_configs.configs_.size(), 1U);
   }
 
   void testWindowClassifier_ParseDimensions() {

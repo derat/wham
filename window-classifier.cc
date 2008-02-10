@@ -51,6 +51,24 @@ void WindowConfigSet::MergeConfig(const WindowConfig& config) {
 }
 
 
+void WindowConfigSet::CycleActiveConfig(bool forward) {
+  if (configs_.size() <= 1) return;
+  active_ = (active_ + configs_.size() + (forward ? 1 : -1)) %
+      configs_.size();
+}
+
+
+bool WindowConfigSet::SetActiveConfigByName(const string& name) {
+  for (uint i = 0; i < configs_.size(); ++i) {
+    if (configs_[i]->name == name) {
+      active_ = i;
+      return true;
+    }
+  }
+  return false;
+}
+
+
 bool WindowCriteria::AddCriterion(CriterionType type, const string& pattern) {
   if (pattern.size() >= 2 &&
       pattern[0] == '/' &&
@@ -171,6 +189,11 @@ bool WindowClassifier::ClassifyWindow(
     const WindowProperties& props,
     WindowConfigSet* configs) const {
   CHECK(configs);
+
+  // Get the name of the previously-active config so we can continue using
+  // it if possible after reclassification.
+  const WindowConfig* prev_config = configs->GetActiveConfig();
+  string prev_config_name = prev_config ? prev_config->name : "";
   configs->Clear();
 
   bool classified = false;
@@ -193,6 +216,8 @@ bool WindowClassifier::ClassifyWindow(
       classified = true;
     }
   }
+
+  if (classified) configs->SetActiveConfigByName(prev_config_name);
 
   return classified;
 }
