@@ -39,6 +39,7 @@ class XWindow {
   virtual void SetBorder(uint size);
   virtual void Raise();
   virtual void MakeSibling(const XWindow& leader);
+  virtual void Reparent(XWindow* parent, int x, int y);
   // FIXME: change this to UpdateGeometry() and just update in-object vals
   virtual void GetGeometry(int* x,
                            int* y,
@@ -71,6 +72,8 @@ class XWindow {
   int initial_y_;
   uint initial_width_;
   uint initial_height_;
+
+  XWindow* parent_;
 
  private:
   // Convenience methods.

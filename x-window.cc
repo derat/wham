@@ -15,7 +15,8 @@ using namespace std;
 namespace wham {
 
 XWindow::XWindow(::Window id)
-    : id_(id) {
+    : parent_(NULL),
+      id_(id) {
   if (!XServer::Testing()) {
     GetGeometry(&x_, &y_, &width_, &height_, NULL);
     initial_x_ = x_;
@@ -193,6 +194,12 @@ void XWindow::MakeSibling(const XWindow& leader) {
   changes.sibling = leader.id();
   changes.stack_mode = Below;
   XConfigureWindow(dpy(), id_, CWSibling | CWStackMode, &changes);
+}
+
+
+void XWindow::Reparent(XWindow* parent, int x, int y) {
+  XReparentWindow(dpy(), id_, parent ? parent->id() : root(), x, y);
+  parent_ = parent;
 }
 
 

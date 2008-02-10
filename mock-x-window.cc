@@ -61,6 +61,12 @@ void MockXWindow::MakeSibling(const XWindow& leader) {
 }
 
 
+void MockXWindow::Reparent(XWindow* parent, int x, int y) {
+  parent_ = parent;
+  Move(x, y);
+}
+
+
 void MockXWindow::GetGeometry(int* x,
                               int* y,
                               uint* width,

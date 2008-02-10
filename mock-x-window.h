@@ -27,6 +27,7 @@ class MockXWindow : public XWindow {
   void SetBorder(uint size);
   void Raise();
   void MakeSibling(const XWindow& leader);
+  void Reparent(XWindow* parent, int x, int y);
   void GetGeometry(int* x,
                    int* y,
                    uint* width,
