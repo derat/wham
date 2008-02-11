@@ -45,6 +45,7 @@ class Anchor {
   const vector<Window*>& windows() const { return windows_; }
   const Window* active_window() const { return active_window_; }
   Window* mutable_active_window() { return active_window_; }
+  bool active() const { return active_; }
 
   // Set the anchor's name.
   void SetName(const string& name);
@@ -63,8 +64,12 @@ class Anchor {
   // Raise this anchor to the top of the stacking order.
   void Raise();
 
+  // Set the anchor to be active or non-active, redrawing the titlebar if
+  // necessary.
+  void SetActive(bool active);
+
   // Set which (zero-indexed) window should be currently displayed.
-  bool SetActive(uint index);
+  bool SetActiveWindow(uint index);
 
   void DrawTitlebar();
 
@@ -125,6 +130,9 @@ class Anchor {
 
   // Titlebar window; not owned.
   XWindow* titlebar_;
+
+  // Is this anchor active?
+  bool active_;
 
   DISALLOW_EVIL_CONSTRUCTORS(Anchor);
 };

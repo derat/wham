@@ -43,6 +43,7 @@ class Window {
   int y() const;
   uint width() const;
   uint height() const;
+  const WindowProperties& props() const { return props_; }
 
   bool tagged() const { return tagged_; }
   void set_tagged(bool tagged) { tagged_ = tagged; }
@@ -59,11 +60,8 @@ class Window {
   bool UpdateProperties(WindowProperties::ChangeType type, bool* changed);
 
   // A pointer to information about the X window; used for interacting with
-  // the server
+  // the X server.
   XWindow* x_window_;  // not owned
-
-  uint width_;
-  uint height_;
 
   WindowProperties props_;
 

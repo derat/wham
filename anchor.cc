@@ -23,7 +23,8 @@ Anchor::Anchor(const string& name, int x, int y)
       active_index_(0),
       active_window_(NULL),
       gravity_(TOP_LEFT),
-      titlebar_(XWindow::Create(x, y, 1, 1)) {
+      titlebar_(XWindow::Create(x, y, 1, 1)),
+      active_(false) {
   CHECK(titlebar_);
   SetName(name);
   DrawTitlebar();
@@ -48,7 +49,7 @@ void Anchor::SetName(const string& name) {
 void Anchor::AddWindow(Window* window) {
   CHECK(find(windows_.begin(), windows_.end(), window) == windows_.end());
   windows_.push_back(window);
-  if (!active_window_) SetActive(0);
+  if (!active_window_) SetActiveWindow(0);
 }
 
 
@@ -63,7 +64,7 @@ void Anchor::RemoveWindow(Window* window) {
     if (!windows_.empty()) {
       size_t new_index = active_index_;
       if (new_index >= windows_.size()) new_index = windows_.size() - 1;
-      SetActive(new_index);
+      SetActiveWindow(new_index);
     } else {
       DrawTitlebar();
     }
@@ -73,6 +74,7 @@ void Anchor::RemoveWindow(Window* window) {
 
 void Anchor::Move(int x, int y) {
   // Constrain the anchor within the root window's dimensions.
+  CHECK(titlebar_->width() > 0 && titlebar_->height() > 0);
   int min_x = (gravity_ == TOP_LEFT || gravity_ == BOTTOM_LEFT) ?
       0 : titlebar_->width();
   int max_x = (gravity_ == TOP_LEFT || gravity_ == BOTTOM_LEFT) ?
@@ -100,7 +102,15 @@ void Anchor::Raise() {
 }
 
 
-bool Anchor::SetActive(uint index) {
+void Anchor::SetActive(bool active) {
+  if (active == active_) return;
+  active_ = active;
+  DrawTitlebar();
+  FocusActiveWindow();
+}
+
+
+bool Anchor::SetActiveWindow(uint index) {
   if (index < 0 || index >= windows_.size()) {
     ERROR << "Ignoring request to activate window " << index
           << " in anchor " << name_ << " containing " << windows_.size()
@@ -126,7 +136,7 @@ bool Anchor::SetActive(uint index) {
   UpdateWindowPosition(active_window_);
   active_window_->MakeSibling(*titlebar_);
   active_window_->Map();
-  active_window_->TakeFocus();
+  FocusActiveWindow();
 
   DrawTitlebar();
   return true;
@@ -144,7 +154,7 @@ void Anchor::DrawTitlebar() {
 void Anchor::ActivateWindowAtTitlebarCoordinates(int x, int y) {
   if (windows_.empty()) return;
   int index = (x - titlebar_->x()) * windows_.size() / titlebar_->width();
-  SetActive(index);
+  SetActiveWindow(index);
 }
 
 

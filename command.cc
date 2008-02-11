@@ -13,6 +13,7 @@ const Command::Info Command::info_[] = {
   { "create_anchor",             CREATE_ANCHOR,             NO_ARG },
   { "cycle_anchor_gravity",      CYCLE_ANCHOR_GRAVITY,      BOOL_ARG },
   { "cycle_window_config",       CYCLE_WINDOW_CONFIG,       BOOL_ARG },
+  { "display_window_props",      DISPLAY_WINDOW_PROPS,      NO_ARG },
   { "exec",                      EXEC,                      STRING_ARG },
   { "switch_nearest_anchor",     SWITCH_NEAREST_ANCHOR,     DIRECTION_ARG },
   { "switch_nth_anchor",         SWITCH_NTH_ANCHOR,         INT_ARG },

@@ -96,7 +96,10 @@ bool XServer::Init() {
                  &width_, &height_, &border_width, &depth);
 
     XSelectInput(display_, root_, SubstructureNotifyMask);
-
+  } else {
+    // FIXME: do this more cleanly
+    width_ = 1024;
+    height_ = 768;
   }
 
   initialized_ = true;

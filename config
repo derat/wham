@@ -17,6 +17,7 @@ key_bindings {
   bind Ctrl+g cycle_anchor_gravity true
   bind Ctrl+Shift+g cycle_anchor_gravity false
   bind Ctrl+h switch_nearest_anchor left
+  bind Ctrl+i display_window_props
   bind Ctrl+j switch_nearest_anchor down
   bind Ctrl+k switch_nearest_anchor up
   bind Ctrl+l switch_nearest_anchor right

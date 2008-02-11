@@ -182,6 +182,9 @@ void WindowManager::HandleCommand(const Command &cmd) {
   } else if (cmd.type() == Command::CYCLE_WINDOW_CONFIG) {
     Anchor* anchor = active_desktop_->active_anchor();
     if (anchor) anchor->CycleActiveWindowConfig(cmd.GetBoolArg());
+  } else if (cmd.type() == Command::DISPLAY_WINDOW_PROPS) {
+    Window* window = GetActiveWindow();
+    if (window) LOG << window->props().DebugString();
   } else if (cmd.type() == Command::EXEC) {
     Exec(cmd.GetStringArg());
   } else if (cmd.type() == Command::SWITCH_NEAREST_ANCHOR) {
@@ -189,7 +192,7 @@ void WindowManager::HandleCommand(const Command &cmd) {
     if (anchor) active_desktop_->SetActiveAnchor(anchor);
   } else if (cmd.type() == Command::SWITCH_NTH_WINDOW) {
     Anchor* anchor = active_desktop_->active_anchor();
-    if (anchor) anchor->SetActive(cmd.GetIntArg());
+    if (anchor) anchor->SetActiveWindow(cmd.GetIntArg());
   } else if (cmd.type() == Command::TOGGLE_TAG) {
     Window* window = GetActiveWindow();
     if (window) {

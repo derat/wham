@@ -12,8 +12,6 @@ namespace wham {
 
 Window::Window(XWindow* x_window)
     : x_window_(x_window),
-      width_(0),
-      height_(0),
       props_(),
       configs_(),
       tagged_(false) {
@@ -89,7 +87,7 @@ uint Window::height() const { return x_window_->height(); }
 
 
 bool Window::Classify() {
-  DEBUG << "Classifying for " << props_.DebugString();
+  DEBUG << "Classifying window";
   if (!WindowClassifier::Get()->ClassifyWindow(props_, &configs_)) {
     ERROR << "Unable to classify window";
     return false;

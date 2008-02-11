@@ -79,6 +79,7 @@ class XServer {
 
   void RegisterKeyBindings(const KeyBindings& bindings);
 
+  // FIXME: clean this up
   static void SetTesting(bool testing) { testing_ = testing; }
   static bool Testing() { return testing_; }
 

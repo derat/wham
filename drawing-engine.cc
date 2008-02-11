@@ -21,49 +21,84 @@ namespace wham {
 ref_ptr<DrawingEngine> DrawingEngine::singleton_(new DrawingEngine);
 
 const DrawingEngine::Style::StringDef DrawingEngine::Style::string_defs_[] = {
-  { FOCUSED_ANCHOR__BACKGROUND,
-    "focused_anchor.background", "#bbbbbb" },
-  { FOCUSED_ANCHOR__FONT,
-    "focused_anchor.font", "fixed" },
-  { FOCUSED_ANCHOR__ACTIVE_WINDOW__BACKGROUND,
-    "focused_anchor.active_window.background", "#3d4479" },
-  { FOCUSED_ANCHOR__ACTIVE_WINDOW__TEXT_COLOR,
-    "focused_anchor.active_window.text_color", "#ffffff" },
-  { FOCUSED_ANCHOR__INACTIVE_WINDOW__BACKGROUND,
-    "focused_anchor.inactive_window.background", "#bbbbbb" },
-  { FOCUSED_ANCHOR__INACTIVE_WINDOW__TEXT_COLOR,
-    "focused_anchor.inactive_window.text_color", "#555555" },
+  { INACTIVE_ANCHOR__BACKGROUND,
+    "inactive_anchor.background", "#999999" },
+  { INACTIVE_ANCHOR__FONT,
+    "inactive_anchor.font", "fixed" },
+  { INACTIVE_ANCHOR__ACTIVE_WINDOW__BACKGROUND,
+    "inactive_anchor.active_window.background", "#666666" },
+  { INACTIVE_ANCHOR__ACTIVE_WINDOW__TEXT_COLOR,
+    "inactive_anchor.active_window.text_color", "#ffffff" },
+  { INACTIVE_ANCHOR__INACTIVE_WINDOW__BACKGROUND,
+    "inactive_anchor.inactive_window.background", "#999999" },
+  { INACTIVE_ANCHOR__INACTIVE_WINDOW__TEXT_COLOR,
+    "inactive_anchor.inactive_window.text_color", "#222222" },
+  { ACTIVE_ANCHOR__BACKGROUND,
+    "active_anchor.background", "#bbbbbb" },
+  { ACTIVE_ANCHOR__FONT,
+    "active_anchor.font", "fixed" },
+  { ACTIVE_ANCHOR__ACTIVE_WINDOW__BACKGROUND,
+    "active_anchor.active_window.background", "#3d4479" },
+  { ACTIVE_ANCHOR__ACTIVE_WINDOW__TEXT_COLOR,
+    "active_anchor.active_window.text_color", "#ffffff" },
+  { ACTIVE_ANCHOR__INACTIVE_WINDOW__BACKGROUND,
+    "active_anchor.inactive_window.background", "#bbbbbb" },
+  { ACTIVE_ANCHOR__INACTIVE_WINDOW__TEXT_COLOR,
+    "active_anchor.inactive_window.text_color", "#555555" },
   { INVALID_TYPE, NULL, NULL },
 };
 
 const DrawingEngine::Style::UintDef DrawingEngine::Style::uint_defs_[] = {
-  { FOCUSED_ANCHOR__BORDER_WIDTH,
-    "focused_anchor.border_width", 1 },
-  { FOCUSED_ANCHOR__PADDING,
-    "focused_anchor.padding", 2 },
-  { FOCUSED_ANCHOR__WINDOW_SPACING,
-    "focused_anchor.window_spacing", 2 },
-  { FOCUSED_ANCHOR__ACTIVE_WINDOW__BORDER_WIDTH,
-    "focused_anchor.active_window.border_width", 1 },
-  { FOCUSED_ANCHOR__ACTIVE_WINDOW__PADDING,
-    "focused_anchor.active_window.padding", 2 },
-  { FOCUSED_ANCHOR__INACTIVE_WINDOW__BORDER_WIDTH,
-    "focused_anchor.inactive_window.border_width", 1 },
-  { FOCUSED_ANCHOR__INACTIVE_WINDOW__PADDING,
-    "focused_anchor.inactive_window.padding", 2 },
+  { INACTIVE_ANCHOR__BORDER_WIDTH,
+    "inactive_anchor.border_width", 1 },
+  { INACTIVE_ANCHOR__PADDING,
+    "inactive_anchor.padding", 2 },
+  { INACTIVE_ANCHOR__WINDOW_SPACING,
+    "inactive_anchor.window_spacing", 2 },
+  { INACTIVE_ANCHOR__ACTIVE_WINDOW__BORDER_WIDTH,
+    "inactive_anchor.active_window.border_width", 1 },
+  { INACTIVE_ANCHOR__ACTIVE_WINDOW__PADDING,
+    "inactive_anchor.active_window.padding", 2 },
+  { INACTIVE_ANCHOR__INACTIVE_WINDOW__BORDER_WIDTH,
+    "inactive_anchor.inactive_window.border_width", 1 },
+  { INACTIVE_ANCHOR__INACTIVE_WINDOW__PADDING,
+    "inactive_anchor.inactive_window.padding", 2 },
+  { ACTIVE_ANCHOR__BORDER_WIDTH,
+    "active_anchor.border_width", 1 },
+  { ACTIVE_ANCHOR__PADDING,
+    "active_anchor.padding", 2 },
+  { ACTIVE_ANCHOR__WINDOW_SPACING,
+    "active_anchor.window_spacing", 2 },
+  { ACTIVE_ANCHOR__ACTIVE_WINDOW__BORDER_WIDTH,
+    "active_anchor.active_window.border_width", 1 },
+  { ACTIVE_ANCHOR__ACTIVE_WINDOW__PADDING,
+    "active_anchor.active_window.padding", 2 },
+  { ACTIVE_ANCHOR__INACTIVE_WINDOW__BORDER_WIDTH,
+    "active_anchor.inactive_window.border_width", 1 },
+  { ACTIVE_ANCHOR__INACTIVE_WINDOW__PADDING,
+    "active_anchor.inactive_window.padding", 2 },
   { INVALID_TYPE, NULL, 0 },
 };
 
 const DrawingEngine::Style::ColorsDef
     DrawingEngine::Style::colors_defs_[] = {
-  { FOCUSED_ANCHOR__BORDER_COLOR,
-    "focused_anchor.border_color",
+  { INACTIVE_ANCHOR__BORDER_COLOR,
+    "inactive_anchor.border_color",
+    "#bbbbbb", "#bbbbbb", "#666666", "#666666" },
+  { INACTIVE_ANCHOR__ACTIVE_WINDOW__BORDER_COLOR,
+    "inactive_anchor.active_window.border_color",
+    "#333333", "#333333", "#888888", "#888888" },
+  { INACTIVE_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR,
+    "inactive_anchor.inactive_window.border_color",
+    "#bbbbbb", "#bbbbbb", "#666666", "#666666" },
+  { ACTIVE_ANCHOR__BORDER_COLOR,
+    "active_anchor.border_color",
     "#dddddd", "#dddddd", "#999999", "#999999" },
-  { FOCUSED_ANCHOR__ACTIVE_WINDOW__BORDER_COLOR,
-    "focused_anchor.active_window.border_color",
+  { ACTIVE_ANCHOR__ACTIVE_WINDOW__BORDER_COLOR,
+    "active_anchor.active_window.border_color",
     "#272c4e", "#272c4e", "#5f6abd", "#5f6abd" },
-  { FOCUSED_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR,
-    "focused_anchor.inactive_window.border_color",
+  { ACTIVE_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR,
+    "active_anchor.inactive_window.border_color",
     "#dddddd", "#dddddd", "#999999", "#999999" },
   { INVALID_TYPE, NULL, NULL, NULL, NULL, NULL },
 };
@@ -84,13 +119,13 @@ DrawingEngine::DrawingEngine()
 
 
 void DrawingEngine::DrawAnchor(const Anchor& anchor, XWindow* titlebar) {
-  InitIfNeeded();
-  ::Window win = titlebar->id();
-
   // Don't do anything if there's no real X connection.
   if (XServer::Testing()) {
     return;
   }
+
+  InitIfNeeded();
+  ::Window win = titlebar->id();
 
   uint width = 0, height = 0;
 
@@ -98,30 +133,68 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor, XWindow* titlebar) {
 
   const string anchor_name = "[" + anchor.name() + "]";
 
-  const string& font = s(Style::FOCUSED_ANCHOR__FONT);
+  // TODO: This is super-ugly.  It might be better to create some type of
+  // "variations" system, so that there aren't so many duplicated lines of
+  // code for active/inactive anchors and windows.
+  uint border = 0;
+  uint padding = 0;
+  uint spacing = 0;
+  uint awindow_border = 0;
+  uint awindow_padding = 0;
+  uint iwindow_border = 0;
+  uint iwindow_padding = 0;
+  const string* font = NULL;
+  const string* bg = NULL;
+  const string* awindow_text = NULL;
+  const string* iwindow_text = NULL;
+  const string* awindow_bg = NULL;
+  const string* iwindow_bg = NULL;
+  const Style::Colors* border_colors = NULL;
+  const Style::Colors* awindow_border_colors = NULL;
+  const Style::Colors* iwindow_border_colors = NULL;
 
-  uint border = u(Style::FOCUSED_ANCHOR__BORDER_WIDTH);
-  uint padding = u(Style::FOCUSED_ANCHOR__PADDING);
-  uint spacing = u(Style::FOCUSED_ANCHOR__WINDOW_SPACING);
-  uint awindow_border = u(Style::FOCUSED_ANCHOR__ACTIVE_WINDOW__BORDER_WIDTH);
-  uint awindow_padding = u(Style::FOCUSED_ANCHOR__ACTIVE_WINDOW__PADDING);
-  uint iwindow_border = u(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__BORDER_WIDTH);
-  uint iwindow_padding = u(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__PADDING);
-  const string& awindow_text =
-      s(Style::FOCUSED_ANCHOR__ACTIVE_WINDOW__TEXT_COLOR);
-  const string& iwindow_text =
-      s(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__TEXT_COLOR);
-  const string& awindow_bg =
-      s(Style::FOCUSED_ANCHOR__ACTIVE_WINDOW__BACKGROUND);
-  const string& iwindow_bg =
-      s(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__BACKGROUND);
-  const Style::Colors& awindow_border_colors =
-      c(Style::FOCUSED_ANCHOR__ACTIVE_WINDOW__BORDER_COLOR);
-  const Style::Colors& iwindow_border_colors =
-      c(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR);
+  if (anchor.active()) {
+    border = u(Style::ACTIVE_ANCHOR__BORDER_WIDTH);
+    padding = u(Style::ACTIVE_ANCHOR__PADDING);
+    spacing = u(Style::ACTIVE_ANCHOR__WINDOW_SPACING);
+    awindow_border = u(Style::ACTIVE_ANCHOR__ACTIVE_WINDOW__BORDER_WIDTH);
+    awindow_padding = u(Style::ACTIVE_ANCHOR__ACTIVE_WINDOW__PADDING);
+    iwindow_border = u(Style::ACTIVE_ANCHOR__INACTIVE_WINDOW__BORDER_WIDTH);
+    iwindow_padding = u(Style::ACTIVE_ANCHOR__INACTIVE_WINDOW__PADDING);
+    font = &(s(Style::ACTIVE_ANCHOR__FONT));
+    bg = &(s(Style::ACTIVE_ANCHOR__BACKGROUND));
+    awindow_text = &(s(Style::ACTIVE_ANCHOR__ACTIVE_WINDOW__TEXT_COLOR));
+    iwindow_text = &(s(Style::ACTIVE_ANCHOR__INACTIVE_WINDOW__TEXT_COLOR));
+    awindow_bg = &(s(Style::ACTIVE_ANCHOR__ACTIVE_WINDOW__BACKGROUND));
+    iwindow_bg = &(s(Style::ACTIVE_ANCHOR__INACTIVE_WINDOW__BACKGROUND));
+    border_colors = &(c(Style::ACTIVE_ANCHOR__BORDER_COLOR));
+    awindow_border_colors =
+        &(c(Style::ACTIVE_ANCHOR__ACTIVE_WINDOW__BORDER_COLOR));
+    iwindow_border_colors =
+        &(c(Style::ACTIVE_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR));
+  } else {
+    border = u(Style::INACTIVE_ANCHOR__BORDER_WIDTH);
+    padding = u(Style::INACTIVE_ANCHOR__PADDING);
+    spacing = u(Style::INACTIVE_ANCHOR__WINDOW_SPACING);
+    awindow_border = u(Style::INACTIVE_ANCHOR__ACTIVE_WINDOW__BORDER_WIDTH);
+    awindow_padding = u(Style::INACTIVE_ANCHOR__ACTIVE_WINDOW__PADDING);
+    iwindow_border = u(Style::INACTIVE_ANCHOR__INACTIVE_WINDOW__BORDER_WIDTH);
+    iwindow_padding = u(Style::INACTIVE_ANCHOR__INACTIVE_WINDOW__PADDING);
+    font = &(s(Style::INACTIVE_ANCHOR__FONT));
+    bg = &(s(Style::INACTIVE_ANCHOR__BACKGROUND));
+    awindow_text = &(s(Style::INACTIVE_ANCHOR__ACTIVE_WINDOW__TEXT_COLOR));
+    iwindow_text = &(s(Style::INACTIVE_ANCHOR__INACTIVE_WINDOW__TEXT_COLOR));
+    awindow_bg = &(s(Style::INACTIVE_ANCHOR__ACTIVE_WINDOW__BACKGROUND));
+    iwindow_bg = &(s(Style::INACTIVE_ANCHOR__INACTIVE_WINDOW__BACKGROUND));
+    border_colors = &(c(Style::INACTIVE_ANCHOR__BORDER_COLOR));
+    awindow_border_colors =
+        &(c(Style::INACTIVE_ANCHOR__ACTIVE_WINDOW__BORDER_COLOR));
+    iwindow_border_colors =
+        &(c(Style::INACTIVE_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR));
+  }
 
   int ascent = 0, descent = 0;
-  GetTextSize(font, kFullHeightString, NULL, &ascent, &descent);
+  GetTextSize(*font, kFullHeightString, NULL, &ascent, &descent);
   height = ascent + descent + 2 * padding + 2 * border +
       2 * max(awindow_border, iwindow_border) +
       2 * max(awindow_padding, iwindow_padding);
@@ -131,14 +204,14 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor, XWindow* titlebar) {
   const vector<Window*>& windows = anchor.windows();
   if (windows.empty()) {
     int name_width = 0;
-    GetTextSize(font, anchor_name, &name_width, NULL, NULL);
+    GetTextSize(*font, anchor_name, &name_width, NULL, NULL);
     width += name_width + 2 * (iwindow_padding + iwindow_border);
   } else {
     int max_title_width = 0;
     for (vector<Window*>::const_iterator window = windows.begin();
          window != windows.end(); ++window) {
       int title_width = 0;
-      GetTextSize(font, (*window)->title(), &title_width, NULL, NULL);
+      GetTextSize(*font, (*window)->title(), &title_width, NULL, NULL);
       max_title_width = max(max_title_width, title_width);
     }
     width += max_title_width + 2 * (awindow_padding + awindow_border) +
@@ -149,10 +222,7 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor, XWindow* titlebar) {
 
   titlebar->SetBorder(0);
   titlebar->Resize(width, height);
-  DrawBorders(win, 0, 0, width, height,
-              s(Style::FOCUSED_ANCHOR__BACKGROUND),
-              c(Style::FOCUSED_ANCHOR__BORDER_COLOR),
-              u(Style::FOCUSED_ANCHOR__BORDER_WIDTH));
+  DrawBorders(win, 0, 0, width, height, *bg, *border_colors, border);
 
   // FIXME: set all window's backgrounds on init
 
@@ -160,14 +230,11 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor, XWindow* titlebar) {
     DrawBorders(win, border + padding, border + padding,
                 width - 2 * (border + padding),
                 height - 2 * (border + padding),
-                s(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__BACKGROUND),
-                c(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR),
-                iwindow_border);
+                *iwindow_bg, *iwindow_border_colors, iwindow_border);
     DrawText(win,
              border + padding + iwindow_border + iwindow_padding,
              border + padding + iwindow_border + iwindow_padding + ascent,
-             anchor_name, font,
-             s(Style::FOCUSED_ANCHOR__INACTIVE_WINDOW__TEXT_COLOR));
+             anchor_name, *font, *iwindow_text);
   } else {
     uint width_for_titles =
         width - 2 * (border + padding) - (windows.size() - 1) * spacing;
@@ -186,15 +253,15 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor, XWindow* titlebar) {
       int this_height = height - 2 * (border + padding);
 
       DrawBorders(win, x, y, this_width, this_height,
-                  active ? awindow_bg : iwindow_bg,
-                  active ? awindow_border_colors : iwindow_border_colors,
+                  active ? *awindow_bg : *iwindow_bg,
+                  active ? *awindow_border_colors : *iwindow_border_colors,
                   active ? awindow_border : iwindow_border);
 
       uint gap = active ?
           awindow_border + awindow_padding :
           iwindow_border + iwindow_padding;
-      DrawText(win, x + gap, y + gap + ascent, (*window)->title(), font,
-               active ? awindow_text : iwindow_text);
+      DrawText(win, x + gap, y + gap + ascent, (*window)->title(), *font,
+               active ? *awindow_text : *iwindow_text);
 
       if ((*window)->tagged()) {
         int tag_size = this_height - 2 * gap;
@@ -203,13 +270,13 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor, XWindow* titlebar) {
                 y + gap,
                 tag_size,
                 tag_size,
-                active ? awindow_text : iwindow_text);
+                active ? *awindow_text : *iwindow_text);
         DrawBox(win,
                 x + this_width - gap - tag_size + 1,
                 y + gap + 1,
                 tag_size - 2,
                 tag_size - 2,
-                active ? awindow_bg : iwindow_bg);
+                active ? *awindow_bg : *iwindow_bg);
       }
     }
   }

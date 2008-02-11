@@ -34,7 +34,7 @@ void Desktop::AddWindowToAnchor(Window* window, Anchor* anchor) {
   CHECK(anchor);
   CHECK(!IsTitlebarWindow(window->x_window()));
   anchor->AddWindow(window);
-  anchor->SetActive(anchor->windows().size()-1);
+  anchor->SetActiveWindow(anchor->windows().size()-1);
   window_anchors_.insert(make_pair(window, anchor));
 }
 
@@ -69,8 +69,9 @@ Anchor* Desktop::GetAnchorContainingWindow(Window* window) const {
 void Desktop::SetActiveAnchor(Anchor* anchor) {
   if (anchor == active_anchor_) return;
   CHECK(find(anchors_.begin(), anchors_.end(), anchor) != anchors_.end());
+  if (active_anchor_) active_anchor_->SetActive(false);
   active_anchor_ = anchor;
-  anchor->FocusActiveWindow();
+  active_anchor_->SetActive(true);
 }
 
 

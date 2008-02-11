@@ -77,7 +77,7 @@ class AnchorTestSuite : public CxxTest::TestSuite {
                      y + static_cast<int>(anchor.titlebar_->height()));
   }
 
-  void testSetActive() {
+  void testSetActiveWindow() {
     // FIXME: write this
   }
 
