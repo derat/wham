@@ -131,9 +131,10 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor, XWindow* titlebar) {
 
   const Config* conf = Config::Get();
 
-  const string anchor_name = "[" + anchor.name() + "]";
+  string anchor_name = anchor.attach() ? "[a] " : "";
+  anchor_name += "[" + anchor.name() + "]";
 
-  // TODO: This is super-ugly.  It might be better to create some type of
+  // TODO: This is ugly.  It might be better to create some type of
   // "variations" system, so that there aren't so many duplicated lines of
   // code for active/inactive anchors and windows.
   uint border = 0;
@@ -260,24 +261,12 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor, XWindow* titlebar) {
       uint gap = active ?
           awindow_border + awindow_padding :
           iwindow_border + iwindow_padding;
-      DrawText(win, x + gap, y + gap + ascent, (*window)->title(), *font,
+      string tags = (anchor.attach() && active) ? "a" : "";
+      tags += (*window)->tagged() ? "t" : "";
+      string title = tags.empty() ? "" : "[" + tags + "] ";
+      title += (*window)->title();
+      DrawText(win, x + gap, y + gap + ascent, title, *font,
                active ? *awindow_text : *iwindow_text);
-
-      if ((*window)->tagged()) {
-        int tag_size = this_height - 2 * gap;
-        DrawBox(win,
-                x + this_width - gap - tag_size,
-                y + gap,
-                tag_size,
-                tag_size,
-                active ? *awindow_text : *iwindow_text);
-        DrawBox(win,
-                x + this_width - gap - tag_size + 1,
-                y + gap + 1,
-                tag_size - 2,
-                tag_size - 2,
-                active ? *awindow_bg : *iwindow_bg);
-      }
     }
   }
 }

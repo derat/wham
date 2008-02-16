@@ -77,8 +77,58 @@ class AnchorTestSuite : public CxxTest::TestSuite {
                      y + static_cast<int>(anchor.titlebar_->height()));
   }
 
+  void testSetActive() {
+    Anchor anchor("test", 10, 20);
+    TS_ASSERT(!anchor.active());
+    anchor.SetActive(true);
+    TS_ASSERT(anchor.active());
+    anchor.SetActive(false);
+    TS_ASSERT(!anchor.active());
+    // FIXME: Check that the anchor is redrawn when the state changes.
+  }
+
+  void testSetAttach() {
+    Anchor anchor("test", 10, 20);
+    TS_ASSERT(!anchor.attach());
+    anchor.SetAttach(true);
+    TS_ASSERT(anchor.attach());
+    anchor.SetAttach(false);
+    TS_ASSERT(!anchor.attach());
+    // FIXME: Check that the anchor is redrawn when the state changes.
+  }
+
   void testSetActiveWindow() {
     // FIXME: write this
+  }
+
+  void testGetWindowIndexAtTitlebarPoint() {
+    int x = 50;
+    uint width = 100;
+    Anchor anchor("test", x, 20);
+    anchor.titlebar_->Resize(width, 15);
+
+    // When we don't have any windows, -1 should always be returned.
+    TS_ASSERT_EQUALS(anchor.GetWindowIndexAtTitlebarPoint(x - 50), -1);
+    TS_ASSERT_EQUALS(anchor.GetWindowIndexAtTitlebarPoint(x + 50), -1);
+    TS_ASSERT_EQUALS(anchor.GetWindowIndexAtTitlebarPoint(x + width + 50), -1);
+
+    // Add two windows.
+    wham::Window win1(XWindow::Create(50, 60, 640, 480));
+    anchor.AddWindow(&win1);
+    wham::Window win2(XWindow::Create(50, 60, 640, 480));
+    anchor.AddWindow(&win2);
+
+    // Make sure that points in the left half return '0', points in the
+    // right half return '1', and that points outside of the titlebar are
+    // constrained.
+    TS_ASSERT_EQUALS(anchor.GetWindowIndexAtTitlebarPoint(x - 50), 0);
+    TS_ASSERT_EQUALS(anchor.GetWindowIndexAtTitlebarPoint(x), 0);
+    TS_ASSERT_EQUALS(
+        anchor.GetWindowIndexAtTitlebarPoint(x + width / 2 - 1), 0);
+    TS_ASSERT_EQUALS(anchor.GetWindowIndexAtTitlebarPoint(x + width / 2), 1);
+    TS_ASSERT_EQUALS(anchor.GetWindowIndexAtTitlebarPoint(x + width - 1), 1);
+    TS_ASSERT_EQUALS(anchor.GetWindowIndexAtTitlebarPoint(x + width), 1);
+    TS_ASSERT_EQUALS(anchor.GetWindowIndexAtTitlebarPoint(x + width + 50), 1);
   }
 
   void testSetGravity() {

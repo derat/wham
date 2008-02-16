@@ -159,10 +159,20 @@ void Anchor::DrawTitlebar() {
 }
 
 
-void Anchor::ActivateWindowAtTitlebarCoordinates(int x, int y) {
-  if (windows_.empty()) return;
-  int index = (x - titlebar_->x()) * windows_.size() / titlebar_->width();
-  SetActiveWindow(index);
+int Anchor::GetWindowIndexAtTitlebarPoint(int abs_x) {
+  if (windows_.empty()) return -1;
+  if (abs_x < titlebar_->x()) {
+    ERROR << "Point falls outside of the titlebar (" << abs_x
+          << " vs. " << titlebar_->x() << "); capping to "
+          << titlebar_->x();
+    abs_x = titlebar_->x();
+  } else if (abs_x >= titlebar_->x() + static_cast<int>(titlebar_->width())) {
+    ERROR << "Point falls outside of the titlebar (" << abs_x
+          << " vs. " << titlebar_->x() << "+" << titlebar_->width()
+          << "); capping to " << (titlebar_->x() + titlebar_->width() - 1);
+    abs_x = titlebar_->x() + titlebar_->width() - 1;
+  }
+  return (abs_x - titlebar_->x()) * windows_.size() / titlebar_->width();
 }
 
 

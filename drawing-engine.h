@@ -37,6 +37,15 @@ class DrawingEngine {
   // Draw an anchor's titlebar.
   void DrawAnchor(const Anchor& anchor, XWindow* titlebar);
 
+  // TODO: For operations that could potentially redraw the same objects
+  // multiple times, it'd be nice if the caller could call StartBuffering()
+  // first and Finalize() at the end.  When buffering is enabled, methods
+  // like DrawAnchor() would just record the fact that the anchor needs to
+  // be drawn in a set, and then we'd finally actually draw everything when
+  // Finalize() is called.
+  void StartBuffering();
+  void Finalize();
+
  private:
   class Style {
    public:

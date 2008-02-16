@@ -46,6 +46,7 @@ class Anchor {
   const Window* active_window() const { return active_window_; }
   Window* mutable_active_window() { return active_window_; }
   bool active() const { return active_; }
+  bool attach() const { return attach_; }
 
   // Set the anchor's name.
   void SetName(const string& name);
@@ -77,7 +78,11 @@ class Anchor {
 
   void DrawTitlebar();
 
-  void ActivateWindowAtTitlebarCoordinates(int x, int y);
+  // Get the index number of the window represented in the titlebar at the
+  // given absolute (that is, not relative to the titlebar's position) X
+  // value.  Constrains too-small or -large values, and returns -1 if no
+  // windows are present in the anchor.
+  int GetWindowIndexAtTitlebarPoint(int abs_x);
 
   void FocusActiveWindow();
 

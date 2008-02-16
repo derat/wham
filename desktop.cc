@@ -25,10 +25,9 @@ Anchor* Desktop::CreateAnchor(const string& name, int x, int y) {
 
 
 void Desktop::AddWindow(Window* window) {
-  // FIXME: Add logic here to determine to which anchor the new
-  // window is added, where it appears in the list, and whether it's
-  // automatically focused, instead of just adding it at the end of the
-  // current anchor.
+  // FIXME: Add logic here to determine to where the window appears in the
+  // list and whether it's automatically focused, instead of just adding it
+  // at the end.
   AddWindowToAnchor(window, attach_anchor_);
 }
 
@@ -72,19 +71,23 @@ Anchor* Desktop::GetAnchorContainingWindow(Window* window) const {
 
 void Desktop::SetActiveAnchor(Anchor* anchor) {
   if (anchor == active_anchor_) return;
-  CHECK(find(anchors_.begin(), anchors_.end(), anchor) != anchors_.end());
   if (active_anchor_) active_anchor_->SetActive(false);
   active_anchor_ = anchor;
-  active_anchor_->SetActive(true);
+  if (anchor) {
+    CHECK(find(anchors_.begin(), anchors_.end(), anchor) != anchors_.end());
+    anchor->SetActive(true);
+  }
 }
 
 
 void Desktop::SetAttachAnchor(Anchor* anchor) {
   if (anchor == attach_anchor_) return;
-  CHECK(find(anchors_.begin(), anchors_.end(), anchor) != anchors_.end());
   if (attach_anchor_) attach_anchor_->SetAttach(false);
   attach_anchor_ = anchor;
-  attach_anchor_->SetAttach(true);
+  if (anchor) {
+    CHECK(find(anchors_.begin(), anchors_.end(), anchor) != anchors_.end());
+    anchor->SetAttach(true);
+  }
 }
 
 
@@ -132,14 +135,9 @@ void Desktop::DestroyAnchor(Anchor* anchor) {
   CHECK(index >= 0);
   anchors_.erase(anchors_.begin() + index);
 
-  if (active_anchor_ == anchor) {
-    if (anchors_.empty()) {
-      active_anchor_ = NULL;
-    } else {
-      // FIXME: Do something more intelligent here.
-      active_anchor_ = anchors_[0].get();
-    }
-  }
+  Anchor* replacement = anchors_.empty() ? NULL : anchors_[0].get();
+  if (active_anchor_ == anchor) SetActiveAnchor(replacement);
+  if (attach_anchor_ == anchor) SetAttachAnchor(replacement);
 }
 
 
