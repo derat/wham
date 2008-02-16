@@ -93,18 +93,18 @@ struct WindowProperties {
   // from XGetWMSizeHints()
   int x;
   int y;
-  int width;
-  int height;
-  int min_width;
-  int min_height;
-  int max_width;
-  int max_height;
-  int width_inc;
-  int height_inc;
+  uint width;
+  uint height;
+  uint min_width;
+  uint min_height;
+  uint max_width;
+  uint max_height;
+  uint width_inc;
+  uint height_inc;
   float min_aspect;
   float max_aspect;
-  int base_width;
-  int base_height;
+  uint base_width;
+  uint base_height;
   // TODO: add win_gravity?
 
   XWindow* transient_for;

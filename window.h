@@ -10,6 +10,8 @@
 
 using namespace std;
 
+class WindowTestSuite;
+
 namespace wham {
 
 class XWindow;
@@ -52,9 +54,20 @@ class Window {
   XWindow* transient_for() const { return props_.transient_for; }
 
  private:
+  friend class ::WindowTestSuite;
+
+  // Classify this window, applying the active config afterwards.
   bool Classify();
 
-  void ApplyConfig();
+  // Apply the active config.
+  void ApplyActiveConfig() {
+    const WindowConfig* config = configs_.GetActiveConfig();
+    CHECK(config);
+    ApplyConfig(*config);
+  }
+
+  // Apply a config.
+  void ApplyConfig(const WindowConfig& config);
 
   // Update 'props_' with this window's properties.
   bool UpdateProperties(WindowProperties::ChangeType type, bool* changed);

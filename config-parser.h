@@ -33,6 +33,11 @@ struct ConfigNode {
 
 // An error that occurred while parsing or reading a config file.
 struct ConfigError {
+  ConfigError(const string& message, int line_num)
+      : file_num(0),
+        line_num(line_num),
+        message(message) {}
+
   int file_num;
   int line_num;
   string message;
@@ -78,7 +83,8 @@ class ConfigParser {
         string* token,
         TokenType* token_type,
         int* line_num,
-        bool* error);
+        bool* error,
+        vector<ConfigError>* errors);
 
    protected:
     // Can the input source be read from?  Returns false if there was an
@@ -178,7 +184,8 @@ class ConfigParser {
 
   // Parse a config.
   // Returns true on success and false otherwise.
-  static bool Parse(Tokenizer* tokenizer, ConfigNode* config);
+  static bool Parse(
+      Tokenizer* tokenizer, ConfigNode* config, vector<ConfigError>* errors);
 
   DISALLOW_EVIL_CONSTRUCTORS(ConfigParser);
 };

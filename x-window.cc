@@ -106,20 +106,20 @@ bool XWindow::UpdateProperties(WindowProperties* props,
       props->y = size_hints->y;
     }
     if (size_hints->flags & USSize || size_hints->flags & PSize) {
-      props->width = size_hints->width;
-      props->height = size_hints->height;
+      props->width = static_cast<uint>(size_hints->width);
+      props->height = static_cast<uint>(size_hints->height);
     }
     if (size_hints->flags & PMinSize) {
-      props->min_width = size_hints->min_width;
-      props->min_height = size_hints->min_height;
+      props->min_width = static_cast<uint>(size_hints->min_width);
+      props->min_height = static_cast<uint>(size_hints->min_height);
     }
     if (size_hints->flags & PMaxSize) {
-      props->max_width = size_hints->max_width;
-      props->max_height = size_hints->max_height;
+      props->max_width = static_cast<uint>(size_hints->max_width);
+      props->max_height = static_cast<uint>(size_hints->max_height);
     }
     if (size_hints->flags & PResizeInc) {
-      props->width_inc = size_hints->width_inc;
-      props->height_inc = size_hints->height_inc;
+      props->width_inc = static_cast<uint>(size_hints->width_inc);
+      props->height_inc = static_cast<uint>(size_hints->height_inc);
     }
     if (size_hints->flags & PAspect) {
       props->min_aspect = static_cast<float>(size_hints->min_aspect.x) /
@@ -128,8 +128,8 @@ bool XWindow::UpdateProperties(WindowProperties* props,
                           size_hints->max_aspect.y;
     }
     if (size_hints->flags & PBaseSize) {
-      props->base_width = size_hints->base_width;
-      props->base_height = size_hints->base_height;
+      props->base_width = static_cast<uint>(size_hints->base_width);
+      props->base_height = static_cast<uint>(size_hints->base_height);
     }
     XFree(size_hints);
   } else if (type == WindowProperties::TRANSIENT_CHANGE) {

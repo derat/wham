@@ -10,6 +10,7 @@
 #include "window-manager.h"
 
 #include "config.h"
+#include "config-parser.h"
 #include "x-server.h"
 #include "x-window.h"
 
@@ -34,13 +35,9 @@ void WindowManager::SetupDefaultCrap() {
 
 
 bool WindowManager::LoadConfig(const string& filename) {
-  ConfigNode parsed_config;
-  if (!ConfigParser::ParseFromFile(filename, &parsed_config, NULL)) {
-    ERROR << "Couldn't parse file";
-    return false;
-  }
+  vector<ConfigError> errors;
   ref_ptr<Config> config(new Config);
-  if (!config->Load(parsed_config)) {
+  if (!config->Load(filename, &errors)) {
     ERROR << "Couldn't load config";
     return false;
   }

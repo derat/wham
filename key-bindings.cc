@@ -5,31 +5,44 @@
 
 #include <pcrecpp.h>
 
+#include "config-parser.h"
 #include "util.h"
 
 namespace wham {
 
-bool KeyBindings::Load(const ConfigNode& conf) {
+bool KeyBindings::Load(const ConfigNode& conf,
+                       vector<ConfigError>* errors) {
+  CHECK(errors);
+  CHECK(!conf.tokens.empty());
+  CHECK(conf.tokens[0] == "key_bindings");
+
   for (vector<ref_ptr<ConfigNode> >::const_iterator it =
          conf.children.begin(); it != conf.children.end(); ++it) {
     const ConfigNode& node = *(it->get());
     if (node.tokens.empty()) {
-      ERROR << "Got empty top-level node from config";
-      return false;
-    }
-    if (node.tokens[0] == "bind") {
+      errors->push_back(
+          ConfigError("Got empty block within key bindings", node.line_num));
+    } else if (node.tokens[0] == "bind") {
       if (node.tokens.size() < 3) {
-        ERROR << "\"bind\" requires at least 2 arguments; got "
-              << (node.tokens.size() - 1) << " instead";
-        return false;
+        string msg = StringPrintf(
+            "\"bind\" requires at least 2 arguments (key combination "
+            "and command); got %d instead",
+            node.tokens.size() - 1);
+        errors->push_back(ConfigError(msg, node.line_num));
+        continue;
       }
       vector<string> args;
       for (size_t i = 3; i < node.tokens.size(); ++i) {
         args.push_back(node.tokens[i]);
       }
-      if (!AddBinding(node.tokens[1], node.tokens[2], args, NULL)) {
-        return false;
+      string error_msg;
+      if (!AddBinding(node.tokens[1], node.tokens[2], args, &error_msg)) {
+        errors->push_back(ConfigError(error_msg, node.line_num));
       }
+    } else {
+      string msg = StringPrintf("Got unknown token \"%s\" with %d parameter(s)",
+                                node.tokens[0].c_str(), node.tokens.size() - 1);
+      errors->push_back(ConfigError(msg, node.line_num));
     }
   }
   return true;

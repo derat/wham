@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <iomanip>
+#include <sstream>
 
 namespace wham {
 
@@ -78,6 +79,29 @@ string StringPrintf(const char* format, ...) {
   vsnprintf(buffer, sizeof(buffer), format, argp);
   va_end(argp);
   return string(buffer);
+}
+
+
+void JoinString(const vector<string>& parts,
+                const string& delim,
+                string* output) {
+  CHECK(output);
+  ostringstream stream;
+  bool first = true;
+  for (vector<string>::const_iterator part = parts.begin();
+       part != parts.end(); ++part) {
+    if (!first) stream << delim;
+    stream << *part;
+    first = true;
+  }
+  *output = stream.str();
+}
+
+
+string JoinString(const vector<string>& parts, const string& delim) {
+  string out;
+  JoinString(parts, delim, &out);
+  return out;
 }
 
 }  // namespace wham

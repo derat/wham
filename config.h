@@ -4,6 +4,8 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
+#include <vector>
+
 #include "key-bindings.h"
 #include "util.h"
 #include "window-classifier.h"
@@ -28,7 +30,7 @@ struct Config {
     singleton_.swap(new_config);
   }
 
-  bool Load(const ConfigNode& conf);
+  bool Load(const string& filename, vector<ConfigError>* errors);
 
   KeyBindings key_bindings;
   ref_ptr<WindowClassifier> window_classifier;

@@ -9,7 +9,6 @@
 #include <vector>
 
 #include "command.h"
-#include "config-parser.h"
 
 using namespace std;
 
@@ -17,9 +16,13 @@ class KeyBindingsTestSuite;
 
 namespace wham {
 
+class ConfigError;
+class ConfigNode;
+
 class KeyBindings {
  public:
-  bool Load(const ConfigNode& conf);
+  bool Load(const ConfigNode& conf,
+            vector<ConfigError>* errors);
 
   bool AddBinding(const string& combos_str,
                   const string& command_str,

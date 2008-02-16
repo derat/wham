@@ -78,6 +78,11 @@ class ConfigParserTestSuite : public CxxTest::TestSuite {
     TS_ASSERT(CompareTokens("\\}", "}", kNewline, NULL));
   }
 
+  void testTokenizer_GetNextToken_unclosed_quotes() {
+    TS_ASSERT(CompareTokens("\"foo\nbar\"", NULL) == false);
+    TS_ASSERT(CompareTokens("\'foo\nbar\'", NULL) == false);
+  }
+
   void testTokenizer_GetNextToken_line_num() {
     TS_ASSERT(CompareLineNums("a b\nc d", 1, 1, 1, 2, 2, 2, NULL));
     TS_ASSERT(CompareLineNums("// blah\na", 1, 2, 2, NULL));
@@ -87,7 +92,8 @@ class ConfigParserTestSuite : public CxxTest::TestSuite {
   void testConfigParser_Parse() {
     ConfigParser::FileTokenizer tokenizer("testdata/config-parser_test.cfg");
     ConfigNode config;
-    CHECK(ConfigParser::Parse(&tokenizer, &config));
+    vector<ConfigError> errors;
+    CHECK(ConfigParser::Parse(&tokenizer, &config, &errors));
     string parsed = config.Dump();
     //LOG << parsed;
     string golden;
@@ -115,11 +121,12 @@ class ConfigParserTestSuite : public CxxTest::TestSuite {
     ConfigParser::TokenType token_type = ConfigParser::NUM_TOKEN_TYPES;
     int line_num = -1;
     bool error = false;
+    vector<ConfigError> errors;
     size_t num_tokens = 0;
 
-    //LOG << "Testing input \"" << input << "\"";
-    while (tokenizer.GetNextToken(&token, &token_type, &line_num, &error)) {
-      if (error) return false;
+    //DEBUG << "Testing input \"" << input << "\"";
+    while (tokenizer.GetNextToken(
+               &token, &token_type, &line_num, &error, &errors)) {
       CHECK(num_tokens < expected_tokens.size());
       switch (token_type) {
         case ConfigParser::TOKEN_LEFT_BRACE:  token = kLeftBrace; break;
@@ -134,6 +141,7 @@ class ConfigParserTestSuite : public CxxTest::TestSuite {
       TS_ASSERT_EQUALS(token, expected_tokens[num_tokens]);
       num_tokens++;
     }
+    if (error) return false;
     TS_ASSERT_EQUALS(num_tokens, expected_tokens.size());
     return true;
   }
@@ -152,10 +160,12 @@ class ConfigParserTestSuite : public CxxTest::TestSuite {
     ConfigParser::TokenType token_type = ConfigParser::NUM_TOKEN_TYPES;
     int line_num = -1;
     bool error = false;
+    vector<ConfigError> errors;
     size_t num_tokens = 0;
 
     //LOG << "Testing input \"" << input << "\"";
-    while (tokenizer.GetNextToken(&token, &token_type, &line_num, &error)) {
+    while (tokenizer.GetNextToken(
+               &token, &token_type, &line_num, &error, &errors)) {
       if (error) return false;
       //LOG << "Got " << token << " on line " << line_num;
       CHECK(num_tokens < expected_line_nums.size());

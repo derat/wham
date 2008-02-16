@@ -192,7 +192,7 @@ class WindowClassifier {
   }
 
   // Load a "window" node from a parsed config.
-  bool Load(const ConfigNode& conf);
+  bool Load(const ConfigNode& conf, vector<ConfigError>* errors);
 
   void AddConfig(ref_ptr<WindowCriteriaVector> criteria,
                  ref_ptr<WindowConfigVector> configs);
@@ -204,14 +204,28 @@ class WindowClassifier {
  private:
   friend class ::WindowClassifierTestSuite;
 
+  // Load a set of window criteria from a parsed config file, saving them
+  // in 'criteria'.  If errors are encountered, they are recorded in
+  // 'errors' and false is returned.
   static bool LoadWindowCriteria(
-      const ConfigNode& conf, WindowCriteria* criteria);
-  static bool LoadWindowConfig(
-      const ConfigNode& conf, WindowConfig* window_config);
+      const ConfigNode& conf,
+      WindowCriteria* criteria,
+      vector<ConfigError>* errors);
 
-  static bool ParseDimensions(const string& str,
-                              WindowConfig::DimensionType* type,
-                              uint* dim);
+  // Load a window config from a parsed config file, saving it in
+  // 'window_config'.  If errors are encountered, they are recorded in
+  // 'errors' and false is returned.
+  static bool LoadWindowConfig(
+      const ConfigNode& conf,
+      WindowConfig* window_config,
+      vector<ConfigError>* errors);
+
+  // Parse 'str' as a window dimension, saving its type in 'type' and the
+  // actual dimension in 'dim'.  If an error is encountered, false is
+  // returned.
+  static bool ParseDimension(const string& str,
+                             WindowConfig::DimensionType* type,
+                             uint* dim);
 
   // FIXME: Think about this some more.  Is there a good reason to allow
   // multiple criteria sets here, or does it just add useless flexibility?

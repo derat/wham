@@ -36,7 +36,7 @@ bool ConfigParser::ParseFromFile(const string& filename,
                                  vector<ConfigError>* errors) {
   CHECK(config);
   FileTokenizer tokenizer(filename);
-  return Parse(&tokenizer, config);
+  return Parse(&tokenizer, config, errors);
 }
 
 
@@ -49,11 +49,16 @@ ConfigParser::Tokenizer::Tokenizer()
 
 
 bool ConfigParser::Tokenizer::GetNextToken(
-    string* token, TokenType* token_type, int* line_num, bool* error) {
+    string* token,
+    TokenType* token_type,
+    int* line_num,
+    bool* error,
+    vector<ConfigError>* errors) {
   CHECK(token);
   CHECK(token_type);
   CHECK(line_num);
   CHECK(error);
+  CHECK(errors);
 
   token->clear();
   *error = false;
@@ -77,7 +82,8 @@ bool ConfigParser::Tokenizer::GetNextToken(
 
     // First, handle unterminated quoted strings.
     if ((ch == '\n' || ch == EOF) && (in_single_quote || in_double_quote)) {
-      ERROR << "Unclosed quoted string started on line " << quote_start_line;
+      errors->push_back(
+          ConfigError("Unclosed quoted string", quote_start_line));
       *error = true;
       return false;
     }
@@ -194,9 +200,11 @@ bool ConfigParser::Tokenizer::GetNextToken(
 }
 
 
-bool ConfigParser::Parse(Tokenizer* tokenizer, ConfigNode* config) {
+bool ConfigParser::Parse(
+    Tokenizer* tokenizer, ConfigNode* config, vector<ConfigError>* errors) {
   CHECK(tokenizer);
   CHECK(config);
+  CHECK(errors);
 
   stack<ConfigNode*> node_stack;
   node_stack.push(config);
@@ -209,36 +217,45 @@ bool ConfigParser::Parse(Tokenizer* tokenizer, ConfigNode* config) {
   TokenType token_type = NUM_TOKEN_TYPES;
   int line_num = -1;
   bool error = false;
-  while (tokenizer->GetNextToken(&token, &token_type, &line_num, &error)) {
+  while (tokenizer->GetNextToken(
+             &token, &token_type, &line_num, &error, errors)) {
     if (token_type == TOKEN_NEWLINE) {
       // If we're in a concatenation request, we'll ignore the terminator.
       if (in_concat) continue;
       current_node = NULL;
     } else if (token_type == TOKEN_LEFT_BRACE) {
-      // FIXME: report an error if we're concatenating
-      CHECK(!in_concat);
-      // FIXME: create empty current_node if NULL
-      CHECK(current_node);
+      if (in_concat) {
+        errors->push_back(ConfigError("Concatenated a left brace", line_num));
+        return false;
+      }
+      if (!current_node) {
+        current_node = new ConfigNode;
+        node_stack.top()->children.push_back(ref_ptr<ConfigNode>(current_node));
+      }
       node_stack.push(current_node);
       current_node = NULL;
     } else if (token_type == TOKEN_RIGHT_BRACE) {
-      // FIXME: report an error if we're concatenating
-      CHECK(!in_concat);
+      if (in_concat) {
+        errors->push_back(ConfigError("Concatenated a right brace", line_num));
+        return false;
+      }
       node_stack.pop();
-      // FIXME: report an error if node_stack is empty
-      CHECK(!node_stack.empty());
+      if (node_stack.empty()) {
+        errors->push_back(
+            ConfigError("Saw a right brace when not in a block", line_num));
+        return false;
+      }
       current_node = NULL;
     } else {
       // We treat "." tokens as concatenation requests, unless we're
-      // already in a request or are at the begin of a node's tokens.
+      // already in a request or are at the beginning of a node's tokens.
       if (token_type == TOKEN_PERIOD && !in_concat && current_node) {
         in_concat = true;
         continue;
       }
       if (!current_node) {
         current_node = new ConfigNode;
-        node_stack.top()->children.push_back(
-            ref_ptr<ConfigNode>(current_node));
+        node_stack.top()->children.push_back(ref_ptr<ConfigNode>(current_node));
       }
       if (in_concat) {
         // Invariant: if we're concatenating, we already have a token.
@@ -251,9 +268,14 @@ bool ConfigParser::Parse(Tokenizer* tokenizer, ConfigNode* config) {
       }
     }
   }
-  // FIXME: report error if we reach the end while still waiting for a
-  // concatenated string
-  CHECK(!in_concat);
+  if (in_concat) {
+    errors->push_back(ConfigError("In concatenation at end of file", line_num));
+    return false;
+  }
+  if (current_node) {
+    errors->push_back(ConfigError("Unclosed block at end of file", line_num));
+    return false;
+  }
 
   return true;
 }

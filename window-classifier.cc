@@ -139,7 +139,9 @@ const string& WindowCriteria::GetPropertyForCriterionType(
 }
 
 
-bool WindowClassifier::Load(const ConfigNode& conf) {
+bool WindowClassifier::Load(const ConfigNode& conf,
+                            vector<ConfigError>* errors) {
+  CHECK(errors);
   CHECK(!conf.tokens.empty());
   CHECK(conf.tokens[0] == "window");
 
@@ -151,26 +153,27 @@ bool WindowClassifier::Load(const ConfigNode& conf) {
     const ConfigNode& node = *(it->get());
 
     if (node.tokens.empty()) {
-      // TODO: Just make this a warning?
-      ERROR << "Node with no tokens in \"window\" block";
-      return false;
-    }
-    if (node.tokens[0] == "criteria") {
+      errors->push_back(ConfigError("Node with no tokens in \"window\" block",
+                                    node.line_num));
+    } else if (node.tokens[0] == "criteria") {
       ref_ptr<WindowCriteria> criteria(new WindowCriteria);
-      if (!LoadWindowCriteria(node, criteria.get())) return false;
+      // If we're unable to load criteria, we'll probably end up matching
+      // windows that we don't want to, so we just ignore the entire block.
+      if (!LoadWindowCriteria(node, criteria.get(), errors)) return false;
       criteria_vector->push_back(criteria);
     } else if (node.tokens[0] == "config") {
       ref_ptr<WindowConfig> window_config(new WindowConfig);
-      if (!LoadWindowConfig(node, window_config.get())) return false;
+      // If we're unable to load a config, things may still be salvageable.
+      if (!LoadWindowConfig(node, window_config.get(), errors)) continue;
       config_vector->push_back(window_config);
     } else {
-      ERROR << "Got token \"" << node.tokens[0] << "\" with "
-            << (node.tokens.size() - 1) << " parameter(s)";
-      return false;
+      string msg = StringPrintf("Got token \"%s\" with %d parameter(s)",
+                                node.tokens[0].c_str(), node.tokens.size() - 1);
+      errors->push_back(ConfigError(msg, node.line_num));
     }
   }
   if (config_vector->empty()) {
-    ERROR << "No window configs defined";
+    errors->push_back(ConfigError("No window configs defined", conf.line_num));
     return false;
   }
   AddConfig(criteria_vector, config_vector);
@@ -224,14 +227,16 @@ bool WindowClassifier::ClassifyWindow(
 
 
 bool WindowClassifier::LoadWindowCriteria(const ConfigNode& conf,
-                                          WindowCriteria* criteria) {
+                                          WindowCriteria* criteria,
+                                          vector<ConfigError>* errors) {
   CHECK(criteria);
-  CHECK(!conf.tokens.empty());
+  CHECK(errors);
+  CHECK(conf.tokens.size() == 1);
   CHECK(conf.tokens[0] == "criteria");
 
   if (conf.tokens.size() != 1) {
-    // FIXME: make this a warning?
-    ERROR << "criteria node has " << conf.tokens.size() << " tokens";
+    errors->push_back(
+        ConfigError("Got unexpected arguments to \"criteria\"", conf.line_num));
     return false;
   }
 
@@ -240,19 +245,24 @@ bool WindowClassifier::LoadWindowCriteria(const ConfigNode& conf,
     const ConfigNode& node = *(it->get());
 
     if (node.tokens.size() != 2) {
-      ERROR << "criteria node with " << node.tokens.size()
-            << " token(s); expected 2";
+      string msg = StringPrintf("Criteria node with %d token(s); expected 2",
+                                node.tokens.size());
+      errors->push_back(ConfigError(msg, node.line_num));
       return false;
     }
     WindowCriteria::CriterionType type =
         WindowCriteria::StrToCriterionType(node.tokens[0]);
     if (type == WindowCriteria::CRITERION_TYPE_UNKNOWN) {
-      ERROR << "Criterion with unknown type \"" << node.tokens[0] << "\"";
+      string msg = StringPrintf("Criterion with unknown type \"%s\"",
+                                node.tokens[0].c_str());
+      errors->push_back(ConfigError(msg, node.line_num));
       return false;
     }
     if (!criteria->AddCriterion(type, node.tokens[1])) {
-      ERROR << "Unable to add criterion of type " << type
-            << " with pattern \"" << node.tokens[1] << "\"";
+      string msg = StringPrintf("Unable to add criterion of type %d "
+                                "with pattern \"%s\"",
+                                type, node.tokens[1].c_str());
+      errors->push_back(ConfigError(msg, node.line_num));
       return false;
     }
   }
@@ -261,14 +271,18 @@ bool WindowClassifier::LoadWindowCriteria(const ConfigNode& conf,
 
 
 bool WindowClassifier::LoadWindowConfig(const ConfigNode& conf,
-                                        WindowConfig* window_config) {
+                                        WindowConfig* window_config,
+                                        vector<ConfigError>* errors) {
   CHECK(window_config);
+  CHECK(errors);
   CHECK(!conf.tokens.empty());
   CHECK(conf.tokens[0] == "config");
 
   if (conf.tokens.size() != 2) {
-    ERROR << "window config node has " << conf.tokens.size()
-          << " token(s); expected 2";
+    string msg = StringPrintf("Window config node with %d token(s); "
+                              "expected 2 (\"config\" and config name)",
+                              conf.tokens.size());
+    errors->push_back(ConfigError(msg, conf.line_num));
     return false;
   }
   window_config->name = conf.tokens[1];
@@ -278,26 +292,34 @@ bool WindowClassifier::LoadWindowConfig(const ConfigNode& conf,
     const ConfigNode& node = *(it->get());
 
     if (node.tokens.empty()) {
-      // TODO: Just make this a warning?
-      ERROR << "Node with no tokens in window config block";
+      errors->push_back(ConfigError(
+          "Node with no tokens in window config block", conf.line_num));
       return false;
     }
 
     if (node.tokens[0] == "width" && node.tokens.size() == 2) {
-      if (!ParseDimensions(node.tokens[1],
-                           &(window_config->width_type),
-                           &(window_config->width))) {
+      if (!ParseDimension(node.tokens[1],
+                          &(window_config->width_type),
+                          &(window_config->width))) {
+        string msg = StringPrintf("Unable to parse width dimensions \"%s\"",
+                                  node.tokens[1].size());
+        errors->push_back(ConfigError(msg, node.line_num));
         return false;
       }
     } else if (node.tokens[0] == "height" && node.tokens.size() == 2) {
-      if (!ParseDimensions(node.tokens[1],
-                           &(window_config->height_type),
-                           &(window_config->height))) {
+      if (!ParseDimension(node.tokens[1],
+                          &(window_config->height_type),
+                          &(window_config->height))) {
+        string msg = StringPrintf("Unable to parse height dimensions \"%s\"",
+                                  node.tokens[1].size());
+        errors->push_back(ConfigError(msg, node.line_num));
         return false;
       }
     } else {
-      ERROR << "Got token " << node.tokens[0] << " with "
-            << (node.tokens.size() - 1) << " parameter(s)";
+      string msg = StringPrintf("Got unknown token \"%s\" with %d parameter(s)",
+                                node.tokens[0].c_str(),
+                                (node.tokens.size() - 1));
+      errors->push_back(ConfigError(msg, node.line_num));
       return false;
     }
   }
@@ -305,9 +327,12 @@ bool WindowClassifier::LoadWindowConfig(const ConfigNode& conf,
 }
 
 
-bool WindowClassifier::ParseDimensions(const string& str,
-                                       WindowConfig::DimensionType* type,
-                                       uint* dim) {
+bool WindowClassifier::ParseDimension(const string& str,
+                                      WindowConfig::DimensionType* type,
+                                      uint* dim) {
+  CHECK(type);
+  CHECK(dim);
+
   static pcrecpp::RE num_re("(?i)(\\d+)(u?)");
 
   string unit;
@@ -322,7 +347,6 @@ bool WindowClassifier::ParseDimensions(const string& str,
             WindowConfig::DIMENSION_PIXELS :
             WindowConfig::DIMENSION_UNITS;
   } else {
-    ERROR << "Unable to parse dimensions \"" << str << "\"";
     return false;
   }
   return true;

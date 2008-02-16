@@ -168,6 +168,14 @@ void SplitString(const string& str, vector<string>* parts);
 vector<string> SplitString(const string& str);
 
 
+void JoinString(const vector<string>& parts,
+                const string& delim,
+                string* output);
+
+
+string JoinString(const vector<string>& parts, const string& delim);
+
+
 string StringPrintf(const char* format, ...);
 
 }  // namespace wham
