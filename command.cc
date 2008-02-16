@@ -15,6 +15,7 @@ const Command::Info Command::info_[] = {
   { "cycle_window_config",       CYCLE_WINDOW_CONFIG,       BOOL_ARG },
   { "display_window_props",      DISPLAY_WINDOW_PROPS,      NO_ARG },
   { "exec",                      EXEC,                      STRING_ARG },
+  { "set_attach_anchor",         SET_ATTACH_ANCHOR,         NO_ARG },
   { "switch_nearest_anchor",     SWITCH_NEAREST_ANCHOR,     DIRECTION_ARG },
   { "switch_nth_anchor",         SWITCH_NTH_ANCHOR,         INT_ARG },
   { "switch_nth_window",         SWITCH_NTH_WINDOW,         INT_ARG },

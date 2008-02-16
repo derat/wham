@@ -32,6 +32,7 @@ class WindowManager {
 
   void HandleButtonPress(XWindow* x_window, int x, int y);
   void HandleButtonRelease(XWindow* x_window, int x, int y);
+  void HandleCreateWindow(XWindow* x_window);
   void HandleDestroyWindow(XWindow* x_window);
   void HandleEnterWindow(XWindow* x_window);
   void HandleExposeWindow(XWindow* x_window);
@@ -52,6 +53,9 @@ class WindowManager {
 
   // Toggle the tagged state of a window.
   void ToggleWindowTag(Window* window);
+
+  // Set the passed-in anchor as active.
+  void SetActiveAnchor(Anchor* anchor);
 
   // Check if the passed-in X window is an anchor titlebar or not.
   bool IsAnchorWindow(XWindow* x_window) const;
@@ -81,6 +85,9 @@ class WindowManager {
   Desktop* active_desktop_;
 
   set<Window*> tagged_windows_;
+
+  // Do we attach new windows to the currently-focused anchor?
+  bool attach_follows_active_;
 
   // Is a mouse button currently down?
   bool mouse_down_;

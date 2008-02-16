@@ -31,6 +31,11 @@ string ConfigNode::Dump(int level) {
 }
 
 
+string ConfigError::ToString() const {
+  return StringPrintf("%d: %s", line_num, message.c_str());
+}
+
+
 bool ConfigParser::ParseFromFile(const string& filename,
                                  ConfigNode* config,
                                  vector<ConfigError>* errors) {

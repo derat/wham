@@ -23,7 +23,7 @@ struct ConfigNode {
   string Dump() { return Dump(0); }
   vector<string> tokens;
   vector<ref_ptr<ConfigNode> > children;
-  int file_num;
+  int file_num;  // not yet implemented
   int line_num;
  private:
   string Dump(int level);
@@ -31,14 +31,16 @@ struct ConfigNode {
 };
 
 
-// An error that occurred while parsing or reading a config file.
+// An error that occurred while loading a config file.
 struct ConfigError {
   ConfigError(const string& message, int line_num)
       : file_num(0),
         line_num(line_num),
         message(message) {}
 
-  int file_num;
+  string ToString() const;
+
+  int file_num;  // not yet implemented
   int line_num;
   string message;
 };

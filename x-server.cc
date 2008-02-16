@@ -143,7 +143,10 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
             << " width=" << e.width << " height=" << e.height
             << " border=" << e.border_width
             << " override=" << e.override_redirect;
-      //XWindow* x_window = GetWindow(e.window, true);
+      if (!e.override_redirect) {
+        XWindow* x_window = GetWindow(e.window, true);
+        window_manager->HandleCreateWindow(x_window);
+      }
     } else if (event.type == DestroyNotify) {
       XDestroyWindowEvent& e = event.xdestroywindow;
       DEBUG << "DestroyNotify: window=0x" << hex << e.window;

@@ -13,6 +13,7 @@ key_bindings {
   bind Ctrl+8 switch_nth_window 7
   bind Ctrl+9 switch_nth_window 8
 
+  bind Ctrl+a set_attach_anchor
   bind Ctrl+b cycle_window_config true
   bind Ctrl+g cycle_anchor_gravity true
   bind Ctrl+Shift+g cycle_anchor_gravity false

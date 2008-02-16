@@ -47,11 +47,14 @@ class Desktop {
 
   void SetActiveAnchor(Anchor* anchor);
 
+  void SetAttachAnchor(Anchor* anchor);
+
   bool IsTitlebarWindow(XWindow* x_window) const {
     return anchor_titlebars_.count(x_window);
   }
 
   Anchor* active_anchor() { return active_anchor_; }
+  Anchor* attach_anchor() { return attach_anchor_; }
 
   // Get the anchor nearest to the currently-active anchor in the
   // specified direction.
@@ -79,8 +82,11 @@ class Desktop {
   typedef map<Window*, Anchor*> WindowAnchorMap;
   WindowAnchorMap window_anchors_;
 
-  // Currently-active anchor.
+  // Currently-active (focused) anchor.
   Anchor* active_anchor_;
+
+  // Anchor to which new windows should be attached by default.
+  Anchor* attach_anchor_;
 
   DISALLOW_EVIL_CONSTRUCTORS(Desktop);
 };

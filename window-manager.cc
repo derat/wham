@@ -18,6 +18,7 @@ namespace wham {
 
 WindowManager::WindowManager()
     : active_desktop_(NULL),
+      attach_follows_active_(true),
       mouse_down_(false),
       dragging_(false),
       drag_offset_x_(0),
@@ -37,7 +38,12 @@ void WindowManager::SetupDefaultCrap() {
 bool WindowManager::LoadConfig(const string& filename) {
   vector<ConfigError> errors;
   ref_ptr<Config> config(new Config);
-  if (!config->Load(filename, &errors)) {
+  bool status = config->Load(filename, &errors);
+  for (vector<ConfigError>::const_iterator error = errors.begin();
+       error != errors.end(); ++error) {
+    ERROR << error->ToString();
+  }
+  if (!status) {
     ERROR << "Couldn't load config";
     return false;
   }
@@ -53,7 +59,7 @@ void WindowManager::HandleButtonPress(XWindow* x_window, int x, int y) {
   CHECK(anchor);
 
   // Make this the active anchor.
-  active_desktop_->SetActiveAnchor(anchor);
+  SetActiveAnchor(anchor);
   anchor->Raise();
 
   mouse_down_ = true;
@@ -76,11 +82,18 @@ void WindowManager::HandleButtonRelease(XWindow* x_window, int x, int y) {
 }
 
 
+void WindowManager::HandleCreateWindow(XWindow* x_window) {
+  // FIXME: Move the window to the correct location here, and maybe even
+  // classify it so we can resize it.  We want to do this before it's
+  // mapped to avoid flicker.
+}
+
+
 void WindowManager::HandleDestroyWindow(XWindow* x_window) {
   if (IsAnchorWindow(x_window)) return;
 
   Window* window = FindWithDefault(windows_, x_window, ref_ptr<Window>()).get();
-  CHECK(window);
+  if (window == NULL) return;  // Maybe it never got mapped.
   for (DesktopVector::iterator desktop = desktops_.begin();
        desktop != desktops_.end(); ++desktop) {
     (*desktop)->RemoveWindow(window);
@@ -103,7 +116,7 @@ void WindowManager::HandleEnterWindow(XWindow* x_window) {
   // In either case, we want to make this anchor active (which will also
   // focus its window).
   CHECK(anchor);
-  active_desktop_->SetActiveAnchor(anchor);
+  SetActiveAnchor(anchor);
 }
 
 
@@ -184,9 +197,20 @@ void WindowManager::HandleCommand(const Command &cmd) {
     if (window) LOG << window->props().DebugString();
   } else if (cmd.type() == Command::EXEC) {
     Exec(cmd.GetStringArg());
+  } else if (cmd.type() == Command::SET_ATTACH_ANCHOR) {
+    Anchor* anchor = active_desktop_->active_anchor();
+    if (anchor == active_desktop_->attach_anchor()) {
+      DEBUG << "Setting anchor_follows_active_ from "
+            << attach_follows_active_ << " to " << !attach_follows_active_;
+      attach_follows_active_ = !attach_follows_active_;
+    } else if (anchor) {
+      DEBUG << "Setting anchor_follows_active_ to 1";
+      attach_follows_active_ = true;
+      active_desktop_->SetAttachAnchor(anchor);
+    }
   } else if (cmd.type() == Command::SWITCH_NEAREST_ANCHOR) {
     Anchor* anchor = active_desktop_->GetNearestAnchor(cmd.GetDirectionArg());
-    if (anchor) active_desktop_->SetActiveAnchor(anchor);
+    if (anchor) SetActiveAnchor(anchor);
   } else if (cmd.type() == Command::SWITCH_NTH_WINDOW) {
     Anchor* anchor = active_desktop_->active_anchor();
     if (anchor) anchor->SetActiveWindow(cmd.GetIntArg());
@@ -239,6 +263,13 @@ void WindowManager::ToggleWindowTag(Window* window) {
     tagged_windows_.insert(window);
     window->set_tagged(true);
   }
+}
+
+
+void WindowManager::SetActiveAnchor(Anchor* anchor) {
+  CHECK(anchor);
+  active_desktop_->SetActiveAnchor(anchor);
+  if (attach_follows_active_) active_desktop_->SetAttachAnchor(anchor);
 }
 
 

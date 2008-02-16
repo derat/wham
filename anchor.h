@@ -68,6 +68,10 @@ class Anchor {
   // necessary.
   void SetActive(bool active);
 
+  // Set the anchor as the one to which new windows will be attached,
+  // redrawing the titlebar if necessary.
+  void SetAttach(bool attach);
+
   // Set which (zero-indexed) window should be currently displayed.
   bool SetActiveWindow(uint index);
 
@@ -133,6 +137,9 @@ class Anchor {
 
   // Is this anchor active?
   bool active_;
+
+  // Do new windows get attached to this anchor?
+  bool attach_;
 
   DISALLOW_EVIL_CONSTRUCTORS(Anchor);
 };

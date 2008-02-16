@@ -7,7 +7,8 @@
 namespace wham {
 
 Desktop::Desktop()
-    : active_anchor_(NULL) {
+    : active_anchor_(NULL),
+      attach_anchor_(NULL) {
 }
 
 
@@ -15,7 +16,10 @@ Anchor* Desktop::CreateAnchor(const string& name, int x, int y) {
   ref_ptr<Anchor> anchor(new Anchor(name, x, y));
   anchors_.push_back(anchor);
   anchor_titlebars_.insert(make_pair(anchor->titlebar(), anchor.get()));
-  if (anchors_.size() == 1U) SetActiveAnchor(anchor.get());
+  if (anchors_.size() == 1U) {
+    SetActiveAnchor(anchor.get());
+    SetAttachAnchor(anchor.get());
+  }
   return anchor.get();
 }
 
@@ -25,7 +29,7 @@ void Desktop::AddWindow(Window* window) {
   // window is added, where it appears in the list, and whether it's
   // automatically focused, instead of just adding it at the end of the
   // current anchor.
-  AddWindowToAnchor(window, active_anchor_);
+  AddWindowToAnchor(window, attach_anchor_);
 }
 
 
@@ -72,6 +76,15 @@ void Desktop::SetActiveAnchor(Anchor* anchor) {
   if (active_anchor_) active_anchor_->SetActive(false);
   active_anchor_ = anchor;
   active_anchor_->SetActive(true);
+}
+
+
+void Desktop::SetAttachAnchor(Anchor* anchor) {
+  if (anchor == attach_anchor_) return;
+  CHECK(find(anchors_.begin(), anchors_.end(), anchor) != anchors_.end());
+  if (attach_anchor_) attach_anchor_->SetAttach(false);
+  attach_anchor_ = anchor;
+  attach_anchor_->SetAttach(true);
 }
 
 

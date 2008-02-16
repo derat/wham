@@ -24,7 +24,8 @@ Anchor::Anchor(const string& name, int x, int y)
       active_window_(NULL),
       gravity_(TOP_LEFT),
       titlebar_(XWindow::Create(x, y, 1, 1)),
-      active_(false) {
+      active_(false),
+      attach_(false) {
   CHECK(titlebar_);
   SetName(name);
   DrawTitlebar();
@@ -107,6 +108,13 @@ void Anchor::SetActive(bool active) {
   active_ = active;
   DrawTitlebar();
   FocusActiveWindow();
+}
+
+
+void Anchor::SetAttach(bool attach) {
+  if (attach == attach_) return;
+  attach_ = attach;
+  DrawTitlebar();
 }
 
 
