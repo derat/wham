@@ -26,6 +26,10 @@ class Anchor {
   Anchor(const string& name, int x, int y);
   ~Anchor();
 
+  // Hide or show this anchor.
+  void Hide();
+  void Show();
+
   // Where an anchor should appear in relation to its windows.
   enum Gravity {
     TOP_LEFT,

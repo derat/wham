@@ -41,6 +41,18 @@ Anchor::~Anchor() {
 }
 
 
+void Anchor::Hide() {
+  titlebar_->Unmap();
+  if (active_window_) active_window_->Unmap();
+}
+
+
+void Anchor::Show() {
+  titlebar_->Map();
+  if (active_window_) active_window_->Map();
+}
+
+
 void Anchor::SetName(const string& name) {
   if (name_ == name) return;
   name_ = name;

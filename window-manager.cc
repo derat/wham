@@ -30,7 +30,8 @@ WindowManager::WindowManager()
 
 // FIXME: get rid of this
 void WindowManager::SetupDefaultCrap() {
-  CreateDesktop();
+  Desktop* desktop = CreateDesktop();
+  SetActiveDesktop(desktop);
   active_desktop_->CreateAnchor("anchor1", 50, 50);
 }
 
@@ -187,9 +188,15 @@ void WindowManager::HandleCommand(const Command &cmd) {
     if (anchor) AttachTaggedWindows(anchor);
   } else if (cmd.type() == Command::CREATE_ANCHOR) {
     active_desktop_->CreateAnchor("new", 250, 250);
+  } else if (cmd.type() == Command::CREATE_DESKTOP) {
+    SetActiveDesktop(CreateDesktop());
   } else if (cmd.type() == Command::CYCLE_ANCHOR_GRAVITY) {
     Anchor* anchor = active_desktop_->active_anchor();
     if (anchor) anchor->CycleGravity(cmd.GetBoolArg());
+  } else if (cmd.type() == Command::CYCLE_DESKTOP) {
+    int num = (desktops_.size() + GetDesktopIndex(active_desktop_) +
+               (cmd.GetBoolArg() ? 1 : -1)) % desktops_.size();
+    SetActiveDesktop((desktops_.begin() + num)->get());
   } else if (cmd.type() == Command::CYCLE_WINDOW_CONFIG) {
     Anchor* anchor = active_desktop_->active_anchor();
     if (anchor) anchor->CycleActiveWindowConfig(cmd.GetBoolArg());
@@ -212,6 +219,11 @@ void WindowManager::HandleCommand(const Command &cmd) {
   } else if (cmd.type() == Command::SWITCH_NEAREST_ANCHOR) {
     Anchor* anchor = active_desktop_->GetNearestAnchor(cmd.GetDirectionArg());
     if (anchor) SetActiveAnchor(anchor);
+  } else if (cmd.type() == Command::SWITCH_NTH_DESKTOP) {
+    int num = cmd.GetIntArg();
+    if (num >= 0 && num < static_cast<int>(desktops_.size())) {
+      SetActiveDesktop((desktops_.begin() + num)->get());
+    }
   } else if (cmd.type() == Command::SWITCH_NTH_WINDOW) {
     Anchor* anchor = active_desktop_->active_anchor();
     if (anchor) anchor->SetActiveWindow(cmd.GetIntArg());
@@ -230,10 +242,39 @@ void WindowManager::HandleCommand(const Command &cmd) {
 
 
 Desktop* WindowManager::CreateDesktop() {
-  // FIXME: Append this after the active desktop, if one exists.
-  desktops_.push_back(ref_ptr<Desktop>(new Desktop()));
-  active_desktop_ = desktops_.back().get();
-  return desktops_.back().get();
+  vector<ref_ptr<Desktop> >::iterator it = desktops_.end();
+  // Append the new desktop after the active desktop.
+  if (active_desktop_) {
+    int i = GetDesktopIndex(active_desktop_);
+    CHECK(i >= 0 && i < static_cast<int>(desktops_.size()));
+    it = desktops_.begin() + i + 1;
+    DEBUG << "Inserting desktop after position " << i;
+  }
+  ref_ptr<Desktop> desktop(new Desktop());
+  desktops_.insert(it, desktop);
+  DEBUG << "Created desktop " << desktop->name();
+  return desktop.get();
+}
+
+
+int WindowManager::GetDesktopIndex(Desktop* desktop) {
+  CHECK(desktop);
+  for (uint i = 0; i < desktops_.size(); ++i) {
+    if (desktops_[i].get() == desktop) {
+      return static_cast<int>(i);
+    }
+  }
+  return -1;
+}
+
+
+void WindowManager::SetActiveDesktop(Desktop* desktop) {
+  CHECK(desktop);
+  DEBUG << "Switching to desktop " << desktop->name();
+  if (desktop == active_desktop_) return;
+  if (active_desktop_) active_desktop_->Hide();
+  active_desktop_ = desktop;
+  desktop->Show();
 }
 
 

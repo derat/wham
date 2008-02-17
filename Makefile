@@ -1,4 +1,4 @@
-CC=g++ -Wall -Werror
+CC=g++ -g -Wall -Werror
 LIBS=-lX11 -lpcrecpp
 
 CXXTESTGEN=cxxtestgen.pl

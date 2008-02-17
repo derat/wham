@@ -9,11 +9,31 @@ namespace wham {
 Desktop::Desktop()
     : active_anchor_(NULL),
       attach_anchor_(NULL) {
+  static int num = 0;
+  name_ = StringPrintf("desktop%d", num);
+  num++;
+}
+
+
+void Desktop::Hide() {
+  for (vector<ref_ptr<Anchor> >::const_iterator anchor = anchors_.begin();
+       anchor != anchors_.end(); ++anchor) {
+    (*anchor)->Hide();
+  }
+}
+
+
+void Desktop::Show() {
+  for (vector<ref_ptr<Anchor> >::const_iterator anchor = anchors_.begin();
+       anchor != anchors_.end(); ++anchor) {
+    (*anchor)->Show();
+  }
 }
 
 
 Anchor* Desktop::CreateAnchor(const string& name, int x, int y) {
   ref_ptr<Anchor> anchor(new Anchor(name, x, y));
+  DEBUG << "anchors=" << anchors_.size();
   anchors_.push_back(anchor);
   anchor_titlebars_.insert(make_pair(anchor->titlebar(), anchor.get()));
   if (anchors_.size() == 1U) {

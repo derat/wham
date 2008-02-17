@@ -24,6 +24,10 @@ class Desktop {
  public:
   Desktop();
 
+  // Hide or show this desktop.
+  void Hide();
+  void Show();
+
   // Create a new anchor.
   Anchor* CreateAnchor(const string& name, int x, int y);
 
@@ -53,6 +57,7 @@ class Desktop {
     return anchor_titlebars_.count(x_window);
   }
 
+  string name() { return name_; }
   Anchor* active_anchor() { return active_anchor_; }
   Anchor* attach_anchor() { return attach_anchor_; }
 
@@ -68,6 +73,9 @@ class Desktop {
   // Get the index of 'anchor' within 'anchors_'.
   // Returns -1 if it's not present.
   int GetAnchorIndex(Anchor* anchor);
+
+  // The desktop's name.
+  string name_;
 
   // Anchors contained within this desktop.
   typedef vector<ref_ptr<Anchor> > AnchorVector;

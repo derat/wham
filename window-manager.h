@@ -48,6 +48,13 @@ class WindowManager {
   // Create a new desktop and switch to it.
   Desktop* CreateDesktop();
 
+  // Get the index of 'desktop' within 'desktops_'.
+  // Returns -1 if it's not present.
+  int GetDesktopIndex(Desktop* desktop);
+
+  // Set the passed-in desktop to be active.
+  void SetActiveDesktop(Desktop* desktop);
+
   // Attached currently-tagged windows to 'anchor' and untag them.
   void AttachTaggedWindows(Anchor* anchor);
 
