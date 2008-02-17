@@ -56,6 +56,7 @@ bool WindowManager::LoadConfig(const string& filename) {
 
 
 void WindowManager::HandleButtonPress(XWindow* x_window, int x, int y) {
+  CHECK(active_desktop_);
   Anchor* anchor = active_desktop_->GetAnchorByTitlebar(x_window);
   CHECK(anchor);
 
@@ -72,6 +73,7 @@ void WindowManager::HandleButtonPress(XWindow* x_window, int x, int y) {
 
 
 void WindowManager::HandleButtonRelease(XWindow* x_window, int x, int y) {
+  CHECK(active_desktop_);
   mouse_down_ = false;
   if (dragging_) {
     dragging_ = false;
@@ -105,6 +107,7 @@ void WindowManager::HandleDestroyWindow(XWindow* x_window) {
 
 
 void WindowManager::HandleEnterWindow(XWindow* x_window) {
+  CHECK(active_desktop_);
   Anchor* anchor = NULL;
   if (IsAnchorWindow(x_window)) {
     // anchor titlebar
@@ -123,6 +126,7 @@ void WindowManager::HandleEnterWindow(XWindow* x_window) {
 
 
 void WindowManager::HandleExposeWindow(XWindow* x_window) {
+  CHECK(active_desktop_);
   Anchor* anchor = active_desktop_->GetAnchorByTitlebar(x_window);
   CHECK(anchor);
   anchor->DrawTitlebar();
@@ -140,6 +144,7 @@ void WindowManager::HandleMapWindow(XWindow* x_window) {
     windows_.insert(make_pair(x_window, window));
     Window* transient_for = GetTransientFor(window.get());
     if (transient_for == NULL) {
+      CHECK(active_desktop_);
       active_desktop_->AddWindow(window.get());
     } else {
       HandleTransientFor(window.get(), transient_for);
@@ -157,6 +162,7 @@ void WindowManager::HandleMotion(XWindow* x_window, int x, int y) {
     }
     dragging_ = true;
   }
+  CHECK(active_desktop_);
   Anchor* anchor = active_desktop_->active_anchor();
   CHECK(anchor);
   anchor->Move(x - drag_offset_x_, y - drag_offset_y_);
@@ -175,6 +181,7 @@ void WindowManager::HandlePropertyChange(
   } else {
     bool need_to_redraw = window->HandlePropertyChange(type);
     if (need_to_redraw) {
+      CHECK(active_desktop_);
       Anchor* anchor = active_desktop_->GetAnchorContainingWindow(window);
       if (anchor) anchor->DrawTitlebar();
     }
@@ -183,6 +190,8 @@ void WindowManager::HandlePropertyChange(
 
 
 void WindowManager::HandleCommand(const Command &cmd) {
+  CHECK(active_desktop_);
+
   if (cmd.type() == Command::ATTACH_TAGGED_WINDOWS) {
     Anchor* anchor = active_desktop_->active_anchor();
     if (anchor) AttachTaggedWindows(anchor);
@@ -258,7 +267,6 @@ Desktop* WindowManager::CreateDesktop() {
 
 
 int WindowManager::GetDesktopIndex(Desktop* desktop) {
-  CHECK(desktop);
   for (uint i = 0; i < desktops_.size(); ++i) {
     if (desktops_[i].get() == desktop) {
       return static_cast<int>(i);
@@ -310,6 +318,7 @@ void WindowManager::ToggleWindowTag(Window* window) {
 
 void WindowManager::SetActiveAnchor(Anchor* anchor) {
   CHECK(anchor);
+  CHECK(active_desktop_);
   active_desktop_->SetActiveAnchor(anchor);
   if (attach_follows_active_) active_desktop_->SetAttachAnchor(anchor);
 }
@@ -351,6 +360,7 @@ void WindowManager::HandleTransientFor(Window* transient, Window* win) {
   CHECK(win);
 
   // FIXME: find the right desktop(s)
+  CHECK(active_desktop_);
   Anchor* win_anchor = active_desktop_->GetAnchorContainingWindow(win);
   CHECK(win_anchor);
 
@@ -363,6 +373,7 @@ void WindowManager::HandleTransientFor(Window* transient, Window* win) {
 
 
 Window* WindowManager::GetActiveWindow() const {
+  CHECK(active_desktop_);
   Anchor* anchor = active_desktop_->active_anchor();
   if (anchor == NULL) return NULL;
   return anchor->mutable_active_window();

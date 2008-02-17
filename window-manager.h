@@ -45,7 +45,8 @@ class WindowManager {
  private:
   friend class ::WindowManagerTestSuite;
 
-  // Create a new desktop and switch to it.
+  // Create a new desktop after the active one in 'desktops_'.
+  // Don't switch to it automatically.
   Desktop* CreateDesktop();
 
   // Get the index of 'desktop' within 'desktops_'.

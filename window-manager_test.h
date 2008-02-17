@@ -21,17 +21,66 @@ class WindowManagerTestSuite : public CxxTest::TestSuite {
 
   void testCreateDesktop() {
     WindowManager wm;
+
+    // We should start out with no desktops.
     TS_ASSERT_EQUALS(wm.desktops_.empty(), true);
     TS_ASSERT_EQUALS(wm.active_desktop_, static_cast<Desktop*>(NULL));
 
-    wm.CreateDesktop();
+    // After inserting a desktop, we shouldn't automatically switch to it.
+    Desktop* desktop1 = wm.CreateDesktop();
     TS_ASSERT_EQUALS(wm.desktops_.size(), 1U);
-    TS_ASSERT_EQUALS(wm.active_desktop_, wm.desktops_[0].get());
+    TS_ASSERT_EQUALS(wm.active_desktop_, static_cast<Desktop*>(NULL));
+
+    // Add a second desktop, which should be added to the end of the list.
+    Desktop* desktop2 = wm.CreateDesktop();
+    TS_ASSERT_EQUALS(wm.desktops_.size(), 2U);
+    TS_ASSERT_EQUALS(wm.desktops_[0].get(), desktop1);
+    TS_ASSERT_EQUALS(wm.desktops_[1].get(), desktop2);
+    TS_ASSERT_EQUALS(wm.active_desktop_, static_cast<Desktop*>(NULL));
+
+    // Add a third desktop.
+    Desktop* desktop3 = wm.CreateDesktop();
+    TS_ASSERT_EQUALS(wm.desktops_.size(), 3U);
+    TS_ASSERT_EQUALS(wm.desktops_[0].get(), desktop1);
+    TS_ASSERT_EQUALS(wm.desktops_[1].get(), desktop2);
+    TS_ASSERT_EQUALS(wm.desktops_[2].get(), desktop3);
+    TS_ASSERT_EQUALS(wm.active_desktop_, static_cast<Desktop*>(NULL));
+
+    // Now switch to the second desktop.
+    wm.SetActiveDesktop(desktop2);
+    TS_ASSERT_EQUALS(wm.active_desktop_, desktop2);
+
+    // If we create a desktop now, it should be appended after the active
+    // (second) desktop.  We shouldn't switch to it automatically.
+    Desktop* desktop4 = wm.CreateDesktop();
+    TS_ASSERT_EQUALS(wm.desktops_.size(), 4U);
+    TS_ASSERT_EQUALS(wm.desktops_[0].get(), desktop1);
+    TS_ASSERT_EQUALS(wm.desktops_[1].get(), desktop2);
+    TS_ASSERT_EQUALS(wm.desktops_[2].get(), desktop4);
+    TS_ASSERT_EQUALS(wm.desktops_[3].get(), desktop3);
+    TS_ASSERT_EQUALS(wm.active_desktop_, desktop2);
+  }
+
+  void testGetDesktopIndex() {
+    WindowManager wm;
+    TS_ASSERT_EQUALS(wm.GetDesktopIndex(NULL), -1);
+
+    Desktop* desktop = wm.CreateDesktop();
+    TS_ASSERT_EQUALS(wm.GetDesktopIndex(NULL), -1);
+    TS_ASSERT_EQUALS(wm.GetDesktopIndex(desktop), 0);
+
+    Desktop* desktop2 = wm.CreateDesktop();
+    TS_ASSERT_EQUALS(wm.GetDesktopIndex(desktop), 0);
+    TS_ASSERT_EQUALS(wm.GetDesktopIndex(desktop2), 1);
+  }
+
+  void testSetActiveDesktop() {
   }
 
   void testAttachTaggedWindows() {
     WindowManager wm;
     Desktop* desktop = wm.CreateDesktop();
+    wm.SetActiveDesktop(desktop);
     Anchor* anchor1 = wm.active_desktop_->CreateAnchor("anchor1", 0, 0);
     Anchor* anchor2 = wm.active_desktop_->CreateAnchor("anchor2", 0, 0);
 
@@ -97,7 +146,7 @@ class WindowManagerTestSuite : public CxxTest::TestSuite {
 
   void testGetActiveWindow() {
     WindowManager wm;
-    wm.CreateDesktop();
+    wm.SetActiveDesktop(wm.CreateDesktop());
     TS_ASSERT_EQUALS(wm.GetActiveWindow(), static_cast<wham::Window*>(NULL));
 
     wm.active_desktop_->CreateAnchor("test", 0, 0);

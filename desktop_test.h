@@ -7,6 +7,7 @@
 
 #include "anchor.h"
 #include "drawing-engine.h"
+#include "mock-x-window.h"
 #include "util.h"
 #include "window.h"
 #include "x-server.h"
@@ -19,6 +20,33 @@ class DesktopTestSuite : public CxxTest::TestSuite {
   void setUp() {
     XServer::SetupTesting();
     desktop_.reset(new Desktop);
+  }
+
+  void testHide_Show() {
+    Anchor* anchor1 = desktop_->CreateAnchor("test1", 10, 20);
+    Anchor* anchor2 = desktop_->CreateAnchor("test2", 50, 60);
+
+    // We'll just check that the anchors' titlebars are hidden or shown;
+    // anchor_test has tests to make sure that we hide and show anchors'
+    // active windows correctly.
+    MockXWindow* xwin1 = dynamic_cast<MockXWindow*>(anchor1->titlebar());
+    MockXWindow* xwin2 = dynamic_cast<MockXWindow*>(anchor2->titlebar());
+    CHECK(xwin1);
+    CHECK(xwin2);
+
+    // Initially, both anchors should be mapped.
+    TS_ASSERT(xwin1->mapped());
+    TS_ASSERT(xwin2->mapped());
+
+    // After hiding the desktop, both should be unmapped.
+    desktop_->Hide();
+    TS_ASSERT(!xwin1->mapped());
+    TS_ASSERT(!xwin2->mapped());
+
+    // And after showing the desktop, both anchors should be mapped again.
+    desktop_->Show();
+    TS_ASSERT(xwin1->mapped());
+    TS_ASSERT(xwin2->mapped());
   }
 
   void testCreateAnchor() {

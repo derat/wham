@@ -26,10 +26,6 @@ class Anchor {
   Anchor(const string& name, int x, int y);
   ~Anchor();
 
-  // Hide or show this anchor.
-  void Hide();
-  void Show();
-
   // Where an anchor should appear in relation to its windows.
   enum Gravity {
     TOP_LEFT,
@@ -51,6 +47,10 @@ class Anchor {
   Window* mutable_active_window() { return active_window_; }
   bool active() const { return active_; }
   bool attach() const { return attach_; }
+
+  // Hide or show this anchor.
+  void Hide();
+  void Show();
 
   // Set the anchor's name.
   void SetName(const string& name);
@@ -80,6 +80,7 @@ class Anchor {
   // Set which (zero-indexed) window should be currently displayed.
   bool SetActiveWindow(uint index);
 
+  // Instruct the drawing engine to draw this anchor's titlebar.
   void DrawTitlebar();
 
   // Get the index number of the window represented in the titlebar at the
@@ -88,6 +89,7 @@ class Anchor {
   // windows are present in the anchor.
   int GetWindowIndexAtTitlebarPoint(int abs_x);
 
+  // If there is an active window, give the focus to it.
   void FocusActiveWindow();
 
   // Cycle the config of the active window, updating the window's position

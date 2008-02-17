@@ -7,6 +7,7 @@
 
 #include "config.h"
 #include "drawing-engine.h"
+#include "mock-x-window.h"
 #include "util.h"
 #include "window.h"
 #include "x-server.h"
@@ -26,6 +27,40 @@ class AnchorTestSuite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(anchor.x(), 10);
     TS_ASSERT_EQUALS(anchor.y(), 20);
     TS_ASSERT_EQUALS(anchor.gravity(), Anchor::TOP_LEFT);
+  }
+
+  void testHide_Show() {
+    Anchor anchor("test", 10, 20);
+
+    // Add two windows.
+    MockXWindow* xwin1 = dynamic_cast<MockXWindow*>(
+        XWindow::Create(50, 60, 640, 480));
+    CHECK(xwin1);
+    wham::Window win1(xwin1);
+    anchor.AddWindow(&win1);
+    MockXWindow* xwin2 = dynamic_cast<MockXWindow*>(
+        XWindow::Create(50, 60, 640, 480));
+    CHECK(xwin2);
+    wham::Window win2(xwin2);
+    anchor.AddWindow(&win2);
+
+    // Initially, the titlebar and the active window should be mapped.
+    TS_ASSERT(dynamic_cast<MockXWindow*>(anchor.titlebar_)->mapped());
+    TS_ASSERT(xwin1->mapped());
+    TS_ASSERT(!xwin2->mapped());
+
+    // After hiding the anchor, none of the windows should be mapped.
+    anchor.Hide();
+    TS_ASSERT(!dynamic_cast<MockXWindow*>(anchor.titlebar_)->mapped());
+    TS_ASSERT(!xwin1->mapped());
+    TS_ASSERT(!xwin2->mapped());
+
+    // After showing the anchor, the titlebar and active window should be
+    // mapped again.
+    anchor.Show();
+    TS_ASSERT(dynamic_cast<MockXWindow*>(anchor.titlebar_)->mapped());
+    TS_ASSERT(xwin1->mapped());
+    TS_ASSERT(!xwin2->mapped());
   }
 
   void testSetName() {

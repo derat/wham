@@ -33,7 +33,6 @@ void Desktop::Show() {
 
 Anchor* Desktop::CreateAnchor(const string& name, int x, int y) {
   ref_ptr<Anchor> anchor(new Anchor(name, x, y));
-  DEBUG << "anchors=" << anchors_.size();
   anchors_.push_back(anchor);
   anchor_titlebars_.insert(make_pair(anchor->titlebar(), anchor.get()));
   if (anchors_.size() == 1U) {
