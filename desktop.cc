@@ -142,6 +142,12 @@ Anchor* Desktop::GetNearestAnchor(Command::Direction dir) const {
 }
 
 
+bool Desktop::HasAnchor(const Anchor* anchor) const {
+  CHECK(anchor);
+  return GetAnchorIndex(anchor) != -1;
+}
+
+
 void Desktop::DestroyAnchor(Anchor* anchor) {
   CHECK(anchor);
   // FIXME: figure out what should be done wrt closing anchors that still
@@ -160,7 +166,7 @@ void Desktop::DestroyAnchor(Anchor* anchor) {
 }
 
 
-int Desktop::GetAnchorIndex(Anchor* anchor) {
+int Desktop::GetAnchorIndex(const Anchor* anchor) const {
   CHECK(anchor);
   for (uint i = 0; i < anchors_.size(); ++i) {
     if (anchors_[i].get() == anchor) {

@@ -25,7 +25,8 @@ key_bindings {
   bind Ctrl+Shift+9 switch_nth_desktop 8
   bind Ctrl+Shift+0 switch_nth_desktop 9
 
-  bind Ctrl+a set_attach_anchor
+  bind Ctrl+a attach_tagged_windows
+  bind Ctrl+Shift+a set_attach_anchor
   bind Ctrl+b cycle_window_config true
   bind Ctrl+g cycle_anchor_gravity true
   bind Ctrl+Shift+g cycle_anchor_gravity false

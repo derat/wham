@@ -98,10 +98,11 @@ void WindowManager::HandleDestroyWindow(XWindow* x_window) {
 
   Window* window = FindWithDefault(windows_, x_window, ref_ptr<Window>()).get();
   if (window == NULL) return;  // Maybe it never got mapped.
-  for (DesktopVector::iterator desktop = desktops_.begin();
-       desktop != desktops_.end(); ++desktop) {
-    (*desktop)->RemoveWindow(window);
+  for (set<Desktop*>::iterator desktop = window_desktops_[window].begin();
+       desktop != window_desktops_[window].end(); ++desktop) {
+    RemoveWindowFromDesktop(window, *desktop);
   }
+  window_desktops_.erase(window);
   windows_.erase(x_window);
 }
 
@@ -145,7 +146,7 @@ void WindowManager::HandleMapWindow(XWindow* x_window) {
     Window* transient_for = GetTransientFor(window.get());
     if (transient_for == NULL) {
       CHECK(active_desktop_);
-      active_desktop_->AddWindow(window.get());
+      AddWindowToDesktop(window.get(), active_desktop_, NULL);
     } else {
       HandleTransientFor(window.get(), transient_for);
     }
@@ -238,12 +239,7 @@ void WindowManager::HandleCommand(const Command &cmd) {
     if (anchor) anchor->SetActiveWindow(cmd.GetIntArg());
   } else if (cmd.type() == Command::TOGGLE_TAG) {
     Window* window = GetActiveWindow();
-    if (window) {
-      ToggleWindowTag(window);
-      Anchor* anchor = active_desktop_->active_anchor();
-      CHECK(anchor);
-      anchor->DrawTitlebar();
-    }
+    if (window) ToggleWindowTag(window);
   } else {
     ERROR << "Got unknown command " << cmd.type();
   }
@@ -288,17 +284,21 @@ void WindowManager::SetActiveDesktop(Desktop* desktop) {
 
 void WindowManager::AttachTaggedWindows(Anchor* anchor) {
   CHECK(anchor);
-  for (set<Window*>::iterator it = tagged_windows_.begin();
-       it != tagged_windows_.end(); ++it) {
-    Window* window = *it;
-    for (DesktopVector::iterator desktop = desktops_.begin();
-         desktop != desktops_.end(); ++desktop) {
-      (*desktop)->RemoveWindow(window);
-    }
-    anchor->AddWindow(window);
-  }
+  CHECK(active_desktop_->HasAnchor(anchor));
+
   while (!tagged_windows_.empty()) {
-    ToggleWindowTag(*(tagged_windows_.begin()));
+    Window* window = *(tagged_windows_.begin());
+    ToggleWindowTag(window);
+
+    // FIXME: Should we really remove the window from all desktops here?
+    // It'd probably make more sense for "attach" to move the window to a
+    // new anchor if it's already present in a different anchor on this
+    // desktop, and just add it to this desktop otherwise.
+    for (set<Desktop*>::iterator desktop = window_desktops_[window].begin();
+         desktop != window_desktops_[window].end(); ++desktop) {
+      RemoveWindowFromDesktop(window, *desktop);
+    }
+    AddWindowToDesktop(window, active_desktop_, anchor);
   }
 }
 
@@ -313,6 +313,8 @@ void WindowManager::ToggleWindowTag(Window* window) {
     tagged_windows_.insert(window);
     window->set_tagged(true);
   }
+  Anchor* anchor = active_desktop_->GetAnchorContainingWindow(window);
+  if (anchor != NULL) anchor->DrawTitlebar();
 }
 
 
@@ -368,7 +370,7 @@ void WindowManager::HandleTransientFor(Window* transient, Window* win) {
   int y = win->y() + win->height() / 2 - transient->height() / 2;
   Anchor* anchor = active_desktop_->CreateAnchor("transient", x, y);
   anchor->set_transient(true);
-  active_desktop_->AddWindowToAnchor(transient, anchor);
+  AddWindowToDesktop(transient, active_desktop_, anchor);
 }
 
 
@@ -377,6 +379,29 @@ Window* WindowManager::GetActiveWindow() const {
   Anchor* anchor = active_desktop_->active_anchor();
   if (anchor == NULL) return NULL;
   return anchor->mutable_active_window();
+}
+
+
+void WindowManager::AddWindowToDesktop(
+    Window* window, Desktop* desktop, Anchor* anchor) {
+  CHECK(window);
+  CHECK(desktop);
+
+  if (anchor == NULL) {
+    desktop->AddWindow(window);
+  } else {
+    desktop->AddWindowToAnchor(window, anchor);
+  }
+  window_desktops_[window].insert(desktop);
+}
+
+
+void WindowManager::RemoveWindowFromDesktop(Window* window, Desktop* desktop) {
+  CHECK(window);
+  CHECK(desktop);
+
+  desktop->RemoveWindow(window);
+  window_desktops_[window].erase(desktop);
 }
 
 }  // namespace wham

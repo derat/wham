@@ -65,6 +65,9 @@ class Desktop {
   // specified direction.
   Anchor* GetNearestAnchor(Command::Direction dir) const;
 
+  // Returns true if this desktop contains 'anchor' and false otherwise.
+  bool HasAnchor(const Anchor* anchor) const;
+
  private:
   friend class ::DesktopTestSuite;
 
@@ -72,7 +75,7 @@ class Desktop {
 
   // Get the index of 'anchor' within 'anchors_'.
   // Returns -1 if it's not present.
-  int GetAnchorIndex(Anchor* anchor);
+  int GetAnchorIndex(const Anchor* anchor) const;
 
   // The desktop's name.
   string name_;

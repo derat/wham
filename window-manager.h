@@ -77,19 +77,34 @@ class WindowManager {
   Window* GetTransientFor(Window* transient) const;
 
   // Handle 'transient' declaring itself as a transient window for 'win'.
+  // This involves finding the desktop (all desktops?) where 'win' exists
+  // and adding it there.
   void HandleTransientFor(Window* transient, Window* win);
 
   // Get the active window from the focused anchor on the active desktop,
   // or NULL if none exists.
   Window* GetActiveWindow() const;
 
+  // Add 'window' to 'desktop'.  If 'anchor' is non-NULL, we will use that
+  // anchor; otherwise, we'll use the regular logic for deciding which
+  // anchor should be used.
+  void AddWindowToDesktop(Window* window, Desktop* desktop, Anchor* anchor);
+
+  // Remove 'window' from 'desktop'.
+  void RemoveWindowFromDesktop(Window* window, Desktop* desktop);
+
   // Map from client windows to Window objects.
   typedef map<XWindow*, ref_ptr<Window> > WindowMap;
   WindowMap windows_;
 
+  // Map from a window to all desktops where it's present.
+  map<Window*, set<Desktop*> > window_desktops_;
+
+  // All desktops.
   typedef vector<ref_ptr<Desktop> > DesktopVector;
   DesktopVector desktops_;
 
+  // The desktop that's currently being viewed.
   Desktop* active_desktop_;
 
   set<Window*> tagged_windows_;
