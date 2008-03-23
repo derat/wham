@@ -68,6 +68,9 @@ class WindowManager {
   // Check if the passed-in X window is an anchor titlebar or not.
   bool IsAnchorWindow(XWindow* x_window) const;
 
+  // Get the desktop containing 'anchor'.
+  Desktop* GetDesktopContainingAnchor(const Anchor* anchor) const;
+
   // Execute the passed-in command.
   bool Exec(const string& command) const;
 

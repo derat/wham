@@ -284,21 +284,28 @@ void WindowManager::SetActiveDesktop(Desktop* desktop) {
 
 void WindowManager::AttachTaggedWindows(Anchor* anchor) {
   CHECK(anchor);
-  CHECK(active_desktop_->HasAnchor(anchor));
+  Desktop* desktop = GetDesktopContainingAnchor(anchor);
+  CHECK(desktop);
 
   while (!tagged_windows_.empty()) {
     Window* window = *(tagged_windows_.begin());
     ToggleWindowTag(window);
 
-    // FIXME: Should we really remove the window from all desktops here?
-    // It'd probably make more sense for "attach" to move the window to a
-    // new anchor if it's already present in a different anchor on this
-    // desktop, and just add it to this desktop otherwise.
-    for (set<Desktop*>::iterator desktop = window_desktops_[window].begin();
-         desktop != window_desktops_[window].end(); ++desktop) {
-      RemoveWindowFromDesktop(window, *desktop);
+    Anchor* old_anchor = desktop->GetAnchorContainingWindow(window);
+    if (old_anchor) {
+      // If the window is already present on the desktop owning the anchor
+      // that we're attaching it to, we need to remove it from its old
+      // anchor.
+      if (old_anchor != anchor) {
+        // But only if it's actually getting moved to a new anchor.
+        desktop->RemoveWindow(window);
+        desktop->AddWindowToAnchor(window, anchor);
+      }
+    } else {
+      // Otherwise, we'll leave the window present on its old desktop but
+      // also add it to the new one.
+      AddWindowToDesktop(window, desktop, anchor); 
     }
-    AddWindowToDesktop(window, active_desktop_, anchor);
   }
 }
 
@@ -332,6 +339,15 @@ bool WindowManager::IsAnchorWindow(XWindow* x_window) const {
     if ((*desktop)->IsTitlebarWindow(x_window)) return true;
   }
   return false;
+}
+
+
+Desktop* WindowManager::GetDesktopContainingAnchor(const Anchor* anchor) const {
+  for (DesktopVector::const_iterator desktop = desktops_.begin();
+       desktop != desktops_.end(); ++desktop) {
+    if (desktop->get()->HasAnchor(anchor)) return desktop->get();
+  }
+  return NULL;
 }
 
 

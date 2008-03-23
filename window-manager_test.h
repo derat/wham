@@ -77,7 +77,9 @@ class WindowManagerTestSuite : public CxxTest::TestSuite {
   void testSetActiveDesktop() {
   }
 
-  void testAttachTaggedWindows() {
+  void testAttachTaggedWindowsSingleDesktop() {
+    // Create two anchors on a single desktop, and add one window to each
+    // of them.
     WindowManager wm;
     Desktop* desktop = wm.CreateDesktop();
     wm.SetActiveDesktop(desktop);
@@ -98,20 +100,63 @@ class WindowManagerTestSuite : public CxxTest::TestSuite {
     TS_ASSERT(anchor2->windows().empty());
     TS_ASSERT_EQUALS(wm.tagged_windows_.size(), 2U);
 
+    // Attach both windows to the second anchor.  The first window should
+    // be removed from the first anchor when we do this.
     wm.AttachTaggedWindows(anchor2);
     TS_ASSERT(anchor1->windows().empty());
     TS_ASSERT_EQUALS(anchor2->windows().size(), 2U);
     TS_ASSERT(wm.tagged_windows_.empty());
   }
 
+  void testAttachTaggedWindowsMultipleDesktops() {
+    // Create two desktops, with two anchors on the first and one on the
+    // second.
+    WindowManager wm;
+    Desktop* desktop1 = wm.CreateDesktop();
+    Desktop* desktop2 = wm.CreateDesktop();
+    wm.SetActiveDesktop(desktop1);
+    Anchor* anchor1 = desktop1->CreateAnchor("anchor1", 0, 0);
+    Anchor* anchor2 = desktop1->CreateAnchor("anchor2", 0, 0);
+    Anchor* anchor3 = desktop2->CreateAnchor("anchor2", 0, 0);
+
+    // Add win1 to anchor2 on desktop1.
+    XWindow* xwin1 = XWindow::Create(0, 0, 100, 100);
+    wham::Window win1(xwin1);
+    desktop1->AddWindowToAnchor(&win1, anchor2);
+    wm.ToggleWindowTag(&win1);
+
+    // Add win2 to anchor3 on desktop2.
+    XWindow* xwin2 = XWindow::Create(0, 0, 100, 100);
+    wham::Window win2(xwin2);
+    desktop2->AddWindow(&win2);
+    wm.ToggleWindowTag(&win2);
+
+    TS_ASSERT(anchor1->windows().empty());
+    TS_ASSERT_EQUALS(anchor2->windows().size(), 1U);
+    TS_ASSERT_EQUALS(anchor3->windows().size(), 1U);
+    TS_ASSERT_EQUALS(wm.tagged_windows_.size(), 2U);
+
+    // Attach both windows to anchor1.  win1 should be moved from anchor2
+    // to anchor1, but win2 should still be present on desktop2 as well.
+    wm.AttachTaggedWindows(anchor1);
+    TS_ASSERT_EQUALS(anchor1->windows().size(), 2U);
+    TS_ASSERT(anchor2->windows().empty());
+    TS_ASSERT_EQUALS(anchor3->windows().size(), 1U);
+    TS_ASSERT(wm.tagged_windows_.empty());
+  }
+
   void testToggleWindowTag() {
     // We should start out with no tagged windows.
     WindowManager wm;
+    Desktop* desktop = wm.CreateDesktop();
+    wm.SetActiveDesktop(desktop);
+    wm.active_desktop_->CreateAnchor("anchor1", 0, 0);
     TS_ASSERT_EQUALS(wm.tagged_windows_.empty(), true);
 
     // Create and tag a single window.
     XWindow* xwin1 = XWindow::Create(0, 0, 100, 100);
     wham::Window win1(xwin1);
+    desktop->AddWindow(&win1);
     TS_ASSERT_EQUALS(win1.tagged(), false);
     wm.ToggleWindowTag(&win1);
     TS_ASSERT_EQUALS(wm.tagged_windows_.size(), 1U);
@@ -121,6 +166,7 @@ class WindowManagerTestSuite : public CxxTest::TestSuite {
     // Now create and tag a second one.
     XWindow* xwin2 = XWindow::Create(0, 0, 100, 100);
     wham::Window win2(xwin2);
+    desktop->AddWindow(&win2);
     TS_ASSERT_EQUALS(win2.tagged(), false);
     wm.ToggleWindowTag(&win2);
     TS_ASSERT_EQUALS(wm.tagged_windows_.size(), 2U);
