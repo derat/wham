@@ -23,9 +23,6 @@ class Anchor {
  public:
   const static int kTitlebarHeight;
 
-  Anchor(const string& name, int x, int y);
-  ~Anchor();
-
   // Where an anchor should appear in relation to its windows.
   enum Gravity {
     TOP_LEFT,
@@ -35,11 +32,14 @@ class Anchor {
     NUM_GRAVITIES,
   };
 
+  Anchor(const string& name, int x, int y, Gravity gravity=TOP_LEFT);
+  ~Anchor();
+
   string name() const { return name_; }
   int x() const { return x_; }
   int y() const { return y_; }
-  bool transient() const { return transient_; }
-  void set_transient(bool transient) { transient_ = transient; }
+  bool temporary() const { return temporary_; }
+  void set_temporary(bool temporary) { temporary_ = temporary; }
   XWindow* titlebar() { return titlebar_; }
   Gravity gravity() const { return gravity_; }
   const vector<Window*>& windows() const { return windows_; }
@@ -105,6 +105,11 @@ class Anchor {
   // left, top right, bottom right, bottom left).
   void CycleGravity(bool forward);
 
+  // Does the titlebar covers the passed-in point?
+  bool TitlebarIsOverPoint(int x, int y) const;
+
+  static void GetGravityDirection(Gravity gravity, int* dx, int* dy);
+
  private:
   friend class ::AnchorTestSuite;
 
@@ -128,8 +133,8 @@ class Anchor {
   int x_;
   int y_;
 
-  // Was this anchor just created to hold a transient window?
-  bool transient_;
+  // Should this anchor be destroyed when it doesn't contain any windows?
+  bool temporary_;
 
   // Pointers to windows stored within this anchor
   typedef vector<Window*> WindowVector;

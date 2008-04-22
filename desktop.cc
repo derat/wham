@@ -31,8 +31,13 @@ void Desktop::Show() {
 }
 
 
-Anchor* Desktop::CreateAnchor(const string& name, int x, int y) {
-  ref_ptr<Anchor> anchor(new Anchor(name, x, y));
+Anchor* Desktop::CreateAnchor(const string& name,
+                              int x,
+                              int y,
+                              Anchor::Gravity gravity) {
+  ref_ptr<Anchor> anchor(new Anchor(name, x, y, gravity));
+  DEBUG << "Created anchor 0x" << hex << anchor.get()
+        << " (" << anchor->name() << ")";
   anchors_.push_back(anchor);
   anchor_titlebars_.insert(make_pair(anchor->titlebar(), anchor.get()));
   if (anchors_.size() == 1U) {
@@ -67,7 +72,7 @@ void Desktop::RemoveWindow(Window* window) {
   if (anchor) {
     anchor->RemoveWindow(window);
     window_anchors_.erase(window);
-    if (anchor->windows().empty() && anchor->transient()) {
+    if (anchor->windows().empty() && anchor->temporary()) {
       DestroyAnchor(anchor);
     }
   }
@@ -85,6 +90,19 @@ Anchor* Desktop::GetAnchorContainingWindow(Window* window) const {
   CHECK(window);
   return FindWithDefault(
       window_anchors_, window, static_cast<Anchor*>(NULL));
+}
+
+
+void Desktop::GetAnchorsAtPosition(
+    int x, int y, vector<Anchor*>* anchors) const {
+  CHECK(anchors);
+  anchors->clear();
+  for (AnchorVector::const_iterator anchor = anchors_.begin();
+       anchor != anchors_.end(); ++anchor) {
+    if ((*anchor)->TitlebarIsOverPoint(x, y)) {
+      anchors->push_back((*anchor).get());
+    }
+  }
 }
 
 
@@ -150,19 +168,23 @@ bool Desktop::HasAnchor(const Anchor* anchor) const {
 
 void Desktop::DestroyAnchor(Anchor* anchor) {
   CHECK(anchor);
+  DEBUG << "Destroying anchor 0x" << hex << anchor
+        << " (" << anchor->name() << ")";
   // FIXME: figure out what should be done wrt closing anchors that still
   // contain windows
   CHECK(anchor->windows().empty());
 
-  DEBUG << "Destroying anchor " << anchor->name();
+  // Choose a new anchor before we destroy this one.
+  // FIXME: add more intelligent logic for choosing the new anchor
+  Anchor* replacement = anchors_.size() == 1 ? NULL :
+      (anchors_[0].get() != anchor ? anchors_[0].get() : anchors_[1].get());
+  if (active_anchor_ == anchor) SetActiveAnchor(replacement);
+  if (attach_anchor_ == anchor) SetAttachAnchor(replacement);
+
   anchor_titlebars_.erase(anchor->titlebar());
   int index = GetAnchorIndex(anchor);
   CHECK(index >= 0);
   anchors_.erase(anchors_.begin() + index);
-
-  Anchor* replacement = anchors_.empty() ? NULL : anchors_[0].get();
-  if (active_anchor_ == anchor) SetActiveAnchor(replacement);
-  if (attach_anchor_ == anchor) SetAttachAnchor(replacement);
 }
 
 

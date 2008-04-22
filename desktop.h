@@ -29,7 +29,10 @@ class Desktop {
   void Show();
 
   // Create a new anchor.
-  Anchor* CreateAnchor(const string& name, int x, int y);
+  Anchor* CreateAnchor(const string& name,
+                       int x,
+                       int y,
+                       Anchor::Gravity gravity=Anchor::TOP_LEFT);
 
   // Add 'window' to the active anchor.
   void AddWindow(Window* window);
@@ -48,6 +51,9 @@ class Desktop {
   // Find the anchor containing the passed-in window.
   // Returns NULL if no such anchor exists.
   Anchor* GetAnchorContainingWindow(Window* window) const;
+
+  // Get all anchors with a titlebar covering a given position.
+  void GetAnchorsAtPosition(int x, int y, vector<Anchor*>* anchors) const;
 
   void SetActiveAnchor(Anchor* anchor);
 

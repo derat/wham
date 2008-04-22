@@ -226,8 +226,8 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
     } else if (event.type == UnmapNotify) {
       XUnmapEvent& e = event.xunmap;
       DEBUG << "UnmapNotify: window=0x" << hex << e.window;
-      XWindow* xwin = GetWindow(e.window, true);
-      window_manager->HandleUnmapWindow(xwin);
+      XWindow* xwin = GetWindow(e.window, false);
+      if (xwin) window_manager->HandleUnmapWindow(xwin);
     } else {
       DEBUG << XEventTypeToName(event.type);
     }

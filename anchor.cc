@@ -15,14 +15,14 @@
 
 namespace wham {
 
-Anchor::Anchor(const string& name, int x, int y)
+Anchor::Anchor(const string& name, int x, int y, Gravity gravity)
     : name_(),
       x_(x),
       y_(y),
-      transient_(false),
+      temporary_(false),
       active_index_(0),
       active_window_(NULL),
-      gravity_(TOP_LEFT),
+      gravity_(gravity),
       titlebar_(XWindow::Create(x, y, 1, 1)),
       active_(false),
       attach_(false) {
@@ -67,7 +67,8 @@ void Anchor::AddWindow(Window* window) {
 
 
 void Anchor::RemoveWindow(Window* window) {
-  DEBUG << "RemoveWindow: window=0x" << hex << window->id();
+  DEBUG << "RemoveWindow: anchor=0x" << hex << this
+        << " window=0x" << window->id();
   WindowVector::iterator it = find(windows_.begin(), windows_.end(), window);
   CHECK(it != windows_.end());
   windows_.erase(it);
@@ -132,11 +133,12 @@ void Anchor::SetAttach(bool attach) {
 
 
 bool Anchor::SetActiveWindow(uint index) {
-  DEBUG << "SetActiveWindow: index=" << index;
+  DEBUG << "SetActiveWindow: anchor=0x" << hex << this << dec
+        << " index=" << index;
   if (index < 0 || index >= windows_.size()) {
     ERROR << "Ignoring request to activate window " << index
-          << " in anchor " << name_ << " containing " << windows_.size()
-          << " window(s)";
+          << " in anchor 0x" << hex << this << " containing " << dec
+          << windows_.size() << " window(s)";
     return false;
   }
 
@@ -191,7 +193,7 @@ int Anchor::GetWindowIndexAtTitlebarPoint(int abs_x) {
 
 
 void Anchor::FocusActiveWindow() {
-  DEBUG << "FocusActiveWindow: active_window_=0x" << hex << active_window_;
+  DEBUG << "FocusActiveWindow: active_window_=" << hex << active_window_;
   if (!active_window_) return;
   active_window_->TakeFocus();
 }
@@ -224,6 +226,31 @@ void Anchor::SetGravity(Anchor::Gravity gravity) {
 void Anchor::CycleGravity(bool forward) {
   SetGravity(static_cast<Gravity>(
       (gravity_ + NUM_GRAVITIES + (forward ? 1 : -1)) % NUM_GRAVITIES));
+}
+
+
+bool Anchor::TitlebarIsOverPoint(int x, int y) const {
+  return titlebar_->x() <= x &&
+         titlebar_->x() + static_cast<int>(titlebar_->width()) >= x &&
+         titlebar_->y() <= y &&
+         titlebar_->y() + static_cast<int>(titlebar_->height()) >= y;
+}
+
+
+void Anchor::GetGravityDirection(Gravity gravity, int* dx, int* dy) {
+  CHECK(dx);
+  CHECK(dy);
+  if (gravity == TOP_LEFT) {
+    *dx = -1; *dy = -1;
+  } else if (gravity == TOP_RIGHT) {
+    *dx = 1; *dy = -1;
+  } else if (gravity == BOTTOM_LEFT) {
+    *dx = -1; *dy = 1;
+  } else if (gravity == BOTTOM_RIGHT) {
+    *dx = 1; *dy = 1;
+  } else {
+    ERROR << "Unknown gravity " << gravity;
+  }
 }
 
 

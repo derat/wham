@@ -16,6 +16,11 @@
 
 namespace wham {
 
+// How many pixels should a window be offset from its old anchor when it's
+// detached?
+static const int kWindowDetachOffset = 10;
+
+
 WindowManager::WindowManager()
     : active_desktop_(NULL),
       attach_follows_active_(true),
@@ -76,16 +81,47 @@ void WindowManager::HandleButtonPress(
       CHECK(active_desktop_);
       Anchor* anchor = active_desktop_->active_anchor();
       CHECK(anchor);
+      Window* window = anchor->mutable_active_window();
+      CHECK(window);
 
       if (anchor->windows().size() > 1) {
-        Window* window = anchor->mutable_active_window();
-        CHECK(window);
         RemoveWindowFromDesktop(window, active_desktop_);
+        int dx = 0, dy = 0;
+        Anchor::GetGravityDirection(anchor->gravity(), &dx, &dy);
         Anchor* new_anchor = active_desktop_->CreateAnchor(
-            "detached", x - drag_offset_x_, y - drag_offset_y_);
+            "detached",
+            x - drag_offset_x_ - dx * kWindowDetachOffset,
+            y - drag_offset_y_ - dy * kWindowDetachOffset,
+            anchor->gravity());
+        new_anchor->set_temporary(true);
+        new_anchor->SetGravity(anchor->gravity());
         AddWindowToDesktop(window, active_desktop_, new_anchor);
         SetActiveAnchor(new_anchor);
         new_anchor->Raise();
+
+        drag_offset_x_ = x - new_anchor->x();
+        drag_offset_y_ = y - new_anchor->y();
+        mouse_down_x_ = x;
+        mouse_down_y_ = y;
+      } else {
+        vector<Anchor*> anchors;
+        active_desktop_->GetAnchorsAtPosition(x, y, &anchors);
+        Anchor* new_anchor = NULL;
+        for (vector<Anchor*>::const_iterator it = anchors.begin();
+             it != anchors.end(); ++it) {
+          // Skip the anchor the window's currently in.
+          if (*it == anchor) continue;
+          new_anchor = *it;
+          break;
+        }
+        if (new_anchor) {
+          RemoveWindowFromDesktop(window, active_desktop_);
+          AddWindowToDesktop(window, active_desktop_, new_anchor);
+          drag_offset_x_ = x - new_anchor->x();
+          drag_offset_y_ = y - new_anchor->y();
+          mouse_down_x_ = x;
+          mouse_down_y_ = y;
+        }
       }
     }
   }
@@ -120,6 +156,9 @@ void WindowManager::HandleDestroyWindow(XWindow* xwin) {
 
 
 void WindowManager::HandleEnterWindow(XWindow* xwin) {
+  // We don't want to update the focus if the user is already dragging.
+  if (mouse_down_) return;
+
   CHECK(active_desktop_);
   Anchor* anchor = NULL;
   if (IsAnchorWindow(xwin)) {
@@ -337,13 +376,13 @@ void WindowManager::AttachTaggedWindows(Anchor* anchor) {
       // anchor.
       if (old_anchor != anchor) {
         // But only if it's actually getting moved to a new anchor.
-        desktop->RemoveWindow(window);
-        desktop->AddWindowToAnchor(window, anchor);
+        RemoveWindowFromDesktop(window, desktop);
+        AddWindowToDesktop(window, desktop, anchor);
       }
     } else {
       // Otherwise, we'll leave the window present on its old desktop but
       // also add it to the new one.
-      AddWindowToDesktop(window, desktop, anchor); 
+      AddWindowToDesktop(window, desktop, anchor);
     }
   }
 }
@@ -424,7 +463,7 @@ void WindowManager::HandleTransientFor(Window* transient, Window* win) {
   int x = win->x() + win->width() / 2 - transient->width() / 2;
   int y = win->y() + win->height() / 2 - transient->height() / 2;
   Anchor* anchor = active_desktop_->CreateAnchor("transient", x, y);
-  anchor->set_transient(true);
+  anchor->set_temporary(true);
   AddWindowToDesktop(transient, active_desktop_, anchor);
 }
 
