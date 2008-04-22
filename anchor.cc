@@ -67,6 +67,7 @@ void Anchor::AddWindow(Window* window) {
 
 
 void Anchor::RemoveWindow(Window* window) {
+  DEBUG << "RemoveWindow: window=0x" << hex << window->id();
   WindowVector::iterator it = find(windows_.begin(), windows_.end(), window);
   CHECK(it != windows_.end());
   windows_.erase(it);
@@ -131,6 +132,7 @@ void Anchor::SetAttach(bool attach) {
 
 
 bool Anchor::SetActiveWindow(uint index) {
+  DEBUG << "SetActiveWindow: index=" << index;
   if (index < 0 || index >= windows_.size()) {
     ERROR << "Ignoring request to activate window " << index
           << " in anchor " << name_ << " containing " << windows_.size()
@@ -189,6 +191,7 @@ int Anchor::GetWindowIndexAtTitlebarPoint(int abs_x) {
 
 
 void Anchor::FocusActiveWindow() {
+  DEBUG << "FocusActiveWindow: active_window_=0x" << hex << active_window_;
   if (!active_window_) return;
   active_window_->TakeFocus();
 }

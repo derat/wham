@@ -53,8 +53,8 @@ class Desktop {
 
   void SetAttachAnchor(Anchor* anchor);
 
-  bool IsTitlebarWindow(XWindow* x_window) const {
-    return anchor_titlebars_.count(x_window);
+  bool IsTitlebarWindow(XWindow* xwin) const {
+    return anchor_titlebars_.count(xwin);
   }
 
   string name() { return name_; }

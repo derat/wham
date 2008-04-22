@@ -54,7 +54,7 @@ void Desktop::AddWindow(Window* window) {
 void Desktop::AddWindowToAnchor(Window* window, Anchor* anchor) {
   CHECK(window);
   CHECK(anchor);
-  CHECK(!IsTitlebarWindow(window->x_window()));
+  CHECK(!IsTitlebarWindow(window->xwin()));
   anchor->AddWindow(window);
   anchor->SetActiveWindow(anchor->windows().size()-1);
   window_anchors_.insert(make_pair(window, anchor));

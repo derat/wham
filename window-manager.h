@@ -30,16 +30,17 @@ class WindowManager {
 
   bool LoadConfig(const string& filename);
 
-  void HandleButtonPress(XWindow* x_window, int x, int y);
-  void HandleButtonRelease(XWindow* x_window, int x, int y);
-  void HandleCreateWindow(XWindow* x_window);
-  void HandleDestroyWindow(XWindow* x_window);
-  void HandleEnterWindow(XWindow* x_window);
-  void HandleExposeWindow(XWindow* x_window);
-  void HandleMapWindow(XWindow* x_window);
-  void HandleMotion(XWindow* x_window, int x, int y);
-  void HandlePropertyChange(XWindow* x_window,
+  void HandleButtonPress(XWindow* xwin, int x, int y, uint button);
+  void HandleButtonRelease(XWindow* xwin, int x, int y, uint button);
+  void HandleCreateWindow(XWindow* xwin);
+  void HandleDestroyWindow(XWindow* xwin);
+  void HandleEnterWindow(XWindow* xwin);
+  void HandleExposeWindow(XWindow* xwin);
+  void HandleMapRequest(XWindow* xwin);
+  void HandleMotion(XWindow* xwin, int x, int y);
+  void HandlePropertyChange(XWindow* xwin,
                             WindowProperties::ChangeType type);
+  void HandleUnmapWindow(XWindow* xwin);
   void HandleCommand(const Command& cmd);
 
  private:
@@ -66,7 +67,7 @@ class WindowManager {
   void SetActiveAnchor(Anchor* anchor);
 
   // Check if the passed-in X window is an anchor titlebar or not.
-  bool IsAnchorWindow(XWindow* x_window) const;
+  bool IsAnchorWindow(XWindow* xwin) const;
 
   // Get the desktop containing 'anchor'.
   Desktop* GetDesktopContainingAnchor(const Anchor* anchor) const;

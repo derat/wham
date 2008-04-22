@@ -17,7 +17,9 @@ Config::Config()
       dragging_threshold(1),
       anchor_min_width(200),
       anchor_max_width(800),
-      window_border(1) {}
+      window_border(1),
+      mouse_primary_button(1),
+      mouse_secondary_button(3) {}
 
 
 Config::~Config() {}

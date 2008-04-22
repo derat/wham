@@ -55,68 +55,80 @@ bool WindowManager::LoadConfig(const string& filename) {
 }
 
 
-void WindowManager::HandleButtonPress(XWindow* x_window, int x, int y) {
-  CHECK(active_desktop_);
-  Anchor* anchor = active_desktop_->GetAnchorByTitlebar(x_window);
-  CHECK(anchor);
-
-  // Make this the active anchor.
-  SetActiveAnchor(anchor);
-  anchor->Raise();
-
-  mouse_down_ = true;
-  drag_offset_x_ = x - anchor->x();
-  drag_offset_y_ = y - anchor->y();
-  mouse_down_x_ = x;
-  mouse_down_y_ = y;
-}
-
-
-void WindowManager::HandleButtonRelease(XWindow* x_window, int x, int y) {
-  CHECK(active_desktop_);
-  mouse_down_ = false;
-  if (dragging_) {
-    dragging_ = false;
-  } else {
-    Anchor* anchor = active_desktop_->GetAnchorByTitlebar(x_window);
+void WindowManager::HandleButtonPress(
+    XWindow* xwin, int x, int y, uint button) {
+  if (button == Config::Get()->mouse_primary_button) {
+    CHECK(active_desktop_);
+    Anchor* anchor = active_desktop_->GetAnchorByTitlebar(xwin);
     CHECK(anchor);
-    int index = anchor->GetWindowIndexAtTitlebarPoint(x);
-    if (index >= 0) anchor->SetActiveWindow(index);
+
+    // Make this the active anchor.
+    SetActiveAnchor(anchor);
+    anchor->Raise();
+
+    mouse_down_ = true;
+    drag_offset_x_ = x - anchor->x();
+    drag_offset_y_ = y - anchor->y();
+    mouse_down_x_ = x;
+    mouse_down_y_ = y;
+  } else if (button == Config::Get()->mouse_secondary_button) {
+    if (mouse_down_) {
+      CHECK(active_desktop_);
+      Anchor* anchor = active_desktop_->active_anchor();
+      CHECK(anchor);
+
+      if (anchor->windows().size() > 1) {
+        Window* window = anchor->mutable_active_window();
+        CHECK(window);
+        RemoveWindowFromDesktop(window, active_desktop_);
+        Anchor* new_anchor = active_desktop_->CreateAnchor(
+            "detached", x - drag_offset_x_, y - drag_offset_y_);
+        AddWindowToDesktop(window, active_desktop_, new_anchor);
+        SetActiveAnchor(new_anchor);
+        new_anchor->Raise();
+      }
+    }
   }
 }
 
 
-void WindowManager::HandleCreateWindow(XWindow* x_window) {
-  // FIXME: Move the window to the correct location here, and maybe even
-  // classify it so we can resize it.  We want to do this before it's
-  // mapped to avoid flicker.
-}
-
-
-void WindowManager::HandleDestroyWindow(XWindow* x_window) {
-  if (IsAnchorWindow(x_window)) return;
-
-  Window* window = FindWithDefault(windows_, x_window, ref_ptr<Window>()).get();
-  if (window == NULL) return;  // Maybe it never got mapped.
-  for (set<Desktop*>::iterator desktop = window_desktops_[window].begin();
-       desktop != window_desktops_[window].end(); ++desktop) {
-    RemoveWindowFromDesktop(window, *desktop);
+void WindowManager::HandleButtonRelease(
+    XWindow* xwin, int x, int y, uint button) {
+  if (button == Config::Get()->mouse_primary_button) {
+    CHECK(active_desktop_);
+    mouse_down_ = false;
+    if (dragging_) {
+      dragging_ = false;
+    } else {
+      Anchor* anchor = active_desktop_->GetAnchorByTitlebar(xwin);
+      CHECK(anchor);
+      int index = anchor->GetWindowIndexAtTitlebarPoint(x);
+      if (index >= 0) anchor->SetActiveWindow(index);
+    }
   }
-  window_desktops_.erase(window);
-  windows_.erase(x_window);
 }
 
 
-void WindowManager::HandleEnterWindow(XWindow* x_window) {
+void WindowManager::HandleCreateWindow(XWindow* xwin) {
+  // We wait for the window to be mapped instead of doing anything here.
+}
+
+
+void WindowManager::HandleDestroyWindow(XWindow* xwin) {
+  // We clean up after windows when they're unmapped.
+}
+
+
+void WindowManager::HandleEnterWindow(XWindow* xwin) {
   CHECK(active_desktop_);
   Anchor* anchor = NULL;
-  if (IsAnchorWindow(x_window)) {
+  if (IsAnchorWindow(xwin)) {
     // anchor titlebar
-    anchor = active_desktop_->GetAnchorByTitlebar(x_window);
+    anchor = active_desktop_->GetAnchorByTitlebar(xwin);
   } else {
     // client window
     Window* window =
-        FindWithDefault(windows_, x_window, ref_ptr<Window>()).get();
+        FindWithDefault(windows_, xwin, ref_ptr<Window>()).get();
     anchor = active_desktop_->GetAnchorContainingWindow(window);
   }
   // In either case, we want to make this anchor active (which will also
@@ -126,23 +138,26 @@ void WindowManager::HandleEnterWindow(XWindow* x_window) {
 }
 
 
-void WindowManager::HandleExposeWindow(XWindow* x_window) {
+void WindowManager::HandleExposeWindow(XWindow* xwin) {
   CHECK(active_desktop_);
-  Anchor* anchor = active_desktop_->GetAnchorByTitlebar(x_window);
+  Anchor* anchor = active_desktop_->GetAnchorByTitlebar(xwin);
   CHECK(anchor);
   anchor->DrawTitlebar();
 }
 
 
-void WindowManager::HandleMapWindow(XWindow* x_window) {
+void WindowManager::HandleMapRequest(XWindow* xwin) {
   // We don't want to manage anchor titlebars.
-  if (IsAnchorWindow(x_window)) return;
+  if (IsAnchorWindow(xwin)) {
+    xwin->Map();
+    return;
+  }
 
-  if (windows_.find(x_window) == windows_.end()) {
-    x_window->SetBorder(Config::Get()->window_border);
-    x_window->SelectEvents();
-    ref_ptr<Window> window(new Window(x_window));
-    windows_.insert(make_pair(x_window, window));
+  if (windows_.find(xwin) == windows_.end()) {
+    xwin->SetBorder(Config::Get()->window_border);
+    xwin->SelectEvents();
+    ref_ptr<Window> window(new Window(xwin));
+    windows_.insert(make_pair(xwin, window));
     Window* transient_for = GetTransientFor(window.get());
     if (transient_for == NULL) {
       CHECK(active_desktop_);
@@ -150,11 +165,12 @@ void WindowManager::HandleMapWindow(XWindow* x_window) {
     } else {
       HandleTransientFor(window.get(), transient_for);
     }
+    xwin->Map();
   }
 }
 
 
-void WindowManager::HandleMotion(XWindow* x_window, int x, int y) {
+void WindowManager::HandleMotion(XWindow* xwin, int x, int y) {
   if (!mouse_down_) return;
   if (!dragging_) {
     if (abs(x - mouse_down_x_) <= Config::Get()->dragging_threshold &&
@@ -171,21 +187,44 @@ void WindowManager::HandleMotion(XWindow* x_window, int x, int y) {
 
 
 void WindowManager::HandlePropertyChange(
-    XWindow* x_window, WindowProperties::ChangeType type) {
-  if (IsAnchorWindow(x_window)) return;
+    XWindow* xwin, WindowProperties::ChangeType type) {
+  if (IsAnchorWindow(xwin)) return;
 
-  Window* window = FindWithDefault(windows_, x_window, ref_ptr<Window>()).get();
+  Window* window = FindWithDefault(windows_, xwin, ref_ptr<Window>()).get();
   CHECK(window);
 
   if (type == WindowProperties::TRANSIENT_CHANGE) {
     // FIXME: handle this?
   } else {
-    bool need_to_redraw = window->HandlePropertyChange(type);
-    if (need_to_redraw) {
+    bool changed = false;
+    window->HandlePropertyChange(type, &changed);
+    if (changed) {
       CHECK(active_desktop_);
       Anchor* anchor = active_desktop_->GetAnchorContainingWindow(window);
       if (anchor) anchor->DrawTitlebar();
     }
+  }
+}
+
+
+void WindowManager::HandleUnmapWindow(XWindow* xwin) {
+  // FIXME: create a little method that does this
+  Window* window = FindWithDefault(windows_, xwin, ref_ptr<Window>()).get();
+  if (!window) return;
+
+  if (window->unmap_requested()) {
+    // We asked for this; ignore the notification.
+    window->set_unmap_requested(false);
+  } else {
+    // If the unmap was requested by the client window, rather than by us,
+    // we'll just stop managing the window.
+    DEBUG << "Stopping management of 0x" << hex << xwin->id();
+    for (set<Desktop*>::iterator desktop = window_desktops_[window].begin();
+         desktop != window_desktops_[window].end(); ++desktop) {
+      RemoveWindowFromDesktop(window, *desktop);
+    }
+    window_desktops_.erase(window);
+    windows_.erase(xwin);
   }
 }
 
@@ -333,10 +372,10 @@ void WindowManager::SetActiveAnchor(Anchor* anchor) {
 }
 
 
-bool WindowManager::IsAnchorWindow(XWindow* x_window) const {
+bool WindowManager::IsAnchorWindow(XWindow* xwin) const {
   for (DesktopVector::const_iterator desktop = desktops_.begin();
        desktop != desktops_.end(); ++desktop) {
-    if ((*desktop)->IsTitlebarWindow(x_window)) return true;
+    if ((*desktop)->IsTitlebarWindow(xwin)) return true;
   }
   return false;
 }

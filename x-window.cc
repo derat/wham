@@ -177,6 +177,8 @@ void XWindow::SelectEvents() {
 
 void XWindow::TakeFocus() {
   XSetInputFocus(dpy(), id_, RevertToPointerRoot, CurrentTime);
+  // FIXME: debugging
+  XSync(dpy(), False);
 }
 
 

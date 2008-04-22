@@ -42,6 +42,9 @@ struct Config {
 
   uint window_border;
 
+  uint mouse_primary_button;
+  uint mouse_secondary_button;
+
   DISALLOW_EVIL_CONSTRUCTORS(Config);
 
  private:

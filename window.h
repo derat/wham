@@ -19,9 +19,9 @@ class XWindow;
 class Window {
  public:
 
-  Window(XWindow* x_window);
+  Window(XWindow* xwin);
   ~Window() {
-    x_window_ = NULL;
+    xwin_ = NULL;
   }
 
   void CycleConfig(bool forward);
@@ -29,15 +29,18 @@ class Window {
   void Move(int x, int y);
   void Resize(uint width, uint height);
   void Map();
+
+  // Unmap the window.  Also sets unmap_requested_ to true, so we know that
+  // the unmap notify that we'll see wasn't requested by the client window.
   void Unmap();
+
   void TakeFocus();
   void Raise();
   void MakeSibling(const XWindow& leader);
 
   // Handle a property change event on this window, reclassifying the
-  // window if necessary.  Returns 'true' if the titlebar needs to be
-  // redrawn.
-  bool HandlePropertyChange(WindowProperties::ChangeType type);
+  // window if necessary.
+  void HandlePropertyChange(WindowProperties::ChangeType type, bool* changed);
 
   string title() const { return props_.window_name; }
 
@@ -45,12 +48,16 @@ class Window {
   int y() const;
   uint width() const;
   uint height() const;
+  uint id() const;
   const WindowProperties& props() const { return props_; }
 
   bool tagged() const { return tagged_; }
   void set_tagged(bool tagged) { tagged_ = tagged; }
 
-  XWindow* x_window() const { return x_window_; }
+  bool unmap_requested() const { return unmap_requested_; }
+  void set_unmap_requested(bool req) { unmap_requested_ = req; }
+
+  XWindow* xwin() const { return xwin_; }
   XWindow* transient_for() const { return props_.transient_for; }
 
  private:
@@ -74,13 +81,17 @@ class Window {
 
   // A pointer to information about the X window; used for interacting with
   // the X server.
-  XWindow* x_window_;  // not owned
+  XWindow* xwin_;  // not owned
 
   WindowProperties props_;
 
   WindowConfigSet configs_;
 
   bool tagged_;
+
+  // Was this window asked to unmap itself by the window manager?  We use
+  // this to distinguish between WM- and client-initiated unmappings.
+  bool unmap_requested_;
 
   DISALLOW_EVIL_CONSTRUCTORS(Window);
 };

@@ -10,13 +10,13 @@
 
 namespace wham {
 
-Window::Window(XWindow* x_window)
-    : x_window_(x_window),
+Window::Window(XWindow* xwin)
+    : xwin_(xwin),
       props_(),
       configs_(),
       tagged_(false) {
-  CHECK(x_window_);
-  props_.UpdateAll(x_window_);
+  CHECK(xwin_);
+  props_.UpdateAll(xwin_);
   Classify();
 }
 
@@ -27,68 +27,79 @@ void Window::CycleConfig(bool forward) {
 
 
 void Window::Move(int x, int y) {
-  x_window_->Move(x, y);
+  xwin_->Move(x, y);
 }
 
 
 void Window::Resize(uint width, uint height) {
-  DEBUG << "Resizing to (" << width << ", " << height << ")";
-  x_window_->Resize(width, height);
+  DEBUG << "Resizing 0x" << hex << xwin_->id() << dec
+        << " to (" << width << ", " << height << ")";
+  xwin_->Resize(width, height);
 }
 
 
 void Window::Map() {
-  x_window_->Map();
+  xwin_->Map();
 }
 
 
 void Window::Unmap() {
-  x_window_->Unmap();
+  if (unmap_requested_) {
+    ERROR << "Got a request to unmap window 0x" << hex << xwin_->id()
+          << ", which has unmap_requested_ already set to true";
+  }
+  unmap_requested_ = true;
+  xwin_->Unmap();
 }
 
 
 void Window::TakeFocus() {
-  x_window_->TakeFocus();
+  DEBUG << "TakeFocus: 0x" << hex << xwin_->id();
+  xwin_->TakeFocus();
 }
 
 
 void Window::Raise() {
-  x_window_->Raise();
+  xwin_->Raise();
 }
 
 
 void Window::MakeSibling(const XWindow& leader) {
-  x_window_->MakeSibling(leader);
+  xwin_->MakeSibling(leader);
 }
 
 
-bool Window::HandlePropertyChange(WindowProperties::ChangeType type) {
-  bool changed = false;
-  UpdateProperties(type, &changed);
-  if (changed) {
-    DEBUG << "Properties changed; reclassifying";
+void Window::HandlePropertyChange(
+    WindowProperties::ChangeType type, bool* changed) {
+  CHECK(changed);
+  UpdateProperties(type, changed);
+  if (*changed) {
+    DEBUG << "Properties changed for 0x" << hex << xwin_->id()
+          << "; reclassifying";
     Classify();
   }
-  return changed;
 }
 
 
-int Window::x() const { return x_window_->x(); }
+int Window::x() const { return xwin_->x(); }
 
 
-int Window::y() const { return x_window_->y(); }
+int Window::y() const { return xwin_->y(); }
 
 
-uint Window::width() const { return x_window_->width(); }
+uint Window::width() const { return xwin_->width(); }
 
 
-uint Window::height() const { return x_window_->height(); }
+uint Window::height() const { return xwin_->height(); }
+
+
+uint Window::id() const { return xwin_->id(); }
 
 
 bool Window::Classify() {
-  DEBUG << "Classifying window";
+  DEBUG << "Classifying window 0x" << hex << xwin_->id();
   if (!WindowClassifier::Get()->ClassifyWindow(props_, &configs_)) {
-    ERROR << "Unable to classify window";
+    ERROR << "Unable to classify window 0x" << hex << xwin_->id();
     return false;
   }
   ApplyActiveConfig();
@@ -97,7 +108,8 @@ bool Window::Classify() {
 
 
 void Window::ApplyConfig(const WindowConfig& config) {
-  DEBUG << "Applying config " << config.DebugString();
+  DEBUG << "Applying config " << config.DebugString()
+        << " to 0x" << hex << xwin_->id();
 
   uint width = 0;
   if (config.width_type == WindowConfig::DIMENSION_PIXELS) {
@@ -105,7 +117,7 @@ void Window::ApplyConfig(const WindowConfig& config) {
   } else if (config.width_type == WindowConfig::DIMENSION_UNITS) {
     width = props_.base_width + config.width * props_.width_inc;
   } else if (config.width_type == WindowConfig::DIMENSION_APP) {
-    width = props_.width > 0 ? props_.width : x_window_->initial_width();
+    width = props_.width > 0 ? props_.width : xwin_->initial_width();
   } else if (config.width_type == WindowConfig::DIMENSION_MAX) {
     width = XServer::Get()->width(); // FIXME: ugly
   } else {
@@ -118,7 +130,7 @@ void Window::ApplyConfig(const WindowConfig& config) {
   } else if (config.height_type == WindowConfig::DIMENSION_UNITS) {
     height = props_.base_height + config.height * props_.height_inc;
   } else if (config.height_type == WindowConfig::DIMENSION_APP) {
-    height = props_.height > 0 ? props_.height : x_window_->initial_height();
+    height = props_.height > 0 ? props_.height : xwin_->initial_height();
   } else if (config.height_type == WindowConfig::DIMENSION_MAX) {
     height = XServer::Get()->height(); // FIXME: ugly
   } else {
@@ -151,7 +163,7 @@ bool Window::UpdateProperties(WindowProperties::ChangeType type,
                               bool* changed) {
   CHECK(changed);
   WindowProperties new_props(props_);
-  if (!x_window_->UpdateProperties(&new_props, type)) return false;
+  if (!xwin_->UpdateProperties(&new_props, type)) return false;
   *changed = (new_props != props_);
   props_ = new_props;
   return true;

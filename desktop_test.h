@@ -86,8 +86,8 @@ class DesktopTestSuite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(desktop_->GetAnchorByTitlebar(anchor->titlebar()), anchor);
 
     // We should get NULL when we look up a window that's not a titlebar.
-    XWindow* x_window = XWindow::Create(0, 0, 10, 10);
-    TS_ASSERT_EQUALS(desktop_->GetAnchorByTitlebar(x_window),
+    XWindow* xwin = XWindow::Create(0, 0, 10, 10);
+    TS_ASSERT_EQUALS(desktop_->GetAnchorByTitlebar(xwin),
                      static_cast<Anchor*>(NULL));
   }
 
@@ -103,8 +103,8 @@ class DesktopTestSuite : public CxxTest::TestSuite {
     Anchor* anchor = desktop_->CreateAnchor("test", 10, 20);
     TS_ASSERT_EQUALS(desktop_->IsTitlebarWindow(anchor->titlebar()), true);
 
-    XWindow* x_window = XWindow::Create(0, 0, 10, 10);
-    TS_ASSERT_EQUALS(desktop_->IsTitlebarWindow(x_window), false);
+    XWindow* xwin = XWindow::Create(0, 0, 10, 10);
+    TS_ASSERT_EQUALS(desktop_->IsTitlebarWindow(xwin), false);
   }
 
   void testGetNearestAnchor() {

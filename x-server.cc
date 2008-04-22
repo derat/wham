@@ -95,7 +95,8 @@ bool XServer::Init() {
     XGetGeometry(display_, root_, &root_ret, &x, &y,
                  &width_, &height_, &border_width, &depth);
 
-    XSelectInput(display_, root_, SubstructureNotifyMask);
+    XSelectInput(display_, root_,
+                 SubstructureRedirectMask|SubstructureNotifyMask);
   } else {
     // FIXME: do this more cleanly
     width_ = 1024;
@@ -118,13 +119,13 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
     if (event.type == ButtonPress) {
       XButtonEvent& e = event.xbutton;
       DEBUG << "ButtonPress: window=0x" << hex << e.window;
-      XWindow* x_window = GetWindow(e.window, false);
-      window_manager->HandleButtonPress(x_window, e.x_root, e.y_root);
+      XWindow* xwin = GetWindow(e.window, false);
+      window_manager->HandleButtonPress(xwin, e.x_root, e.y_root, e.button);
     } else if (event.type == ButtonRelease) {
       XButtonEvent& e = event.xbutton;
       DEBUG << "ButtonRelease: window=0x" << hex << e.window;
-      XWindow* x_window = GetWindow(e.window, false);
-      window_manager->HandleButtonRelease(x_window, e.x_root, e.y_root);
+      XWindow* xwin = GetWindow(e.window, false);
+      window_manager->HandleButtonRelease(xwin, e.x_root, e.y_root, e.button);
     } else if (event.type == ConfigureNotify) {
       /*
       XConfigureEvent& e = event.xconfigure;
@@ -144,23 +145,23 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
             << " border=" << e.border_width
             << " override=" << e.override_redirect;
       if (!e.override_redirect) {
-        XWindow* x_window = GetWindow(e.window, true);
-        window_manager->HandleCreateWindow(x_window);
+        XWindow* xwin = GetWindow(e.window, true);
+        window_manager->HandleCreateWindow(xwin);
       }
     } else if (event.type == DestroyNotify) {
       XDestroyWindowEvent& e = event.xdestroywindow;
       DEBUG << "DestroyNotify: window=0x" << hex << e.window;
-      XWindow* x_window = GetWindow(e.window, false);
-      if (x_window) {
-        window_manager->HandleDestroyWindow(x_window);
+      XWindow* xwin = GetWindow(e.window, false);
+      if (xwin) {
+        window_manager->HandleDestroyWindow(xwin);
         DeleteWindow(e.window);
       }
     } else if (event.type == EnterNotify) {
       XCrossingEvent& e = event.xcrossing;
       DEBUG << "Enter: window=0x" << hex << e.window;
-      XWindow* x_window = GetWindow(e.window, false);
-      CHECK(x_window);
-      window_manager->HandleEnterWindow(x_window);
+      XWindow* xwin = GetWindow(e.window, false);
+      CHECK(xwin);
+      window_manager->HandleEnterWindow(xwin);
     } else if (event.type == Expose) {
       // Coalesce expose events for the same window to avoid redrawing the
       // same one more than necessary.
@@ -170,9 +171,9 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
       set<XWindow*> exposed_windows;
       do {
         XExposeEvent& e = event.xexpose;
-        XWindow* x_window = GetWindow(e.window, false);
-        CHECK(x_window);
-        exposed_windows.insert(x_window);
+        XWindow* xwin = GetWindow(e.window, false);
+        CHECK(xwin);
+        exposed_windows.insert(xwin);
       } while (XCheckMaskEvent(display_, ExposureMask, &event) == True);
       for (set<XWindow*>::iterator win = exposed_windows.begin();
            win != exposed_windows.end(); ++win) {
@@ -188,23 +189,20 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
       XKeyEvent& e = event.xkey;
       DEBUG << "KeyRelease: window=0x" << hex << e.window << dec
             << " keycode=" << e.keycode << " state=" << e.state;
-    } else if (event.type == MapNotify) {
-      XMapEvent& e = event.xmap;
-      DEBUG << "MapNotify: window=0x" << hex << e.window << dec
-            << " override=" << e.override_redirect;
-      if (!e.override_redirect) {
-        XWindow* x_window = GetWindow(e.window, true);
-        window_manager->HandleMapWindow(x_window);
-      }
+    } else if (event.type == MapRequest) {
+      XMapRequestEvent& e = event.xmaprequest;
+      DEBUG << "MapRequest: window=0x" << hex << e.window;
+      XWindow* xwin = GetWindow(e.window, true);
+      window_manager->HandleMapRequest(xwin);
     } else if (event.type == MotionNotify) {
       XMotionEvent& e = event.xmotion;
       //DEBUG << "MotionNotify: window=0x" << hex << e.window << dec
       //      << " x=" << e.x_root << " y=" << e.y_root;
-      XWindow* x_window = GetWindow(e.window, false);
-      window_manager->HandleMotion(x_window, e.x_root, e.y_root);
+      XWindow* xwin = GetWindow(e.window, false);
+      window_manager->HandleMotion(xwin, e.x_root, e.y_root);
     } else if (event.type == PropertyNotify) {
       XPropertyEvent& e = event.xproperty;
-      XWindow* x_window = GetWindow(e.window, false);
+      XWindow* xwin = GetWindow(e.window, false);
       WindowProperties::ChangeType type = WindowProperties::OTHER_CHANGE;
       switch (e.atom) {
         case XA_WM_NAME: type = WindowProperties::WINDOW_NAME_CHANGE; break;
@@ -223,8 +221,13 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
             << " state=" << (e.state == PropertyNewValue ?
                              "PropertyNewValue" : "PropertyDeleted");
       if (type != WindowProperties::OTHER_CHANGE) {
-        window_manager->HandlePropertyChange(x_window, type);
+        window_manager->HandlePropertyChange(xwin, type);
       }
+    } else if (event.type == UnmapNotify) {
+      XUnmapEvent& e = event.xunmap;
+      DEBUG << "UnmapNotify: window=0x" << hex << e.window;
+      XWindow* xwin = GetWindow(e.window, true);
+      window_manager->HandleUnmapWindow(xwin);
     } else {
       DEBUG << XEventTypeToName(event.type);
     }
