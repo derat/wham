@@ -95,6 +95,8 @@ class XServer {
   // Returns false if any unknown modifiers were seen.
   static bool GetModifiers(const vector<string>& mods, uint* mod_bits);
 
+  static KeySym LowercaseKeysym(KeySym keysym);
+
   typedef pair<KeySym, uint> XKeyCombo;
   typedef map<XKeyCombo, ref_ptr<XKeyBinding> > XKeyBindingMap;
 

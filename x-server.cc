@@ -5,6 +5,7 @@
 
 #include "X11/Xatom.h"
 
+#include "config.h"
 #include "key-bindings.h"
 #include "mock-x-window.h"
 #include "util.h"
@@ -285,6 +286,14 @@ bool XServer::GetModifiers(const vector<string>& mods, uint* mod_bits) {
 }
 
 
+KeySym XServer::LowercaseKeysym(KeySym keysym) {
+  KeySym lower_keysym = NoSymbol;
+  KeySym upper_keysym = NoSymbol;
+  XConvertCase(keysym, &lower_keysym, &upper_keysym);
+  return lower_keysym;
+}
+
+
 void XServer::UpdateKeyBindingMap(
     const KeyBindings& bindings, XKeyBindingMap* binding_map) {
   binding_map->clear();
@@ -315,7 +324,7 @@ void XServer::UpdateKeyBindingMap(
       }
 
       // Convert the string representation of the key into a keysym.
-      KeySym keysym = XStringToKeysym(combo->key.c_str());
+      KeySym keysym = LowercaseKeysym(XStringToKeysym(combo->key.c_str()));
       if (keysym == NoSymbol) {
         ERROR << "Unknown symbol \"" << combo->key << "\" in key binding "
               << binding->ToString() << " for command "
@@ -323,12 +332,6 @@ void XServer::UpdateKeyBindingMap(
         error_in_combo = true;
         break;
       }
-
-      // Use the lowercase version of the keysym if one exists.
-      KeySym lower_keysym = NoSymbol;
-      KeySym upper_keysym = NoSymbol;
-      XConvertCase(keysym, &lower_keysym, &upper_keysym);
-      keysym = lower_keysym;
 
       if (parent_binding == NULL) {
         // If this is the first combo in the sequence, then it needs to go
@@ -404,28 +407,30 @@ void XServer::UpdateKeyBindingMap(
 void XServer::HandleKeyPress(KeySym keysym,
                              uint mods,
                              WindowManager* window_manager) {
-  KeySym keysym_lower = NoSymbol;
-  KeySym keysym_upper = NoSymbol;
-  XConvertCase(keysym, &keysym_lower, &keysym_upper);
-
-  // FIXME: if in_progress_binding_ is non-NULL and we see an Escape key,
-  // ungrab and return
-
+  keysym = LowercaseKeysym(keysym);
   XKeyBinding* binding = NULL;
 
   if (!in_progress_binding_) {
-    binding = FindWithDefault(bindings_, XKeyCombo(keysym_lower, mods),
+    binding = FindWithDefault(bindings_, XKeyCombo(keysym, mods),
                               ref_ptr<XKeyBinding>(NULL)).get();
   } else {
+    KeySym abort_key = LowercaseKeysym(
+        XStringToKeysym(Config::Get()->keybinding_abort_key.c_str()));
+    if (keysym == abort_key) {
+      DEBUG << "Key binding aborted; ungrabbing keyboard";
+      XUngrabKeyboard(display_, CurrentTime);
+      in_progress_binding_ = NULL;
+      return;
+    }
+
     for (vector<ref_ptr<XKeyBinding> >::iterator it =
            in_progress_binding_->children.begin();
          it != in_progress_binding_->children.end(); ++it) {
-      // Check that the key press has all of the required mods,
-      // and no mods other than the required or inherited ones.
+      // Check that the key press has all of the required modifiers,
+      // and no modifiers other than the required or inherited ones.
       if (keysym == (*it)->keysym &&
           (mods & (*it)->required_mods) == (*it)->required_mods &&
-          (mods | (*it)->inherited_mods | (*it)->required_mods) ==
-            ((*it)->inherited_mods | (*it)->required_mods)) {
+          (mods & ~((*it)->inherited_mods | (*it)->required_mods)) == 0) {
         binding = it->get();
         break;
       }
@@ -433,7 +438,10 @@ void XServer::HandleKeyPress(KeySym keysym,
   }
 
   if (binding == NULL) {
-    ERROR << "Ignoring key press without binding";
+    if (!in_progress_binding_) {
+      ERROR << "Ignoring key press without binding (keysym=0x"
+            << hex << keysym << " mods=0x" << mods;
+    }
     return;
   }
 
@@ -442,6 +450,8 @@ void XServer::HandleKeyPress(KeySym keysym,
       DEBUG << "Grabbing keyboard";
       XGrabKeyboard(display_, root_, False, GrabModeAsync, GrabModeAsync,
                     CurrentTime);
+      // FIXME: Also grab the pointer and change the cursor?  It'd probably
+      // make sense for a mouse click to also abort the keyboard grab.
     }
     // FIXME: Reset in_progress_binding_ and ungrab the keyboard before the
     // config is reloaded.

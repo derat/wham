@@ -45,6 +45,8 @@ struct Config {
   uint mouse_primary_button;
   uint mouse_secondary_button;
 
+  string keybinding_abort_key;
+
   DISALLOW_EVIL_CONSTRUCTORS(Config);
 
  private:

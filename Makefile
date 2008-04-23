@@ -62,7 +62,7 @@ window-properties.o: window-properties.cc window-properties.h x-window.h
 	$(CC) -c $<
 
 x-server.o: x-server.cc x-server.h \
-  command.h key-bindings.h util.h window-manager.h window-properties.h
+  command.h config.h key-bindings.h util.h window-manager.h window-properties.h
 	$(CC) -c $<
 
 x-window.o: x-window.cc x-window.h \
