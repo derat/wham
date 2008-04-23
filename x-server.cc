@@ -80,7 +80,11 @@ void XServer::SetupTesting() {
 bool XServer::Init() {
   CHECK(!initialized_);
 
-  if (!testing_) {
+  if (testing_) {
+    // FIXME: do this more cleanly
+    width_ = 1024;
+    height_ = 768;
+  } else {
     display_ = XOpenDisplay(NULL);
     if (display_ == NULL) {
       ERROR << "Can't open display " << XDisplayName(NULL);
@@ -97,10 +101,6 @@ bool XServer::Init() {
 
     XSelectInput(display_, root_,
                  SubstructureRedirectMask|SubstructureNotifyMask);
-  } else {
-    // FIXME: do this more cleanly
-    width_ = 1024;
-    height_ = 768;
   }
 
   initialized_ = true;
@@ -336,9 +336,9 @@ void XServer::UpdateKeyBindingMap(
         // part of another binding, we'll just use that.
         pair<KeySym, uint> key = make_pair(keysym, mods);
         if (binding_map->find(key) == binding_map->end()) {
-          ref_ptr<XKeyBinding> x_binding(
+          ref_ptr<XKeyBinding> xbinding(
               new XKeyBinding(keysym, mods, 0, Command()));
-          binding_map->insert(make_pair(key, x_binding));
+          binding_map->insert(make_pair(key, xbinding));
         }
         parent_binding = binding_map->find(key)->second.get();
         CHECK(parent_binding);
@@ -357,25 +357,25 @@ void XServer::UpdateKeyBindingMap(
         // children of the last combo to see if this one's already
         // registered.
         bool found = false;
-        for (vector<ref_ptr<XKeyBinding> >::iterator x_binding =
+        for (vector<ref_ptr<XKeyBinding> >::iterator xbinding =
                parent_binding->children.begin();
-             x_binding != parent_binding->children.end(); ++x_binding) {
-          CHECK((*x_binding)->inherited_mods == inherited_mods);
-          if ((*x_binding)->required_mods == mods &&
-              (*x_binding)->keysym == keysym) {
+             xbinding != parent_binding->children.end(); ++xbinding) {
+          CHECK((*xbinding)->inherited_mods == inherited_mods);
+          if ((*xbinding)->required_mods == mods &&
+              (*xbinding)->keysym == keysym) {
             DEBUG << "Using existing child binding:"
                   << " keysym=" << keysym << " mods=" << mods
                   << " inherited_mods=" << inherited_mods;
-            parent_binding = (*x_binding).get();
+            parent_binding = (*xbinding).get();
             found = true;
             break;
           }
         }
         if (!found) {
-          ref_ptr<XKeyBinding> x_binding(
+          ref_ptr<XKeyBinding> xbinding(
               new XKeyBinding(keysym, mods, inherited_mods, Command()));
-          parent_binding->children.push_back(x_binding);
-          parent_binding = x_binding.get();
+          parent_binding->children.push_back(xbinding);
+          parent_binding = xbinding.get();
         }
       }
 
@@ -401,21 +401,58 @@ void XServer::UpdateKeyBindingMap(
 }
 
 
-void XServer::HandleKeyPress(KeySym keysym, uint mods,
+void XServer::HandleKeyPress(KeySym keysym,
+                             uint mods,
                              WindowManager* window_manager) {
   KeySym keysym_lower = NoSymbol;
   KeySym keysym_upper = NoSymbol;
   XConvertCase(keysym, &keysym_lower, &keysym_upper);
 
-  XKeyBinding* binding =
-      FindWithDefault(bindings_, XKeyCombo(keysym_lower, mods),
-                      ref_ptr<XKeyBinding>(NULL)).get();
+  // FIXME: if in_progress_binding_ is non-NULL and we see an Escape key,
+  // ungrab and return
+
+  XKeyBinding* binding = NULL;
+
+  if (!in_progress_binding_) {
+    binding = FindWithDefault(bindings_, XKeyCombo(keysym_lower, mods),
+                              ref_ptr<XKeyBinding>(NULL)).get();
+  } else {
+    for (vector<ref_ptr<XKeyBinding> >::iterator it =
+           in_progress_binding_->children.begin();
+         it != in_progress_binding_->children.end(); ++it) {
+      // Check that the key press has all of the required mods,
+      // and no mods other than the required or inherited ones.
+      if (keysym == (*it)->keysym &&
+          (mods & (*it)->required_mods) == (*it)->required_mods &&
+          (mods | (*it)->inherited_mods | (*it)->required_mods) ==
+            ((*it)->inherited_mods | (*it)->required_mods)) {
+        binding = it->get();
+        break;
+      }
+    }
+  }
+
   if (binding == NULL) {
     ERROR << "Ignoring key press without binding";
     return;
   }
 
-  // FIXME: handle multi-level bindings
+  if (!binding->children.empty()) {
+    if (!in_progress_binding_) {
+      DEBUG << "Grabbing keyboard";
+      XGrabKeyboard(display_, root_, False, GrabModeAsync, GrabModeAsync,
+                    CurrentTime);
+    }
+    // FIXME: Reset in_progress_binding_ and ungrab the keyboard before the
+    // config is reloaded.
+    in_progress_binding_ = binding;
+  } else {
+    if (in_progress_binding_) {
+      DEBUG << "Ungrabbing keyboard";
+      XUngrabKeyboard(display_, CurrentTime);
+      in_progress_binding_ = NULL;
+    }
+  }
 
   if (binding->command.type() != Command::UNKNOWN) {
     window_manager->HandleCommand(binding->command);

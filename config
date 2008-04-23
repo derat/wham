@@ -37,6 +37,7 @@ key_bindings {
   bind Ctrl+l switch_nearest_anchor right
   bind Ctrl+n create_anchor
   bind Ctrl+t toggle_tag
+  bind Ctrl+u,Shift+t exec /usr/bin/urxvt
 }
 
 window {
