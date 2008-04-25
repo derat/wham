@@ -14,9 +14,20 @@ using namespace std;
 
 namespace wham {
 
+// X input mask for client windows that we're managing.
+static const uint kClientInputMask =
+    EnterWindowMask | PropertyChangeMask | StructureNotifyMask;
+
+// X input mask for windows that are created via the Create() method.
+static const uint kCreateInputMask =
+    ButtonPressMask | ButtonReleaseMask | EnterWindowMask |
+    ExposureMask | PointerMotionMask;
+
+
 XWindow::XWindow(::Window id)
     : parent_(NULL),
-      id_(id) {
+      id_(id),
+      input_mask_(0) {
   if (!XServer::Testing()) {
     GetGeometry(&x_, &y_, &width_, &height_, NULL);
     initial_x_ = x_;
@@ -37,9 +48,6 @@ XWindow* XWindow::Create(int x, int y, uint width, uint height) {
              dpy(), root(), x, y, width, height, 0 /* border */,
              BlackPixel(dpy(), scr()),
              WhitePixel(dpy(), scr()));
-    XSelectInput(dpy(), id,
-                 ButtonPressMask | ButtonReleaseMask | EnterWindowMask |
-                 ExposureMask | PointerMotionMask | PropertyChangeMask);
   }
   XWindow* win = XServer::Get()->GetWindow(id, true);
   if (XServer::Testing()) {
@@ -48,6 +56,8 @@ XWindow* XWindow::Create(int x, int y, uint width, uint height) {
     win->y_ = win->initial_y_ = y;
     win->width_ = win->initial_width_ = width;
     win->height_ = win->initial_height_ = height;
+  } else {
+    win->SelectInput(kCreateInputMask);
   }
   return win;
 }
@@ -161,7 +171,14 @@ void XWindow::Resize(uint width, uint height) {
 
 
 void XWindow::Unmap() {
+  // Cribbed from blackbox.  When we unmap a window ourselves, we don't
+  // want to get notification about it, so grab the server and unselect
+  // structure events.
+  XGrabServer(dpy());
+  XSelectInput(dpy(), id_, input_mask_ & ~StructureNotifyMask);
   XUnmapWindow(dpy(), id_);
+  XSelectInput(dpy(), id_, input_mask_);
+  XUngrabServer(dpy());
 }
 
 
@@ -170,8 +187,8 @@ void XWindow::Map() {
 }
 
 
-void XWindow::SelectEvents() {
-  XSelectInput(dpy(), id_, EnterWindowMask | PropertyChangeMask);
+void XWindow::SelectClientEvents() {
+  SelectInput(kClientInputMask);
 }
 
 
@@ -258,6 +275,12 @@ XWindow* XWindow::GetTransientFor() {
           << win_id << ", which isn't registered";
   }
   return win;
+}
+
+
+void XWindow::SelectInput(uint mask) {
+  XSelectInput(dpy(), id_, mask);
+  input_mask_ = mask;
 }
 
 }  // namespace wham

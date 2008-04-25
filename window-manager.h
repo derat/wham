@@ -32,8 +32,6 @@ class WindowManager {
 
   void HandleButtonPress(XWindow* xwin, int x, int y, uint button);
   void HandleButtonRelease(XWindow* xwin, int x, int y, uint button);
-  void HandleCreateWindow(XWindow* xwin);
-  void HandleDestroyWindow(XWindow* xwin);
   void HandleEnterWindow(XWindow* xwin);
   void HandleExposeWindow(XWindow* xwin);
   void HandleMapRequest(XWindow* xwin);

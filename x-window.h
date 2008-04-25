@@ -34,7 +34,7 @@ class XWindow {
   virtual void Resize(uint width, uint height);
   virtual void Unmap();
   virtual void Map();
-  virtual void SelectEvents();
+  virtual void SelectClientEvents();
   virtual void TakeFocus();
   virtual void SetBorder(uint size);
   virtual void Raise();
@@ -85,7 +85,11 @@ class XWindow {
   // Returns NULL if no such window exists.
   virtual XWindow* GetTransientFor();
 
+  void SelectInput(uint mask);
+
   ::Window id_;
+
+  uint input_mask_;
 
   DISALLOW_EVIL_CONSTRUCTORS(XWindow);
 };

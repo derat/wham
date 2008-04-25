@@ -117,6 +117,7 @@ void WindowManager::HandleButtonPress(
         if (new_anchor) {
           RemoveWindowFromDesktop(window, active_desktop_);
           AddWindowToDesktop(window, active_desktop_, new_anchor);
+          SetActiveAnchor(new_anchor);
           drag_offset_x_ = x - new_anchor->x();
           drag_offset_y_ = y - new_anchor->y();
           mouse_down_x_ = x;
@@ -142,16 +143,6 @@ void WindowManager::HandleButtonRelease(
       if (index >= 0) anchor->SetActiveWindow(index);
     }
   }
-}
-
-
-void WindowManager::HandleCreateWindow(XWindow* xwin) {
-  // We wait for the window to be mapped instead of doing anything here.
-}
-
-
-void WindowManager::HandleDestroyWindow(XWindow* xwin) {
-  // We clean up after windows when they're unmapped.
 }
 
 
@@ -194,7 +185,7 @@ void WindowManager::HandleMapRequest(XWindow* xwin) {
 
   if (windows_.find(xwin) == windows_.end()) {
     xwin->SetBorder(Config::Get()->window_border);
-    xwin->SelectEvents();
+    xwin->SelectClientEvents();
     ref_ptr<Window> window(new Window(xwin));
     windows_.insert(make_pair(xwin, window));
     Window* transient_for = GetTransientFor(window.get());
@@ -251,20 +242,13 @@ void WindowManager::HandleUnmapWindow(XWindow* xwin) {
   Window* window = FindWithDefault(windows_, xwin, ref_ptr<Window>()).get();
   if (!window) return;
 
-  if (window->unmap_requested()) {
-    // We asked for this; ignore the notification.
-    window->set_unmap_requested(false);
-  } else {
-    // If the unmap was requested by the client window, rather than by us,
-    // we'll just stop managing the window.
-    DEBUG << "Stopping management of 0x" << hex << xwin->id();
-    for (set<Desktop*>::iterator desktop = window_desktops_[window].begin();
-         desktop != window_desktops_[window].end(); ++desktop) {
-      RemoveWindowFromDesktop(window, *desktop);
-    }
-    window_desktops_.erase(window);
-    windows_.erase(xwin);
+  DEBUG << "Stopping management of 0x" << hex << xwin->id();
+  for (set<Desktop*>::iterator desktop = window_desktops_[window].begin();
+       desktop != window_desktops_[window].end(); ++desktop) {
+    RemoveWindowFromDesktop(window, *desktop);
   }
+  window_desktops_.erase(window);
+  windows_.erase(xwin);
 }
 
 

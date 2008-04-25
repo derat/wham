@@ -101,7 +101,7 @@ bool XServer::Init() {
                  &width_, &height_, &border_width, &depth);
 
     XSelectInput(display_, root_,
-                 SubstructureRedirectMask|SubstructureNotifyMask);
+                 SubstructureRedirectMask | StructureNotifyMask);
   }
 
   initialized_ = true;
@@ -128,35 +128,12 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
       XWindow* xwin = GetWindow(e.window, false);
       window_manager->HandleButtonRelease(xwin, e.x_root, e.y_root, e.button);
     } else if (event.type == ConfigureNotify) {
-      /*
-      XConfigureEvent& e = event.xconfigure;
-      DEBUG << "ConfigureNotify: window=0x" << hex << e.window << dec
-            << " x=" << e.x << " y=" << e.y
-            << " width=" << e.width << " height=" << e.height
-            << " border=" << e.border_width
-            << " above=" << static_cast<int>(e.above)
-            << " override=" << e.override_redirect;
-          */
-    } else if (event.type == CreateNotify) {
-      XCreateWindowEvent& e = event.xcreatewindow;
-      DEBUG << "CreateNotify: window=0x" << hex << e.window
-            << " parent=0x" << e.parent << dec
-            << " x=" << e.x << " y=" << e.y
-            << " width=" << e.width << " height=" << e.height
-            << " border=" << e.border_width
-            << " override=" << e.override_redirect;
-      if (!e.override_redirect) {
-        XWindow* xwin = GetWindow(e.window, true);
-        window_manager->HandleCreateWindow(xwin);
-      }
+      // We don't care about these.
     } else if (event.type == DestroyNotify) {
       XDestroyWindowEvent& e = event.xdestroywindow;
       DEBUG << "DestroyNotify: window=0x" << hex << e.window;
       XWindow* xwin = GetWindow(e.window, false);
-      if (xwin) {
-        window_manager->HandleDestroyWindow(xwin);
-        DeleteWindow(e.window);
-      }
+      if (xwin) DeleteWindow(e.window);
     } else if (event.type == EnterNotify) {
       XCrossingEvent& e = event.xcrossing;
       DEBUG << "Enter: window=0x" << hex << e.window;

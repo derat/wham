@@ -44,11 +44,6 @@ void Window::Map() {
 
 
 void Window::Unmap() {
-  if (unmap_requested_) {
-    ERROR << "Got a request to unmap window 0x" << hex << xwin_->id()
-          << ", which has unmap_requested_ already set to true";
-  }
-  unmap_requested_ = true;
   xwin_->Unmap();
 }
 

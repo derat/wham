@@ -29,11 +29,7 @@ class Window {
   void Move(int x, int y);
   void Resize(uint width, uint height);
   void Map();
-
-  // Unmap the window.  Also sets unmap_requested_ to true, so we know that
-  // the unmap notify that we'll see wasn't requested by the client window.
   void Unmap();
-
   void TakeFocus();
   void Raise();
   void MakeSibling(const XWindow& leader);
@@ -53,9 +49,6 @@ class Window {
 
   bool tagged() const { return tagged_; }
   void set_tagged(bool tagged) { tagged_ = tagged; }
-
-  bool unmap_requested() const { return unmap_requested_; }
-  void set_unmap_requested(bool req) { unmap_requested_ = req; }
 
   XWindow* xwin() const { return xwin_; }
   XWindow* transient_for() const { return props_.transient_for; }
@@ -88,10 +81,6 @@ class Window {
   WindowConfigSet configs_;
 
   bool tagged_;
-
-  // Was this window asked to unmap itself by the window manager?  We use
-  // this to distinguish between WM- and client-initiated unmappings.
-  bool unmap_requested_;
 
   DISALLOW_EVIL_CONSTRUCTORS(Window);
 };
