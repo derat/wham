@@ -33,6 +33,8 @@ class ValueTraits<KeyBindings::Combo> {
 class KeyBindingsTestSuite : public CxxTest::TestSuite {
  public:
   void testParseCombos() {
+    KeyBindings bindings;
+
     // Test a sequence of two bindings, each of which has modifiers.
     vector<KeyBindings::Combo> expected_seq;
     expected_seq.push_back(
@@ -40,7 +42,7 @@ class KeyBindingsTestSuite : public CxxTest::TestSuite {
     expected_seq.push_back(
         KeyBindings::Combo("M", SplitString("Alt")));
     vector<KeyBindings::Combo> seq;
-    TS_ASSERT(KeyBindings::ParseCombos("Ctrl+Shift+U, Alt+M", &seq, NULL));
+    TS_ASSERT(bindings.ParseCombos("Ctrl+Shift+U, Alt+M", &seq, NULL));
     TS_ASSERT_EQUALS(seq, expected_seq);
 
     // Test a single binding with lots of whitespace.
@@ -48,7 +50,7 @@ class KeyBindingsTestSuite : public CxxTest::TestSuite {
     expected_seq.push_back(
         KeyBindings::Combo("Foo", SplitString("Control Mod1")));
     seq.clear();
-    TS_ASSERT(KeyBindings::ParseCombos(" Control + Mod1 + Foo ", &seq, NULL));
+    TS_ASSERT(bindings.ParseCombos(" Control + Mod1 + Foo ", &seq, NULL));
     TS_ASSERT_EQUALS(seq, expected_seq);
 
     // Test a sequence that doesn't have any modifiers.
@@ -56,11 +58,27 @@ class KeyBindingsTestSuite : public CxxTest::TestSuite {
     expected_seq.push_back(KeyBindings::Combo("b"));
     expected_seq.push_back(KeyBindings::Combo("c"));
     seq.clear();
-    TS_ASSERT(KeyBindings::ParseCombos("b, c", &seq, NULL));
+    TS_ASSERT(bindings.ParseCombos("b, c", &seq, NULL));
+    TS_ASSERT_EQUALS(seq, expected_seq);
+
+    // Alias "Mod" to "Ctrl+Alt".
+    vector<string> expanded;
+    expanded.push_back("Ctrl");
+    expanded.push_back("Alt");
+    bindings.mod_aliases_["Mod"] = expanded;
+
+    // Now parse a sequence using the alias.
+    expected_seq.clear();
+    expected_seq.push_back(
+        KeyBindings::Combo("H", SplitString("Ctrl Alt Shift")));
+    expected_seq.push_back(
+        KeyBindings::Combo("L", SplitString("Shift Ctrl Alt")));
+    seq.clear();
+    TS_ASSERT(bindings.ParseCombos("Mod+Shift+H,Shift+Mod+L", &seq, NULL));
     TS_ASSERT_EQUALS(seq, expected_seq);
 
     // Test a couple of malformed sequences.
-    TS_ASSERT(!KeyBindings::ParseCombos("+R", &seq, NULL));
-    TS_ASSERT(!KeyBindings::ParseCombos("Ctrl+", &seq, NULL));
+    TS_ASSERT(!bindings.ParseCombos("+R", &seq, NULL));
+    TS_ASSERT(!bindings.ParseCombos("Ctrl+", &seq, NULL));
   }
 };

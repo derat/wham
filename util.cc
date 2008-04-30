@@ -72,6 +72,24 @@ vector<string> SplitString(const string& str) {
 }
 
 
+void SplitStringUsing(const string& str,
+                      const string& delim,
+                      vector<string>* parts) {
+  CHECK(parts);
+  CHECK(!delim.empty());
+  parts->clear();
+  size_t start = 0;
+  while (start < str.size()) {
+    size_t delim_pos = str.find(delim, start);
+    if (delim_pos == string::npos) delim_pos = str.size();
+    if (delim_pos > start) {
+      parts->push_back(str.substr(start, delim_pos - start));
+    }
+    start = delim_pos + delim.size();
+  }
+}
+
+
 string StringPrintf(const char* format, ...) {
   char buffer[1024];  // FIXME: remove magic number?
   va_list argp;

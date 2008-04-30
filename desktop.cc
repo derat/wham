@@ -36,7 +36,7 @@ Anchor* Desktop::CreateAnchor(const string& name,
                               int y,
                               Anchor::Gravity gravity) {
   ref_ptr<Anchor> anchor(new Anchor(name, x, y, gravity));
-  DEBUG << "Created anchor 0x" << hex << anchor.get()
+  DEBUG << "Created anchor " << anchor.get()
         << " (" << anchor->name() << ")";
   anchors_.push_back(anchor);
   anchor_titlebars_.insert(make_pair(anchor->titlebar(), anchor.get()));

@@ -1,47 +1,52 @@
 key_bindings {
-  bind Ctrl+F1 exec /usr/bin/urxvt
-  bind Ctrl+F2 exec /home/derat/local/firefox/firefox
-  bind Ctrl+F9 create_desktop
+  mod_alias Mod Ctrl
+  mod_alias Alt Mod1
 
-  bind Ctrl+1 switch_nth_window 0
-  bind Ctrl+2 switch_nth_window 1
-  bind Ctrl+3 switch_nth_window 2
-  bind Ctrl+4 switch_nth_window 3
-  bind Ctrl+5 switch_nth_window 4
-  bind Ctrl+6 switch_nth_window 5
-  bind Ctrl+7 switch_nth_window 6
-  bind Ctrl+8 switch_nth_window 7
-  bind Ctrl+9 switch_nth_window 8
-  bind Ctrl+0 switch_nth_window 9
+  bind Mod+F1 exec /usr/bin/urxvt
+  bind Mod+F2 exec /home/derat/local/firefox/firefox
+  bind Mod+F9 create_desktop
 
-  bind Ctrl+Shift+1 switch_nth_desktop 0
-  bind Ctrl+Shift+2 switch_nth_desktop 1
-  bind Ctrl+Shift+3 switch_nth_desktop 2
-  bind Ctrl+Shift+4 switch_nth_desktop 3
-  bind Ctrl+Shift+5 switch_nth_desktop 4
-  bind Ctrl+Shift+6 switch_nth_desktop 5
-  bind Ctrl+Shift+7 switch_nth_desktop 6
-  bind Ctrl+Shift+8 switch_nth_desktop 7
-  bind Ctrl+Shift+9 switch_nth_desktop 8
-  bind Ctrl+Shift+0 switch_nth_desktop 9
+  bind Mod+1 switch_nth_window 0
+  bind Mod+2 switch_nth_window 1
+  bind Mod+3 switch_nth_window 2
+  bind Mod+4 switch_nth_window 3
+  bind Mod+5 switch_nth_window 4
+  bind Mod+6 switch_nth_window 5
+  bind Mod+7 switch_nth_window 6
+  bind Mod+8 switch_nth_window 7
+  bind Mod+9 switch_nth_window 8
+  bind Mod+0 switch_nth_window 9
 
-  bind Ctrl+a attach_tagged_windows
-  bind Ctrl+Shift+a set_attach_anchor
-  bind Ctrl+b cycle_window_config true
-  bind Ctrl+g cycle_anchor_gravity true
-  bind Ctrl+Shift+g cycle_anchor_gravity false
-  bind Ctrl+Shift+h shift_window_in_anchor false
-  bind Ctrl+h switch_nearest_anchor left
-  bind Ctrl+i display_window_props
-  bind Ctrl+j switch_nearest_anchor down
-  bind Ctrl+Shift+j cycle_window false
-  bind Ctrl+k switch_nearest_anchor up
-  bind Ctrl+Shift+k cycle_window true
-  bind Ctrl+l switch_nearest_anchor right
-  bind Ctrl+Shift+l shift_window_in_anchor true
-  bind Ctrl+n create_anchor
-  bind Ctrl+t toggle_tag
-  bind Ctrl+u,Shift+t exec /usr/bin/urxvt
+  bind Mod+Shift+1 switch_nth_desktop 0
+  bind Mod+Shift+2 switch_nth_desktop 1
+  bind Mod+Shift+3 switch_nth_desktop 2
+  bind Mod+Shift+4 switch_nth_desktop 3
+  bind Mod+Shift+5 switch_nth_desktop 4
+  bind Mod+Shift+6 switch_nth_desktop 5
+  bind Mod+Shift+7 switch_nth_desktop 6
+  bind Mod+Shift+8 switch_nth_desktop 7
+  bind Mod+Shift+9 switch_nth_desktop 8
+  bind Mod+Shift+0 switch_nth_desktop 9
+
+  bind Mod+a attach_tagged_windows
+  bind Mod+Shift+a set_attach_anchor
+  bind Mod+b cycle_window_config true
+  bind Mod+g cycle_anchor_gravity true
+  bind Mod+Shift+g cycle_anchor_gravity false
+  bind Mod+h switch_nearest_anchor left
+  bind Mod+Shift+h shift_window_in_anchor false
+  bind Mod+Alt+Shift+h cycle_desktop false
+  bind Mod+i display_window_props
+  bind Mod+j switch_nearest_anchor down
+  bind Mod+Shift+j cycle_window false
+  bind Mod+k switch_nearest_anchor up
+  bind Mod+Shift+k cycle_window true
+  bind Mod+l switch_nearest_anchor right
+  bind Mod+Shift+l shift_window_in_anchor true
+  bind Mod+Alt+Shift+l cycle_desktop true
+  bind Mod+n create_anchor
+  bind Mod+t toggle_tag
+  bind Mod+u,Shift+t exec /usr/bin/urxvt
 }
 
 window {

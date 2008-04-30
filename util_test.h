@@ -67,4 +67,27 @@ class UtilTestSuite : public CxxTest::TestSuite {
     SplitString(" a b c ", &parts);
     TS_ASSERT_EQUALS(parts, expected);
   }
+
+  void testSplitStringUsing() {
+    vector<string> expected;
+    vector<string> parts;
+
+    SplitStringUsing("", " ", &parts);
+    TS_ASSERT_EQUALS(parts, expected);
+
+    SplitStringUsing("   ", " ", &parts);
+    TS_ASSERT_EQUALS(parts, expected);
+
+    expected.push_back("abc");
+    expected.push_back("def");
+    expected.push_back("ghi");
+    SplitStringUsing("abc+def+ghi", "+", &parts);
+    TS_ASSERT_EQUALS(parts, expected);
+
+    expected.clear();
+    expected.push_back("123");
+    expected.push_back("456");
+    SplitStringUsing("123abc456abc", "abc", &parts);
+    TS_ASSERT_EQUALS(parts, expected);
+  }
 };

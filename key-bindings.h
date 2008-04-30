@@ -85,13 +85,15 @@ class KeyBindings {
 
   // Parse a string describing a sequence of key bindings (e.g.
   // "Ctrl+Alt+M, Shift+J").  The resulting sequence is stored in
-  // 'bindings'.  False is returned on failure, in which case an error is
+  // 'combos'.  False is returned on failure, in which case an error is
   // also logged to 'error' if it is non-NULL.
-  static bool ParseCombos(const string& str,
-                          vector<Combo>* combos,
-                          string* error);
+  bool ParseCombos(const string& str, vector<Combo>* combos, string* error);
 
   vector<Binding> bindings_;
+
+  // Map from a modifier alias to a list of modifier keys that it should be
+  // replaced by.
+  map<string, vector<string> > mod_aliases_;
 };
 
 }  // namespace wham

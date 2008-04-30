@@ -158,14 +158,16 @@ V FindWithDefault(const map<K, V>& the_map, const K& key, V def) {
 }
 
 
-// Split a string on whitespace, saving the individual pieces to the
-// passed-in vector.
+// Split a string on whitespace, saving the individual pieces to 'parts'.
 void SplitString(const string& str, vector<string>* parts);
-
 
 // Split a string on whitespace, returning the individual pieces as a new
 // vector.
 vector<string> SplitString(const string& str);
+
+void SplitStringUsing(const string& str,
+                      const string& delim,
+                      vector<string>* parts);
 
 
 void JoinString(const vector<string>& parts,

@@ -51,6 +51,7 @@ class Window {
   void set_tagged(bool tagged) { tagged_ = tagged; }
 
   XWindow* xwin() const { return xwin_; }
+  XWindow* parent() const { return parent_; }
   XWindow* transient_for() const { return props_.transient_for; }
 
  private:
@@ -75,6 +76,9 @@ class Window {
   // A pointer to information about the X window; used for interacting with
   // the X server.
   XWindow* xwin_;  // not owned
+
+  // A parent window created to provide window decorations.
+  XWindow* parent_;  // not owned
 
   WindowProperties props_;
 

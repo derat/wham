@@ -22,12 +22,22 @@ bool KeyBindings::Load(const ConfigNode& conf,
     if (node.tokens.empty()) {
       errors->push_back(
           ConfigError("Got empty block within key bindings", node.line_num));
+    } else if (node.tokens[0] == "mod_alias") {
+      if (node.tokens.size() != 3) {
+        string msg = StringPrintf(
+            "\"mod_alias\" requires 2 arguments (alias and replacement); "
+            "got %d instead", node.tokens.size() - 1);
+        errors->push_back(ConfigError(msg, node.line_num));
+        continue;
+      }
+      vector<string> parts;
+      SplitStringUsing(node.tokens[2], "+", &parts);
+      mod_aliases_[node.tokens[1]] = parts;
     } else if (node.tokens[0] == "bind") {
       if (node.tokens.size() < 3) {
         string msg = StringPrintf(
             "\"bind\" requires at least 2 arguments (key combination "
-            "and command); got %d instead",
-            node.tokens.size() - 1);
+            "and command); got %d instead", node.tokens.size() - 1);
         errors->push_back(ConfigError(msg, node.line_num));
         continue;
       }
@@ -92,7 +102,16 @@ bool KeyBindings::ParseCombos(const string& str,
 
     string mod;
     while (mod_re.Consume(&input, static_cast<void*>(NULL), &mod)) {
-      combo.mods.push_back(mod);
+      map<string, vector<string> >::const_iterator alias =
+          mod_aliases_.find(mod);
+      if (alias != mod_aliases_.end()) {
+        for (vector<string>::const_iterator alias_mod = alias->second.begin();
+             alias_mod != alias->second.end(); ++alias_mod) {
+          combo.mods.push_back(*alias_mod);
+        }
+      } else {
+        combo.mods.push_back(mod);
+      }
     }
     string key;
     if (!key_re.Consume(&input, &key)) {
