@@ -167,6 +167,21 @@ bool Anchor::SetActiveWindow(uint index) {
 }
 
 
+void Anchor::ShiftActiveWindow(bool shift_right) {
+  if (windows_.size() <= 1) return;
+  if (active_index_ == 0 && !shift_right ||
+      active_index_ == windows_.size() - 1 && shift_right) return;
+
+  int new_index = active_index_ + (shift_right ? 1 : -1);
+  CHECK(active_window_ == windows_[active_index_]);
+
+  windows_[active_index_] = windows_[new_index];
+  windows_[new_index] = active_window_;
+  active_index_ = new_index;
+  DrawTitlebar();
+}
+
+
 void Anchor::DrawTitlebar() {
   DrawingEngine::Get()->DrawAnchor(*this, titlebar_);
   // Move the window to its current position to handle the case where the
@@ -196,6 +211,14 @@ void Anchor::FocusActiveWindow() {
   DEBUG << "FocusActiveWindow: active_window_=" << hex << active_window_;
   if (!active_window_) return;
   active_window_->TakeFocus();
+}
+
+
+void Anchor::CycleActiveWindow(bool cycle_right) {
+  if (windows_.size() <= 1) return;
+  uint new_index =
+      (active_index_ + windows_.size() + 2 * cycle_right - 1) % windows_.size();
+  SetActiveWindow(new_index);
 }
 
 

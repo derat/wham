@@ -78,9 +78,13 @@ class Anchor {
   void SetAttach(bool attach);
 
   // Set which (zero-indexed) window should be currently displayed.
+  // Returns true if successful.
   bool SetActiveWindow(uint index);
 
-  // Instruct the drawing engine to draw this anchor's titlebar.
+  // Shift the currently-active window within the anchor's window list.
+  void ShiftActiveWindow(bool shift_right);
+
+  // Instruct the drawing engine to draw the titlebar.
   void DrawTitlebar();
 
   // Get the index number of the window represented in the titlebar at the
@@ -91,6 +95,10 @@ class Anchor {
 
   // If there is an active window, give the focus to it.
   void FocusActiveWindow();
+
+  // Make a window adjacent to the currently-active one active.
+  // Wraps around edges.
+  void CycleActiveWindow(bool cycle_right);
 
   // Cycle the config of the active window, updating the window's position
   // onscreen if necessary.

@@ -269,6 +269,9 @@ void WindowManager::HandleCommand(const Command &cmd) {
     int num = (desktops_.size() + GetDesktopIndex(active_desktop_) +
                (cmd.GetBoolArg() ? 1 : -1)) % desktops_.size();
     SetActiveDesktop((desktops_.begin() + num)->get());
+  } else if (cmd.type() == Command::CYCLE_WINDOW) {
+    Anchor* anchor = active_desktop_->active_anchor();
+    if (anchor) anchor->CycleActiveWindow(cmd.GetBoolArg());
   } else if (cmd.type() == Command::CYCLE_WINDOW_CONFIG) {
     Anchor* anchor = active_desktop_->active_anchor();
     if (anchor) anchor->CycleActiveWindowConfig(cmd.GetBoolArg());
@@ -288,6 +291,9 @@ void WindowManager::HandleCommand(const Command &cmd) {
       attach_follows_active_ = true;
       active_desktop_->SetAttachAnchor(anchor);
     }
+  } else if (cmd.type() == Command::SHIFT_WINDOW_IN_ANCHOR) {
+    Anchor* anchor = active_desktop_->active_anchor();
+    if (anchor) anchor->ShiftActiveWindow(cmd.GetBoolArg());
   } else if (cmd.type() == Command::SWITCH_NEAREST_ANCHOR) {
     Anchor* anchor = active_desktop_->GetNearestAnchor(cmd.GetDirectionArg());
     if (anchor) SetActiveAnchor(anchor);

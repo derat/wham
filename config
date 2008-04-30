@@ -30,11 +30,15 @@ key_bindings {
   bind Ctrl+b cycle_window_config true
   bind Ctrl+g cycle_anchor_gravity true
   bind Ctrl+Shift+g cycle_anchor_gravity false
+  bind Ctrl+Shift+h shift_window_in_anchor false
   bind Ctrl+h switch_nearest_anchor left
   bind Ctrl+i display_window_props
   bind Ctrl+j switch_nearest_anchor down
+  bind Ctrl+Shift+j cycle_window false
   bind Ctrl+k switch_nearest_anchor up
+  bind Ctrl+Shift+k cycle_window true
   bind Ctrl+l switch_nearest_anchor right
+  bind Ctrl+Shift+l shift_window_in_anchor true
   bind Ctrl+n create_anchor
   bind Ctrl+t toggle_tag
   bind Ctrl+u,Shift+t exec /usr/bin/urxvt
