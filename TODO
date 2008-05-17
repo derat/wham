@@ -1,4 +1,7 @@
-- anchor/window stacking order
+- kill window-in-multiple-anchors concept, replace with sticky anchors
+  (after thinking about this some more to make sure that there are no
+  useful cases)
+- save global anchor/window stacking order
 - Menu: write class and add to DrawingEngine
 - parse DrawingEngine styles from config
 - make config-parsing return ConfigErrors

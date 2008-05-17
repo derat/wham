@@ -49,6 +49,7 @@ XWindow* XWindow::Create(int x, int y, uint width, uint height) {
              BlackPixel(dpy(), scr()),
              WhitePixel(dpy(), scr()));
   }
+  DEBUG << "Created window 0x" << hex << id;
   XWindow* win = XServer::Get()->GetWindow(id, true);
   if (XServer::Testing()) {
     // FIXME: This is super-ugly; change it.
@@ -219,6 +220,7 @@ void XWindow::MakeSibling(const XWindow& leader) {
 
 
 void XWindow::Reparent(XWindow* parent, int x, int y) {
+  DEBUG << "Reparent: id=0x" << hex << id_ << " parent=0x" << parent->id();
   XReparentWindow(dpy(), id_, parent ? parent->id() : root(), x, y);
   parent_ = parent;
 }
@@ -243,6 +245,7 @@ void XWindow::GetGeometry(int* x,
 
 
 void XWindow::Destroy() {
+  DEBUG << "Destroy: id=0x" << hex << id_;
   XServer::Get()->DeleteWindow(id_);
   XDestroyWindow(dpy(), id_);
 }

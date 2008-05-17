@@ -20,9 +20,7 @@ class Window {
  public:
 
   Window(XWindow* xwin);
-  ~Window() {
-    xwin_ = NULL;
-  }
+  ~Window();
 
   void CycleConfig(bool forward);
 

@@ -94,6 +94,9 @@ bool XServer::Init() {
     screen_num_ = DefaultScreen(display_);
     root_ = RootWindow(display_, screen_num_);
 
+    // FIXME
+    XSynchronize(display_, True);
+
     ::Window root_ret;
     int x, y;
     uint border_width, depth;
@@ -119,14 +122,20 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
 
     if (event.type == ButtonPress) {
       XButtonEvent& e = event.xbutton;
-      DEBUG << "ButtonPress: window=0x" << hex << e.window;
+      DEBUG << "ButtonPress: window=0x" << hex << e.window << dec
+            << " x=" << e.x_root << " y=" << e.y_root << " button=" << e.button;
       XWindow* xwin = GetWindow(e.window, false);
-      window_manager->HandleButtonPress(xwin, e.x_root, e.y_root, e.button);
+      if (xwin) {
+        window_manager->HandleButtonPress(xwin, e.x_root, e.y_root, e.button);
+      }
     } else if (event.type == ButtonRelease) {
       XButtonEvent& e = event.xbutton;
-      DEBUG << "ButtonRelease: window=0x" << hex << e.window;
+      DEBUG << "ButtonRelease: window=0x" << hex << e.window << dec
+            << " x=" << e.x_root << " y=" << e.y_root << " button=" << e.button;
       XWindow* xwin = GetWindow(e.window, false);
-      window_manager->HandleButtonRelease(xwin, e.x_root, e.y_root, e.button);
+      if (xwin) {
+        window_manager->HandleButtonRelease(xwin, e.x_root, e.y_root, e.button);
+      }
     } else if (event.type == ConfigureNotify) {
       // We don't care about these.
     } else if (event.type == DestroyNotify) {
@@ -138,8 +147,8 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
       XCrossingEvent& e = event.xcrossing;
       DEBUG << "Enter: window=0x" << hex << e.window;
       XWindow* xwin = GetWindow(e.window, false);
-      CHECK(xwin);
-      window_manager->HandleEnterWindow(xwin);
+      // This could for a border window that we just deleted.
+      if (xwin) window_manager->HandleEnterWindow(xwin);
     } else if (event.type == Expose) {
       // Coalesce expose events for the same window to avoid redrawing the
       // same one more than necessary.
@@ -149,13 +158,14 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
       set<XWindow*> exposed_windows;
       do {
         XExposeEvent& e = event.xexpose;
+        DEBUG << "Expose: window=0x" << hex << e.window;
         XWindow* xwin = GetWindow(e.window, false);
-        CHECK(xwin);
+        // This could for a border window that we just deleted.
+        if (xwin == NULL) continue;
         exposed_windows.insert(xwin);
       } while (XCheckMaskEvent(display_, ExposureMask, &event) == True);
       for (set<XWindow*>::iterator win = exposed_windows.begin();
            win != exposed_windows.end(); ++win) {
-        //DEBUG << "Expose: window=0x" << hex << (*win)->id();
         window_manager->HandleExposeWindow(*win);
       }
     } else if (event.type == KeyPress) {
@@ -177,7 +187,7 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
       //DEBUG << "MotionNotify: window=0x" << hex << e.window << dec
       //      << " x=" << e.x_root << " y=" << e.y_root;
       XWindow* xwin = GetWindow(e.window, false);
-      window_manager->HandleMotion(xwin, e.x_root, e.y_root);
+      if (xwin) window_manager->HandleMotion(xwin, e.x_root, e.y_root);
     } else if (event.type == PropertyNotify) {
       XPropertyEvent& e = event.xproperty;
       XWindow* xwin = GetWindow(e.window, false);

@@ -12,12 +12,23 @@ namespace wham {
 
 Window::Window(XWindow* xwin)
     : xwin_(xwin),
+      parent_(XWindow::Create(
+          xwin->x(), xwin->y(), xwin->width(), xwin->height())),
       props_(),
       configs_(),
       tagged_(false) {
   CHECK(xwin_);
   props_.UpdateAll(xwin_);
+  xwin->Reparent(parent_, 2, 2);
+  xwin->Map();
   Classify();
+}
+
+
+Window::~Window() {
+  parent_->Destroy();
+  xwin_ = NULL;
+  parent_ = NULL;
 }
 
 
@@ -27,24 +38,25 @@ void Window::CycleConfig(bool forward) {
 
 
 void Window::Move(int x, int y) {
-  xwin_->Move(x, y);
+  parent_->Move(x, y);
 }
 
 
 void Window::Resize(uint width, uint height) {
   DEBUG << "Resizing 0x" << hex << xwin_->id() << dec
         << " to (" << width << ", " << height << ")";
+  parent_->Resize(width + 4, height + 4);
   xwin_->Resize(width, height);
 }
 
 
 void Window::Map() {
-  xwin_->Map();
+  parent_->Map();
 }
 
 
 void Window::Unmap() {
-  xwin_->Unmap();
+  parent_->Unmap();
 }
 
 
@@ -55,12 +67,12 @@ void Window::TakeFocus() {
 
 
 void Window::Raise() {
-  xwin_->Raise();
+  parent_->Raise();
 }
 
 
 void Window::MakeSibling(const XWindow& leader) {
-  xwin_->MakeSibling(leader);
+  parent_->MakeSibling(leader);
 }
 
 

@@ -65,7 +65,7 @@ void WindowManager::HandleButtonPress(
   if (button == Config::Get()->mouse_primary_button) {
     CHECK(active_desktop_);
     Anchor* anchor = active_desktop_->GetAnchorByTitlebar(xwin);
-    CHECK(anchor);
+    if (anchor == NULL) return;  // FIXME: handle button presses on borders
 
     // Make this the active anchor.
     SetActiveAnchor(anchor);
@@ -80,9 +80,9 @@ void WindowManager::HandleButtonPress(
     if (mouse_down_) {
       CHECK(active_desktop_);
       Anchor* anchor = active_desktop_->active_anchor();
-      CHECK(anchor);
+      if (anchor == NULL) return;  // FIXME: handle button presses on borders
       Window* window = anchor->mutable_active_window();
-      CHECK(window);
+      if (window == NULL) return;
 
       if (anchor->windows().size() > 1) {
         RemoveWindowFromDesktop(window, active_desktop_);
@@ -138,9 +138,11 @@ void WindowManager::HandleButtonRelease(
       dragging_ = false;
     } else {
       Anchor* anchor = active_desktop_->GetAnchorByTitlebar(xwin);
-      CHECK(anchor);
-      int index = anchor->GetWindowIndexAtTitlebarPoint(x);
-      if (index >= 0) anchor->SetActiveWindow(index);
+      // Maybe this is a window border and not a titlebar.
+      if (anchor) {
+        int index = anchor->GetWindowIndexAtTitlebarPoint(x);
+        if (index >= 0) anchor->SetActiveWindow(index);
+      }
     }
   }
 }
@@ -159,20 +161,20 @@ void WindowManager::HandleEnterWindow(XWindow* xwin) {
     // client window
     Window* window =
         FindWithDefault(windows_, xwin, ref_ptr<Window>()).get();
-    anchor = active_desktop_->GetAnchorContainingWindow(window);
+    if (window) anchor = active_desktop_->GetAnchorContainingWindow(window);
+    // FIXME: handle window borders
   }
   // In either case, we want to make this anchor active (which will also
   // focus its window).
-  CHECK(anchor);
-  SetActiveAnchor(anchor);
+  if (anchor) SetActiveAnchor(anchor);
 }
 
 
 void WindowManager::HandleExposeWindow(XWindow* xwin) {
   CHECK(active_desktop_);
   Anchor* anchor = active_desktop_->GetAnchorByTitlebar(xwin);
-  CHECK(anchor);
-  anchor->DrawTitlebar();
+  if (anchor) anchor->DrawTitlebar();
+  // FIXME: handle window borders
 }
 
 
@@ -184,7 +186,9 @@ void WindowManager::HandleMapRequest(XWindow* xwin) {
   }
 
   if (windows_.find(xwin) == windows_.end()) {
-    xwin->SetBorder(Config::Get()->window_border);
+    // FIXME
+    //xwin->SetBorder(Config::Get()->window_border);
+    xwin->SetBorder(0);
     xwin->SelectClientEvents();
     ref_ptr<Window> window(new Window(xwin));
     windows_.insert(make_pair(xwin, window));
@@ -195,7 +199,7 @@ void WindowManager::HandleMapRequest(XWindow* xwin) {
     } else {
       HandleTransientFor(window.get(), transient_for);
     }
-    xwin->Map();
+    window->Map();
   }
 }
 
@@ -463,6 +467,15 @@ Window* WindowManager::GetActiveWindow() const {
   Anchor* anchor = active_desktop_->active_anchor();
   if (anchor == NULL) return NULL;
   return anchor->mutable_active_window();
+}
+
+
+Window* WindowManager::GetWindowByBorder(XWindow* xwin) const {
+  for (WindowMap::const_iterator win = windows_.begin();
+       win != windows_.end(); ++win) {
+    if (win->second->parent() == xwin) return win->second.get();
+  }
+  return NULL;
 }
 
 
