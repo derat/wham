@@ -44,23 +44,28 @@ class AnchorTestSuite : public CxxTest::TestSuite {
     wham::Window win2(xwin2);
     anchor.AddWindow(&win2);
 
+    MockXWindow* frame1 = dynamic_cast<MockXWindow*>(win1.frame());
+    CHECK(frame1);
+    MockXWindow* frame2 = dynamic_cast<MockXWindow*>(win2.frame());
+    CHECK(frame2);
+
     // Initially, the titlebar and the active window should be mapped.
     TS_ASSERT(dynamic_cast<MockXWindow*>(anchor.titlebar_)->mapped());
-    TS_ASSERT(xwin1->mapped());
-    TS_ASSERT(!xwin2->mapped());
+    TS_ASSERT(frame1->mapped());
+    TS_ASSERT(!frame2->mapped());
 
     // After hiding the anchor, none of the windows should be mapped.
     anchor.Hide();
     TS_ASSERT(!dynamic_cast<MockXWindow*>(anchor.titlebar_)->mapped());
-    TS_ASSERT(!xwin1->mapped());
-    TS_ASSERT(!xwin2->mapped());
+    TS_ASSERT(!frame1->mapped());
+    TS_ASSERT(!frame2->mapped());
 
     // After showing the anchor, the titlebar and active window should be
     // mapped again.
     anchor.Show();
     TS_ASSERT(dynamic_cast<MockXWindow*>(anchor.titlebar_)->mapped());
-    TS_ASSERT(xwin1->mapped());
-    TS_ASSERT(!xwin2->mapped());
+    TS_ASSERT(frame1->mapped());
+    TS_ASSERT(!frame2->mapped());
   }
 
   void testSetName() {

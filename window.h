@@ -24,8 +24,14 @@ class Window {
 
   void CycleConfig(bool forward);
 
+  // Move the top-left corner *of the window's frame* to the given
+  // position.
   void Move(int x, int y);
+
+  // Resize *the client window* to the given dimensions.  Its frame will be
+  // larger, depending on the configured border width.
   void Resize(uint width, uint height);
+
   void Map();
   void Unmap();
   void TakeFocus();
@@ -38,10 +44,17 @@ class Window {
 
   string title() const { return props_.window_name; }
 
+  // Position of the top-left corner of the window's frame.
   int x() const;
   int y() const;
+
+  // Dimensions of the client window.
   uint width() const;
   uint height() const;
+
+  uint frame_width() const;
+  uint frame_height() const;
+
   uint id() const;
   const WindowProperties& props() const { return props_; }
 
@@ -49,7 +62,7 @@ class Window {
   void set_tagged(bool tagged) { tagged_ = tagged; }
 
   XWindow* xwin() const { return xwin_; }
-  XWindow* parent() const { return parent_; }
+  XWindow* frame() const { return frame_; }
   XWindow* transient_for() const { return props_.transient_for; }
 
  private:
@@ -76,7 +89,7 @@ class Window {
   XWindow* xwin_;  // not owned
 
   // A parent window created to provide window decorations.
-  XWindow* parent_;  // not owned
+  XWindow* frame_;  // not owned
 
   WindowProperties props_;
 

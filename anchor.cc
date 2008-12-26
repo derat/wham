@@ -125,7 +125,7 @@ void Anchor::SetActive(bool active) {
   if (active == active_) return;
   active_ = active;
   DrawTitlebar();
-  FocusActiveWindow();
+  if (active_window_) active_window_->TakeFocus();
 }
 
 
@@ -163,7 +163,7 @@ bool Anchor::SetActiveWindow(uint index) {
   UpdateWindowPosition(active_window_);
   active_window_->MakeSibling(*titlebar_);
   active_window_->Map();
-  FocusActiveWindow();
+  active_window_->TakeFocus();
 
   DrawTitlebar();
   return true;
@@ -207,13 +207,6 @@ int Anchor::GetWindowIndexAtTitlebarPoint(int abs_x) {
     abs_x = titlebar_->x() + titlebar_->width() - 1;
   }
   return (abs_x - titlebar_->x()) * windows_.size() / titlebar_->width();
-}
-
-
-void Anchor::FocusActiveWindow() {
-  DEBUG << "FocusActiveWindow: active_window_=" << hex << active_window_;
-  if (!active_window_) return;
-  active_window_->TakeFocus();
 }
 
 
@@ -289,13 +282,12 @@ void Anchor::UpdateTitlebarPosition() {
 
 void Anchor::UpdateWindowPosition(Window* window) {
   CHECK(window);
-  uint border = Config::Get()->window_border;
   int x = (gravity_ == TOP_LEFT || gravity_ == BOTTOM_LEFT) ?
       x_ :
-      x_ - window->width() - 2 * border;
+      x_ - window->frame_width();
   int y = (gravity_ == TOP_LEFT || gravity_ == TOP_RIGHT) ?
       y_ + titlebar_->height() :
-      y_ - titlebar_->height() - window->height() - 2 * border;
+      y_ - titlebar_->height() - window->frame_height();
   window->Move(x, y);
 }
 

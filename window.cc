@@ -5,6 +5,7 @@
 
 #include <sstream>
 
+#include "config.h"
 #include "x-server.h"
 #include "x-window.h"
 
@@ -12,23 +13,29 @@ namespace wham {
 
 Window::Window(XWindow* xwin)
     : xwin_(xwin),
-      parent_(XWindow::Create(
-          xwin->x(), xwin->y(), xwin->width(), xwin->height())),
       props_(),
       configs_(),
       tagged_(false) {
   CHECK(xwin_);
   props_.UpdateAll(xwin_);
-  xwin->Reparent(parent_, 2, 2);
+
+  uint border = Config::Get()->window_border;
+  frame_ = XWindow::Create(
+      xwin->x() - border, xwin->y() - border,
+      xwin->width() + 2 * border, xwin->height() + 2 * border);
+
+  // Map the client window but not the frame.
+  xwin->Reparent(frame_, border, border);
   xwin->Map();
+
   Classify();
 }
 
 
 Window::~Window() {
-  parent_->Destroy();
+  frame_->Destroy();
   xwin_ = NULL;
-  parent_ = NULL;
+  frame_ = NULL;
 }
 
 
@@ -38,25 +45,26 @@ void Window::CycleConfig(bool forward) {
 
 
 void Window::Move(int x, int y) {
-  parent_->Move(x, y);
+  frame_->Move(x, y);
 }
 
 
 void Window::Resize(uint width, uint height) {
   DEBUG << "Resizing 0x" << hex << xwin_->id() << dec
         << " to (" << width << ", " << height << ")";
-  parent_->Resize(width + 4, height + 4);
+  uint border = Config::Get()->window_border;
+  frame_->Resize(width + 2 * border, height + 2 * border);
   xwin_->Resize(width, height);
 }
 
 
 void Window::Map() {
-  parent_->Map();
+  frame_->Map();
 }
 
 
 void Window::Unmap() {
-  parent_->Unmap();
+  frame_->Unmap();
 }
 
 
@@ -67,12 +75,12 @@ void Window::TakeFocus() {
 
 
 void Window::Raise() {
-  parent_->Raise();
+  frame_->Raise();
 }
 
 
 void Window::MakeSibling(const XWindow& leader) {
-  parent_->MakeSibling(leader);
+  frame_->MakeSibling(leader);
 }
 
 
@@ -88,16 +96,22 @@ void Window::HandlePropertyChange(
 }
 
 
-int Window::x() const { return xwin_->x(); }
+int Window::x() const { return frame_->x(); }
 
 
-int Window::y() const { return xwin_->y(); }
+int Window::y() const { return frame_->y(); }
 
 
 uint Window::width() const { return xwin_->width(); }
 
 
 uint Window::height() const { return xwin_->height(); }
+
+
+uint Window::frame_width() const { return frame_->width(); }
+
+
+uint Window::frame_height() const { return frame_->height(); }
 
 
 uint Window::id() const { return xwin_->id(); }

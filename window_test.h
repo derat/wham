@@ -5,6 +5,7 @@
 
 #include "window.h"
 
+#include "config.h"
 #include "mock-x-window.h"
 #include "window-classifier.h"
 #include "window-properties.h"
@@ -22,23 +23,53 @@ class WindowTestSuite : public CxxTest::TestSuite {
   void testMove() {
     XWindow* xwin = XWindow::Create(50, 60, 640, 480);
     wham::Window win(xwin);
-    TS_ASSERT_EQUALS(xwin->x(), 50);
-    TS_ASSERT_EQUALS(xwin->y(), 60);
+    int border = static_cast<int>(Config::Get()->window_border);
 
+    // The Window object's default position should match that of its frame,
+    // which should be a bit to the upper-left of the client window's
+    // original position (to accomodate the border).
+    TS_ASSERT_EQUALS(win.x(), 50 - border);
+    TS_ASSERT_EQUALS(win.y(), 60 - border);
+    TS_ASSERT_EQUALS(win.frame()->x(), win.x());
+    TS_ASSERT_EQUALS(win.frame()->y(), win.y());
+
+    // The client window should've been reparented under the frame, and it
+    // should be offset the correct amount.
+    TS_ASSERT_EQUALS(xwin->parent(), win.frame());
+    TS_ASSERT_EQUALS(xwin->x(), border);
+    TS_ASSERT_EQUALS(xwin->y(), border);
+
+    // Now move the window and check that everything gets updated
+    // correctly -- Move() takes the position of the frame, not of the
+    // client window.
     win.Move(100, 110);
-    TS_ASSERT_EQUALS(xwin->x(), 100);
-    TS_ASSERT_EQUALS(xwin->y(), 110);
+    TS_ASSERT_EQUALS(win.x(), 100);
+    TS_ASSERT_EQUALS(win.y(), 110);
+    TS_ASSERT_EQUALS(win.frame()->x(), win.x());
+    TS_ASSERT_EQUALS(win.frame()->y(), win.y());
+
+    TS_ASSERT_EQUALS(xwin->x(), border);
+    TS_ASSERT_EQUALS(xwin->y(), border);
   }
 
   void testResize() {
     XWindow* xwin = XWindow::Create(50, 60, 640, 480);
     wham::Window win(xwin);
+    uint border = Config::Get()->window_border;
+
+    // The client window's size should be unchanged, and its frame should
+    // be a bit larger to accomodate the border.
     TS_ASSERT_EQUALS(xwin->width(), 640U);
     TS_ASSERT_EQUALS(xwin->height(), 480U);
+    TS_ASSERT_EQUALS(win.frame_width(), 640U + 2 * border);
+    TS_ASSERT_EQUALS(win.frame_height(), 480U + 2 * border);
 
+    // Resize() takes the size of the client window.
     win.Resize(1024, 768);
     TS_ASSERT_EQUALS(xwin->width(), 1024U);
     TS_ASSERT_EQUALS(xwin->height(), 768U);
+    TS_ASSERT_EQUALS(win.frame_width(), 1024U + 2 * border);
+    TS_ASSERT_EQUALS(win.frame_height(), 768U + 2 * border);
   }
 
   void testMap_Unmap() {
@@ -46,13 +77,22 @@ class WindowTestSuite : public CxxTest::TestSuite {
         dynamic_cast<MockXWindow*>(XWindow::Create(50, 60, 640, 480));
     CHECK(xwin);
     wham::Window win(xwin);
-    TS_ASSERT_EQUALS(xwin->mapped(), false);
+
+    MockXWindow* frame = dynamic_cast<MockXWindow*>(win.frame());
+    CHECK(frame);
+
+    // We should initially map the client window but not the frame.
+    // Further calls to Map() and Unmap() should only affect the frame.
+    TS_ASSERT(xwin->mapped());
+    TS_ASSERT(!frame->mapped());
 
     win.Map();
-    TS_ASSERT_EQUALS(xwin->mapped(), true);
+    TS_ASSERT(xwin->mapped());
+    TS_ASSERT(frame->mapped());
 
     win.Unmap();
-    TS_ASSERT_EQUALS(xwin->mapped(), false);
+    TS_ASSERT(xwin->mapped());
+    TS_ASSERT(!frame->mapped());
   }
 
   void testApplyConfig() {

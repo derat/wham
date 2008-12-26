@@ -470,10 +470,10 @@ Window* WindowManager::GetActiveWindow() const {
 }
 
 
-Window* WindowManager::GetWindowByBorder(XWindow* xwin) const {
+Window* WindowManager::GetWindowByFrame(XWindow* xwin) const {
   for (WindowMap::const_iterator win = windows_.begin();
        win != windows_.end(); ++win) {
-    if (win->second->parent() == xwin) return win->second.get();
+    if (win->second->frame() == xwin) return win->second.get();
   }
   return NULL;
 }

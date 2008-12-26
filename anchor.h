@@ -93,9 +93,6 @@ class Anchor {
   // windows are present in the anchor.
   int GetWindowIndexAtTitlebarPoint(int abs_x);
 
-  // If there is an active window, give the focus to it.
-  void FocusActiveWindow();
-
   // Make a window adjacent to the currently-active one active.
   // Wraps around edges.
   void CycleActiveWindow(bool cycle_right);

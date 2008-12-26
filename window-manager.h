@@ -87,9 +87,9 @@ class WindowManager {
   // or NULL if none exists.
   Window* GetActiveWindow() const;
 
-  // Get the window to which a border belongs, or NULL if it's not a
-  // border.
-  Window* GetWindowByBorder(XWindow* xwin) const;
+  // Get the window to which a frame belongs, or NULL if it's not a
+  // frame.
+  Window* GetWindowByFrame(XWindow* xwin) const;
 
   // Add 'window' to 'desktop'.  If 'anchor' is non-NULL, we will use that
   // anchor; otherwise, we'll use the regular logic for deciding which

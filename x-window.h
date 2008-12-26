@@ -52,6 +52,8 @@ class XWindow {
     return id_ < o.id_;
   }
 
+  XWindow *parent() const { return parent_; }
+
   int x() const { return x_; }
   int y() const { return y_; }
   uint width() const { return width_; }
