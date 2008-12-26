@@ -60,6 +60,8 @@ void Anchor::SetName(const string& name) {
 
 
 void Anchor::AddWindow(Window* window) {
+  DEBUG << "AddWindow: anchor=" << this
+        << " window=0x" << hex << window->id();
   CHECK(find(windows_.begin(), windows_.end(), window) == windows_.end());
   windows_.push_back(window);
   if (!active_window_) SetActiveWindow(0);
@@ -77,6 +79,8 @@ void Anchor::RemoveWindow(Window* window) {
   if (window == active_window_) {
     active_window_ = NULL;
     if (!windows_.empty()) {
+      // FIXME: Maybe it'd make more sense to set new_index to
+      // active_index_ - 1, capping it at 0 -- that's what Ion does.
       size_t new_index = active_index_;
       if (new_index >= windows_.size()) new_index = windows_.size() - 1;
       SetActiveWindow(new_index);

@@ -78,13 +78,13 @@ displaying part of their contents.  If Xgl is available, it is perhaps
 reasonable to tell the window manager to scale down the other windows.
 
 Within a desktop, windows are grouped together by their attachment to
-anchors.  The anchor itself is visualized as the the set of tabbed
-titlebars for the group of windows.  Only a single window attached to each
-anchor can be visible.  Anchors are implemented similarly to Ion's tabbed
-frames -- keyboard commands can be used to select which window is displayed
-and to tag and move windows between anchors.  Anchors can be moved around
-the screen.  It should maybe be possible to control whether the anchor
-appears at the top or bottom of its set of windows.
+anchors.  The anchor itself is visualized as the set of tabbed titlebars
+for the group of windows.  Only a single window attached to each anchor can
+be visible.  Anchors are implemented similarly to Ion's tabbed frames --
+keyboard commands can be used to select which window is displayed and to
+tag and move windows between anchors.  Anchors can be moved around the
+screen.  It should maybe be possible to control whether the anchor appears
+at the top or bottom of its set of windows.
 
 Anchor configuration is saved to disk and reloaded when the window manager
 is restarted.  It should be possible to quickly define to which anchor new

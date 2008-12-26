@@ -113,7 +113,7 @@ class Anchor {
   // left, top right, bottom right, bottom left).
   void CycleGravity(bool forward);
 
-  // Does the titlebar covers the passed-in point?
+  // Does the titlebar cover the passed-in point?
   bool TitlebarIsOverPoint(int x, int y) const;
 
   static void GetGravityDirection(Gravity gravity, int* dx, int* dy);

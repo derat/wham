@@ -148,7 +148,7 @@ class ref_ptr {
 
 
 template<class K, class V>
-V FindWithDefault(const map<K, V>& the_map, const K& key, V def) {
+V FindWithDefault(const map<K, V>& the_map, const K& key, const V& def) {
   // FIXME: It's dumb that I'm doing two lookups here.  I'm too dense to
   // figure out the syntax for declaring a const_iterator of the templated
   // map class -- the obvious "map<K, V>::const_iterator it" yields
