@@ -2,8 +2,8 @@ key_bindings {
   mod_alias Mod Ctrl
   mod_alias Alt Mod1
 
-  bind Mod+F1 exec /usr/bin/urxvt
-  bind Mod+F2 exec /home/derat/local/firefox/firefox
+  bind Mod+F1 exec urxvt
+  bind Mod+F2 exec firefox
   bind Mod+F9 create_desktop
 
   bind Mod+1 switch_nth_window 0
@@ -65,7 +65,7 @@ window {
 
 window {
   criteria {
-    app_class Firefox-bin
+    app_class Firefox
     transient false
   }
   config default {
