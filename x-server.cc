@@ -3,6 +3,7 @@
 
 #include "x-server.h"
 
+#include "sys/select.h"
 #include "X11/Xatom.h"
 
 #include "config.h"
@@ -116,108 +117,22 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
   CHECK(window_manager);
   CHECK(initialized_);
 
-  XEvent event;
-  while (true) {
-    XNextEvent(display_, &event);
+  int x11_fd = XConnectionNumber(display_);
+  DEBUG << "X11 connection is on fd " << x11_fd;
+  // FIXME: need to also use XAddConnectionWatch()?
 
-    if (event.type == ButtonPress) {
-      XButtonEvent& e = event.xbutton;
-      DEBUG << "ButtonPress: window=0x" << hex << e.window << dec
-            << " x=" << e.x_root << " y=" << e.y_root << " button=" << e.button;
-      XWindow* xwin = GetWindow(e.window, false);
-      if (xwin) {
-        window_manager->HandleButtonPress(xwin, e.x_root, e.y_root, e.button);
-      }
-    } else if (event.type == ButtonRelease) {
-      XButtonEvent& e = event.xbutton;
-      DEBUG << "ButtonRelease: window=0x" << hex << e.window << dec
-            << " x=" << e.x_root << " y=" << e.y_root << " button=" << e.button;
-      XWindow* xwin = GetWindow(e.window, false);
-      if (xwin) {
-        window_manager->HandleButtonRelease(xwin, e.x_root, e.y_root, e.button);
-      }
-    } else if (event.type == ConfigureNotify) {
-      // We don't care about these.
-    } else if (event.type == DestroyNotify) {
-      XDestroyWindowEvent& e = event.xdestroywindow;
-      DEBUG << "DestroyNotify: window=0x" << hex << e.window;
-      XWindow* xwin = GetWindow(e.window, false);
-      if (xwin) DeleteWindow(e.window);
-    } else if (event.type == EnterNotify) {
-      XCrossingEvent& e = event.xcrossing;
-      DEBUG << "Enter: window=0x" << hex << e.window;
-      XWindow* xwin = GetWindow(e.window, false);
-      // This could for a border window that we just deleted.
-      if (xwin) window_manager->HandleEnterWindow(xwin);
-    } else if (event.type == Expose) {
-      // Coalesce expose events for the same window to avoid redrawing the
-      // same one more than necessary.
-      // TODO: Is this needed?  Doesn't appear to have much of an effect on
-      // my computer, but maybe with a slower machine or slower drawing
-      // code it could help.
-      set<XWindow*> exposed_windows;
-      do {
-        XExposeEvent& e = event.xexpose;
-        DEBUG << "Expose: window=0x" << hex << e.window;
-        XWindow* xwin = GetWindow(e.window, false);
-        // This could for a border window that we just deleted.
-        if (xwin == NULL) continue;
-        exposed_windows.insert(xwin);
-      } while (XCheckMaskEvent(display_, ExposureMask, &event) == True);
-      for (set<XWindow*>::iterator win = exposed_windows.begin();
-           win != exposed_windows.end(); ++win) {
-        window_manager->HandleExposeWindow(*win);
-      }
-    } else if (event.type == KeyPress) {
-      XKeyEvent& e = event.xkey;
-      DEBUG << "KeyPress: window=0x" << hex << e.window << dec
-            << " keycode=" << e.keycode << " state=" << e.state;
-      HandleKeyPress(XLookupKeysym(&e, 0), e.state, window_manager);
-    } else if (event.type == KeyRelease) {
-      XKeyEvent& e = event.xkey;
-      DEBUG << "KeyRelease: window=0x" << hex << e.window << dec
-            << " keycode=" << e.keycode << " state=" << e.state;
-    } else if (event.type == MapRequest) {
-      XMapRequestEvent& e = event.xmaprequest;
-      DEBUG << "MapRequest: window=0x" << hex << e.window;
-      XWindow* xwin = GetWindow(e.window, true);
-      window_manager->HandleMapRequest(xwin);
-    } else if (event.type == MotionNotify) {
-      XMotionEvent& e = event.xmotion;
-      //DEBUG << "MotionNotify: window=0x" << hex << e.window << dec
-      //      << " x=" << e.x_root << " y=" << e.y_root;
-      XWindow* xwin = GetWindow(e.window, false);
-      if (xwin) window_manager->HandleMotion(xwin, e.x_root, e.y_root);
-    } else if (event.type == PropertyNotify) {
-      XPropertyEvent& e = event.xproperty;
-      XWindow* xwin = GetWindow(e.window, false);
-      WindowProperties::ChangeType type = WindowProperties::OTHER_CHANGE;
-      switch (e.atom) {
-        case XA_WM_NAME: type = WindowProperties::WINDOW_NAME_CHANGE; break;
-        case XA_WM_ICON_NAME: type = WindowProperties::ICON_NAME_CHANGE; break;
-        case XA_WM_COMMAND: type = WindowProperties::COMMAND_CHANGE; break;
-        case XA_WM_CLASS: type = WindowProperties::CLASS_CHANGE; break;
-        case XA_WM_NORMAL_HINTS:
-             type = WindowProperties::WM_HINTS_CHANGE; break;
-        case XA_WM_TRANSIENT_FOR:
-             type = WindowProperties::TRANSIENT_CHANGE; break;
-        default: type = WindowProperties::OTHER_CHANGE;
-      }
-      DEBUG << "PropertyNotify: window=0x" << hex << e.window << dec
-            << " atom=" << e.atom
-            << " type=" << WindowProperties::ChangeTypeToStr(type)
-            << " state=" << (e.state == PropertyNewValue ?
-                             "PropertyNewValue" : "PropertyDeleted");
-      if (type != WindowProperties::OTHER_CHANGE) {
-        window_manager->HandlePropertyChange(xwin, type);
-      }
-    } else if (event.type == UnmapNotify) {
-      XUnmapEvent& e = event.xunmap;
-      DEBUG << "UnmapNotify: window=0x" << hex << e.window;
-      XWindow* xwin = GetWindow(e.window, false);
-      if (xwin) window_manager->HandleUnmapWindow(xwin);
-    } else {
-      DEBUG << XEventTypeToName(event.type);
+  while (true) {
+    while (XPending(display_)) {
+      ProcessEvent(window_manager);
+    }
+
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(x11_fd, &fds);
+    // TODO: pass a timeout for the soonest timer that's been registered
+    CHECK(select(x11_fd + 1, &fds, NULL, NULL, NULL) != -1);
+    if (!FD_ISSET(x11_fd, &fds)) {
+      DEBUG << "fd " << x11_fd << " isn't ready";
     }
   }
 }
@@ -249,6 +164,112 @@ XWindow* XServer::GetWindow(::Window id, bool create) {
 
 void XServer::DeleteWindow(::Window id) {
   windows_.erase(id);
+}
+
+
+void XServer::ProcessEvent(WindowManager *window_manager) {
+  XEvent event;
+  XNextEvent(display_, &event);
+
+  if (event.type == ButtonPress) {
+    XButtonEvent& e = event.xbutton;
+    DEBUG << "ButtonPress: window=0x" << hex << e.window << dec
+          << " x=" << e.x_root << " y=" << e.y_root << " button=" << e.button;
+    XWindow* xwin = GetWindow(e.window, false);
+    if (xwin) {
+      window_manager->HandleButtonPress(xwin, e.x_root, e.y_root, e.button);
+    }
+  } else if (event.type == ButtonRelease) {
+    XButtonEvent& e = event.xbutton;
+    DEBUG << "ButtonRelease: window=0x" << hex << e.window << dec
+          << " x=" << e.x_root << " y=" << e.y_root << " button=" << e.button;
+    XWindow* xwin = GetWindow(e.window, false);
+    if (xwin) {
+      window_manager->HandleButtonRelease(xwin, e.x_root, e.y_root, e.button);
+    }
+  } else if (event.type == ConfigureNotify) {
+    // We don't care about these.
+  } else if (event.type == DestroyNotify) {
+    XDestroyWindowEvent& e = event.xdestroywindow;
+    DEBUG << "DestroyNotify: window=0x" << hex << e.window;
+    XWindow* xwin = GetWindow(e.window, false);
+    if (xwin) DeleteWindow(e.window);
+  } else if (event.type == EnterNotify) {
+    XCrossingEvent& e = event.xcrossing;
+    DEBUG << "Enter: window=0x" << hex << e.window;
+    XWindow* xwin = GetWindow(e.window, false);
+    // This could for a border window that we just deleted.
+    if (xwin) window_manager->HandleEnterWindow(xwin);
+  } else if (event.type == Expose) {
+    // Coalesce expose events for the same window to avoid redrawing the
+    // same one more than necessary.
+    // TODO: Is this needed?  Doesn't appear to have much of an effect on
+    // my computer, but maybe with a slower machine or slower drawing
+    // code it could help.
+    set<XWindow*> exposed_windows;
+    do {
+      XExposeEvent& e = event.xexpose;
+      DEBUG << "Expose: window=0x" << hex << e.window;
+      XWindow* xwin = GetWindow(e.window, false);
+      // This could be for a border window that we just deleted.
+      if (xwin == NULL) continue;
+      exposed_windows.insert(xwin);
+    } while (XCheckMaskEvent(display_, ExposureMask, &event) == True);
+    for (set<XWindow*>::iterator win = exposed_windows.begin();
+         win != exposed_windows.end(); ++win) {
+      window_manager->HandleExposeWindow(*win);
+    }
+  } else if (event.type == KeyPress) {
+    XKeyEvent& e = event.xkey;
+    DEBUG << "KeyPress: window=0x" << hex << e.window << dec
+          << " keycode=" << e.keycode << " state=" << e.state;
+    HandleKeyPress(XLookupKeysym(&e, 0), e.state, window_manager);
+  } else if (event.type == KeyRelease) {
+    XKeyEvent& e = event.xkey;
+    DEBUG << "KeyRelease: window=0x" << hex << e.window << dec
+          << " keycode=" << e.keycode << " state=" << e.state;
+  } else if (event.type == MapRequest) {
+    XMapRequestEvent& e = event.xmaprequest;
+    DEBUG << "MapRequest: window=0x" << hex << e.window;
+    XWindow* xwin = GetWindow(e.window, true);
+    window_manager->HandleMapRequest(xwin);
+  } else if (event.type == MotionNotify) {
+    XMotionEvent& e = event.xmotion;
+    //DEBUG << "MotionNotify: window=0x" << hex << e.window << dec
+    //      << " x=" << e.x_root << " y=" << e.y_root;
+    XWindow* xwin = GetWindow(e.window, false);
+    if (xwin) window_manager->HandleMotion(xwin, e.x_root, e.y_root);
+  } else if (event.type == PropertyNotify) {
+    XPropertyEvent& e = event.xproperty;
+    XWindow* xwin = GetWindow(e.window, false);
+    WindowProperties::ChangeType type = WindowProperties::OTHER_CHANGE;
+    switch (e.atom) {
+      case XA_WM_NAME: type = WindowProperties::WINDOW_NAME_CHANGE; break;
+      case XA_WM_ICON_NAME: type = WindowProperties::ICON_NAME_CHANGE; break;
+      case XA_WM_COMMAND: type = WindowProperties::COMMAND_CHANGE; break;
+      case XA_WM_CLASS: type = WindowProperties::CLASS_CHANGE; break;
+      case XA_WM_NORMAL_HINTS:
+           type = WindowProperties::WM_HINTS_CHANGE; break;
+      case XA_WM_TRANSIENT_FOR:
+           type = WindowProperties::TRANSIENT_CHANGE; break;
+      default: type = WindowProperties::OTHER_CHANGE;
+    }
+    DEBUG << "PropertyNotify: window=0x" << hex << e.window << dec
+          << " atom=" << e.atom
+          << " type=" << WindowProperties::ChangeTypeToStr(type)
+          << " state=" << (e.state == PropertyNewValue ?
+                           "PropertyNewValue" : "PropertyDeleted");
+    if (type != WindowProperties::OTHER_CHANGE) {
+      window_manager->HandlePropertyChange(xwin, type);
+    }
+  } else if (event.type == UnmapNotify) {
+    XUnmapEvent& e = event.xunmap;
+    DEBUG << "UnmapNotify: window=0x" << hex << e.window;
+    XWindow* xwin = GetWindow(e.window, false);
+    if (xwin) window_manager->HandleUnmapWindow(xwin);
+  } else {
+    DEBUG << XEventTypeToName(event.type);
+  }
 }
 
 

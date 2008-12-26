@@ -90,6 +90,10 @@ class XServer {
   XWindow* GetWindow(::Window id, bool create);
   void DeleteWindow(::Window id);
 
+  // Read the next event (or possibly more than one, in the case of expose
+  // events) and handle it.
+  void ProcessEvent(WindowManager *window_manager);
+
   // Convert a vector containing string representations of modifiers keys
   // into a bitmap consisting of the corresponding X modifier masks.
   // Returns false if any unknown modifiers were seen.
