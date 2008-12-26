@@ -449,6 +449,10 @@ void XServer::HandleKeyPress(KeySym keysym,
     if (!in_progress_binding_) {
       ERROR << "Ignoring key press without binding (keysym=0x"
             << hex << keysym << " mods=0x" << mods;
+    } else {
+      DEBUG << "Key binding aborted; ungrabbing keyboard";
+      XUngrabKeyboard(display_, CurrentTime);
+      in_progress_binding_ = NULL;
     }
     return;
   }
