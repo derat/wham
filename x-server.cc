@@ -3,7 +3,11 @@
 
 #include "x-server.h"
 
+#include <algorithm>
+#include <ctime>
+
 #include "sys/select.h"
+#include "sys/time.h"
 #include "X11/Xatom.h"
 
 #include "config.h"
@@ -126,15 +130,38 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
       ProcessEvent(window_manager);
     }
 
+    double now = GetCurrentTime();
+    while (!timeout_heap_.empty() &&
+           timeout_heap_[0].time <= now) {
+      DEBUG << "Running timeout for " << fixed << timeout_heap_[0].time;
+      (*timeout_heap_[0].func.get())();
+      pop_heap(timeout_heap_.begin(), timeout_heap_.end());
+      timeout_heap_.pop_back();
+    }
+
+    struct timeval tv;
+    struct timeval *timeout_tv = NULL;
+    if (!timeout_heap_.empty()) {
+      FillTimeval(timeout_heap_[0].time - now, &tv);
+      timeout_tv = &tv;
+    }
+
     fd_set fds;
     FD_ZERO(&fds);
     FD_SET(x11_fd, &fds);
-    // TODO: pass a timeout for the soonest timer that's been registered
-    CHECK(select(x11_fd + 1, &fds, NULL, NULL, NULL) != -1);
-    if (!FD_ISSET(x11_fd, &fds)) {
-      DEBUG << "fd " << x11_fd << " isn't ready";
-    }
+    CHECK(select(x11_fd + 1, &fds, NULL, NULL, timeout_tv) != -1);
   }
+}
+
+
+void XServer::RegisterTimeout(TimeoutFunction *func, double timeout_sec) {
+  CHECK(func);
+  CHECK(timeout_sec >= 0);
+
+  Timeout timeout(func, GetCurrentTime() + timeout_sec);
+  DEBUG << "Registering timeout for " << fixed << timeout.time;
+  timeout_heap_.push_back(timeout);
+  push_heap(timeout_heap_.begin(), timeout_heap_.end());
 }
 
 
