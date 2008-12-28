@@ -52,19 +52,19 @@ class Command {
   bool Valid() const;
 
   int GetIntArg() const {
-    CHECK(GetArgType(type_) == INT_ARG);
+    CHECK_EQ(GetArgType(type_), INT_ARG);
     CHECK(Valid());
     return arg_.i;
   }
 
   bool GetBoolArg() const {
-    CHECK(GetArgType(type_) == BOOL_ARG);
+    CHECK_EQ(GetArgType(type_), BOOL_ARG);
     CHECK(Valid());
     return arg_.b;
   }
 
   const string& GetStringArg() const {
-    CHECK(GetArgType(type_) == STRING_ARG);
+    CHECK_EQ(GetArgType(type_), STRING_ARG);
     CHECK(Valid());
     return *arg_.s;
   }
@@ -77,7 +77,7 @@ class Command {
     RIGHT
   };
   Direction GetDirectionArg() const {
-    CHECK(GetArgType(type_) == DIRECTION_ARG);
+    CHECK_EQ(GetArgType(type_), DIRECTION_ARG);
     CHECK(Valid());
     return arg_.dir;
   }

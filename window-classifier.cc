@@ -143,7 +143,7 @@ bool WindowClassifier::Load(const ConfigNode& conf,
                             vector<ConfigError>* errors) {
   CHECK(errors);
   CHECK(!conf.tokens.empty());
-  CHECK(conf.tokens[0] == "window");
+  CHECK_EQ(conf.tokens[0], "window");
 
   ref_ptr<WindowCriteriaVector> criteria_vector(new WindowCriteriaVector);
   ref_ptr<WindowConfigVector> config_vector(new WindowConfigVector);
@@ -231,8 +231,8 @@ bool WindowClassifier::LoadWindowCriteria(const ConfigNode& conf,
                                           vector<ConfigError>* errors) {
   CHECK(criteria);
   CHECK(errors);
-  CHECK(conf.tokens.size() == 1);
-  CHECK(conf.tokens[0] == "criteria");
+  CHECK_EQ(conf.tokens.size(), 1);
+  CHECK_EQ(conf.tokens[0], "criteria");
 
   if (conf.tokens.size() != 1) {
     errors->push_back(
@@ -276,7 +276,7 @@ bool WindowClassifier::LoadWindowConfig(const ConfigNode& conf,
   CHECK(window_config);
   CHECK(errors);
   CHECK(!conf.tokens.empty());
-  CHECK(conf.tokens[0] == "config");
+  CHECK_EQ(conf.tokens[0], "config");
 
   if (conf.tokens.size() != 2) {
     string msg = StringPrintf("Window config node with %d token(s); "

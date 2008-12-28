@@ -57,7 +57,7 @@ Logger& Logger::operator<<(const string& v) {
 
 double GetCurrentTime() {
   struct timeval tv;
-  CHECK(gettimeofday(&tv, NULL) == 0);
+  CHECK_EQ(gettimeofday(&tv, NULL), 0);
   return tv.tv_sec + (tv.tv_usec / 1000000.0);
 }
 

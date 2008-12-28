@@ -20,12 +20,37 @@ using namespace std;
 #define ERROR wham::Logger(__FILE__, __LINE__)
 #define DEBUG wham::Logger(__FILE__, __LINE__)
 
-#define CHECK(x) \
-  if (!(x)) { \
-    wham::Logger(__FILE__, __LINE__) \
-        << "Assertion \"" #x "\" failed; exiting"; \
-    exit(1); \
+#define CHECK(x)                                                               \
+  if (!(x)) {                                                                  \
+    ERROR << "Assertion \"" #x "\" failed; exiting";                           \
+    exit(1);                                                                   \
   }
+
+// FIXME: this is completely lame; it should print the values without
+// evaluating the arguments a second time
+#define CHECK_EQ(x, y)                                                         \
+  if ((x) != (y)) {                                                            \
+    ERROR << "Assertion " #x " == " #y " failed; exiting (\""                  \
+          << (x) << "\" != \"" << (y) << "\")";                                \
+    exit(1);                                                                   \
+  }
+
+#if 0
+template<class A, class B>
+inline void CHECK_EQ_func(const char& a_expr,
+                          const char& b_expr,
+                          const A& a,
+                          const B& b) {
+  if (a != b) {
+    ERROR << "Assertion " << a_expr << " == " << b_expr << " failed; "
+          << "exiting (\"" << a << "\" != \"" << b << "\")";
+    exit(1);
+  }
+}
+
+#define CHECK_EQ(a, b) CHECK_EQ_func(#a, #b, a, b);
+#endif
+
 
 #define DISALLOW_EVIL_CONSTRUCTORS(class_name) \
   class_name(const class_name&); \

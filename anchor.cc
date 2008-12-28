@@ -179,7 +179,7 @@ void Anchor::ShiftActiveWindow(bool shift_right) {
   }
 
   int new_index = active_index_ + (shift_right ? 1 : -1);
-  CHECK(active_window_ == windows_[active_index_]);
+  CHECK_EQ(active_window_, windows_[active_index_]);
 
   windows_[active_index_] = windows_[new_index];
   windows_[new_index] = active_window_;

@@ -398,7 +398,7 @@ void XServer::UpdateKeyBindingMap(
         for (vector<ref_ptr<XKeyBinding> >::iterator xbinding =
                parent_binding->children.begin();
              xbinding != parent_binding->children.end(); ++xbinding) {
-          CHECK((*xbinding)->inherited_mods == inherited_mods);
+          CHECK_EQ((*xbinding)->inherited_mods, inherited_mods);
           if ((*xbinding)->required_mods == mods &&
               (*xbinding)->keysym == keysym) {
             DEBUG << "Using existing child binding:"

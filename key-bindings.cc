@@ -14,7 +14,7 @@ bool KeyBindings::Load(const ConfigNode& conf,
                        vector<ConfigError>* errors) {
   CHECK(errors);
   CHECK(!conf.tokens.empty());
-  CHECK(conf.tokens[0] == "key_bindings");
+  CHECK_EQ(conf.tokens[0], "key_bindings");
 
   for (vector<ref_ptr<ConfigNode> >::const_iterator it =
          conf.children.begin(); it != conf.children.end(); ++it) {
