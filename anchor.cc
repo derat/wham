@@ -3,6 +3,7 @@
 
 #include "anchor.h"
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 
@@ -172,8 +173,10 @@ bool Anchor::SetActiveWindow(uint index) {
 
 void Anchor::ShiftActiveWindow(bool shift_right) {
   if (windows_.size() <= 1) return;
-  if (active_index_ == 0 && !shift_right ||
-      active_index_ == windows_.size() - 1 && shift_right) return;
+  if ((active_index_ == 0 && !shift_right) ||
+      ((active_index_ == windows_.size() - 1) && shift_right)) {
+    return;
+  }
 
   int new_index = active_index_ + (shift_right ? 1 : -1);
   CHECK(active_window_ == windows_[active_index_]);

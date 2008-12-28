@@ -1,4 +1,7 @@
 wham
 .*.swp
+*.a
 *.o
 *_test
+*_test.cc
+.sconsign.dblite

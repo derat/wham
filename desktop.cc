@@ -2,6 +2,10 @@
 // All rights reserved.
 
 #include "desktop.h"
+
+#include <algorithm>
+#include <climits>
+
 #include "window.h"
 
 namespace wham {
