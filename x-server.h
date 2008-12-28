@@ -71,6 +71,15 @@ class XServer {
   // Start reading events from the X server and handling them.
   void RunEventLoop(WindowManager* window_manager);
 
+  struct TimeoutFunction {
+   public:
+    virtual ~TimeoutFunction() {}
+
+    virtual void operator()() = 0;
+  };
+
+  void RegisterTimeout(TimeoutFunction *func, double timeout_sec);
+
   Display* display() { return display_; }
   int screen_num() { return screen_num_; }
   ::Window root() { return root_; }
@@ -129,6 +138,26 @@ class XServer {
   static ref_ptr<XServer> singleton_;
 
   static bool testing_;
+
+  // Simple struct representing a timeout.  Takes ownership of 'func'.
+  struct Timeout {
+    Timeout(TimeoutFunction *func, double time)
+        : func(func),
+          time(time) {
+    }
+
+    // Used for ordering objects in a heap, so we say that this timeout is
+    // less than 'o' if the time at which is should be executed is *after*
+    // that of 'o'.
+    bool operator<(const Timeout& o) const {
+      return time > o.time;
+    }
+
+    ref_ptr<TimeoutFunction> func;
+    double time;
+  };
+
+  vector<Timeout> timeout_heap_;
 
   DISALLOW_EVIL_CONSTRUCTORS(XServer);
 };

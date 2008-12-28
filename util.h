@@ -4,10 +4,12 @@
 #ifndef __UTIL_H__
 #define __UTIL_H__
 
+#include <ctime>
 #include <iostream>
 #include <map>
 #include <pcrecpp.h>
 #include <string>
+#include <sys/time.h>
 #include <vector>
 
 using namespace std;
@@ -156,6 +158,14 @@ V FindWithDefault(const map<K, V>& the_map, const K& key, const V& def) {
   if (the_map.find(key) == the_map.end()) return def;
   return the_map.find(key)->second;
 }
+
+
+// Get the number of seconds since the epoch.
+double GetCurrentTime();
+
+
+// Fill 'tv' with the time from 'time'.
+void FillTimeval(double time, struct timeval *tv);
 
 
 // Split a string on whitespace, saving the individual pieces to 'parts'.
