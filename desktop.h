@@ -43,8 +43,7 @@ class Desktop {
   void RemoveWindow(Window* window);
 
   // Look up an anchor based on its titlebar.
-  // FIXME: Why can't I make 'titlebar' const?
-  Anchor* GetAnchorByTitlebar(XWindow* titlebar) const;
+  Anchor* GetAnchorByTitlebar(const XWindow* titlebar) const;
 
   // Find the anchor containing the passed-in window.
   // Returns NULL if no such anchor exists.
@@ -57,7 +56,7 @@ class Desktop {
 
   void SetAttachAnchor(Anchor* anchor);
 
-  bool IsTitlebarWindow(XWindow* xwin) const {
+  bool IsTitlebarWindow(const XWindow* xwin) const {
     return anchor_titlebars_.count(xwin);
   }
 
@@ -89,7 +88,7 @@ class Desktop {
   AnchorVector anchors_;
 
   // Map from each anchor's titlebar's X window to the anchor itself.
-  typedef map<XWindow*, Anchor*> AnchorTitlebarMap;
+  typedef map<const XWindow*, Anchor*> AnchorTitlebarMap;
   AnchorTitlebarMap anchor_titlebars_;
 
   // Map from a window present on this desktop to the anchor that contains
