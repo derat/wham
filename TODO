@@ -14,6 +14,5 @@
 - redraw anchor titlebar when window name changes
 - clip window name text in anchor
 - subtract titlebar height from maximized window height
-- use scons instead of make
 - use gtest instead of cxxtest
 - a million other things
