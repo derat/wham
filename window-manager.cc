@@ -91,8 +91,7 @@ void WindowManager::HandleButtonPress(
         Anchor* new_anchor = active_desktop_->CreateAnchor(
             "detached",
             x - drag_offset_x_ - dx * kWindowDetachOffset,
-            y - drag_offset_y_ - dy * kWindowDetachOffset,
-            anchor->gravity());
+            y - drag_offset_y_ - dy * kWindowDetachOffset);
         new_anchor->set_temporary(true);
         new_anchor->SetGravity(anchor->gravity());
         AddWindowToDesktop(window, active_desktop_, new_anchor);

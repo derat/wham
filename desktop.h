@@ -7,7 +7,6 @@
 #include <map>
 #include <vector>
 
-#include "anchor.h"
 #include "command.h"
 #include "util.h"
 
@@ -17,6 +16,8 @@ class DesktopTestSuite;
 
 namespace wham {
 
+class Anchor;
+class Window;
 class XWindow;
 
 // A collection of anchors.
@@ -29,10 +30,7 @@ class Desktop {
   void Show();
 
   // Create a new anchor.
-  Anchor* CreateAnchor(const string& name,
-                       int x,
-                       int y,
-                       Anchor::Gravity gravity=Anchor::TOP_LEFT);
+  Anchor* CreateAnchor(const string& name, int x, int y);
 
   // Add 'window' to the active anchor.
   void AddWindow(Window* window);

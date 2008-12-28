@@ -32,7 +32,7 @@ class Anchor {
     NUM_GRAVITIES,
   };
 
-  Anchor(const string& name, int x, int y, Gravity gravity=TOP_LEFT);
+  Anchor(const string& name, int x, int y);
   ~Anchor();
 
   string name() const { return name_; }

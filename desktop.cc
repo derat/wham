@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <climits>
 
+#include "anchor.h"
 #include "window.h"
 
 namespace wham {
@@ -37,9 +38,8 @@ void Desktop::Show() {
 
 Anchor* Desktop::CreateAnchor(const string& name,
                               int x,
-                              int y,
-                              Anchor::Gravity gravity) {
-  ref_ptr<Anchor> anchor(new Anchor(name, x, y, gravity));
+                              int y) {
+  ref_ptr<Anchor> anchor(new Anchor(name, x, y));
   DEBUG << "Created anchor " << anchor.get()
         << " (" << anchor->name() << ")";
   anchors_.push_back(anchor);

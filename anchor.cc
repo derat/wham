@@ -16,14 +16,14 @@
 
 namespace wham {
 
-Anchor::Anchor(const string& name, int x, int y, Gravity gravity)
+Anchor::Anchor(const string& name, int x, int y)
     : name_(),
       x_(x),
       y_(y),
       temporary_(false),
       active_index_(0),
       active_window_(NULL),
-      gravity_(gravity),
+      gravity_(TOP_LEFT),
       titlebar_(XWindow::Create(x, y, 1, 1)),
       active_(false),
       attach_(false) {
