@@ -36,19 +36,51 @@ void Desktop::Show() {
 }
 
 
-Anchor* Desktop::CreateAnchor(const string& name,
-                              int x,
-                              int y) {
-  ref_ptr<Anchor> anchor(new Anchor(name, x, y));
-  DEBUG << "Created anchor " << anchor.get()
-        << " (" << anchor->name() << ")";
-  anchors_.push_back(anchor);
-  anchor_titlebars_.insert(make_pair(anchor->titlebar(), anchor.get()));
+Anchor* Desktop::CreateAnchor(const string& name, int x, int y) {
+  Anchor* anchor = new Anchor(name, x, y);
+  DEBUG << "Created anchor " << anchor << " (" << anchor->name() << ")";
+  AddAnchor(anchor);
+  return anchor;
+}
+
+
+void Desktop::AddAnchor(Anchor* anchor) {
+  DEBUG << "Adding anchor " << anchor << " to desktop " << this;
+  CHECK(anchor);
+  CHECK(anchor->desktop() == NULL);
+
+  anchor->set_desktop(this);
+  anchors_.push_back(ref_ptr<Anchor>(anchor));
+  anchor_titlebars_.insert(make_pair(anchor->titlebar(), anchor));
   if (anchors_.size() == 1U) {
-    SetActiveAnchor(anchor.get());
-    SetAttachAnchor(anchor.get());
+    SetActiveAnchor(anchor);
+    SetAttachAnchor(anchor);
   }
-  return anchor.get();
+  // FIXME: show anchor if desktop is visible
+}
+
+
+void Desktop::RemoveAnchor(Anchor *anchor) {
+  DEBUG << "Removing anchor " << anchor << " from desktop " << this;
+  CHECK(anchor);
+  CHECK(anchor->desktop() == this);
+
+  // Choose a new anchor before we remove this one.
+  // FIXME: add more intelligent logic for choosing the new anchor
+  if (active_anchor_ == anchor || attach_anchor_ == anchor) {
+    Anchor* replacement = anchors_.size() == 1 ? NULL :
+        (anchors_[0].get() != anchor ? anchors_[0].get() : anchors_[1].get());
+    if (active_anchor_ == anchor) SetActiveAnchor(replacement);
+    if (attach_anchor_ == anchor) SetAttachAnchor(replacement);
+  }
+
+  // FIXME: hide anchor if desktop is visible
+  anchor->set_desktop(NULL);
+  anchor_titlebars_.erase(anchor->titlebar());
+  int index = GetAnchorIndex(anchor);
+  CHECK(index >= 0);
+  anchors_[index].release();
+  anchors_.erase(anchors_.begin() + index);
 }
 
 
@@ -65,7 +97,8 @@ void Desktop::AddWindowToAnchor(Window* window, Anchor* anchor) {
   CHECK(anchor);
   CHECK(!IsTitlebarWindow(window->xwin()));
   anchor->AddWindow(window);
-  anchor->SetActiveWindow(anchor->windows().size()-1);
+  // FIXME: huh?  why was i doing this?
+  //anchor->SetActiveWindow(anchor->windows().size()-1);
   window_anchors_.insert(make_pair(window, anchor));
 }
 
@@ -76,6 +109,7 @@ void Desktop::RemoveWindow(Window* window) {
   if (anchor) {
     anchor->RemoveWindow(window);
     window_anchors_.erase(window);
+    // FIXME: let the anchor do this
     if (anchor->windows().empty() && anchor->temporary()) {
       DestroyAnchor(anchor);
     }
@@ -172,23 +206,12 @@ bool Desktop::HasAnchor(const Anchor* anchor) const {
 
 void Desktop::DestroyAnchor(Anchor* anchor) {
   CHECK(anchor);
-  DEBUG << "Destroying anchor 0x" << hex << anchor
-        << " (" << anchor->name() << ")";
+  DEBUG << "Destroying anchor " << anchor << " (" << anchor->name() << ")";
   // FIXME: figure out what should be done wrt closing anchors that still
   // contain windows
   CHECK(anchor->windows().empty());
-
-  // Choose a new anchor before we destroy this one.
-  // FIXME: add more intelligent logic for choosing the new anchor
-  Anchor* replacement = anchors_.size() == 1 ? NULL :
-      (anchors_[0].get() != anchor ? anchors_[0].get() : anchors_[1].get());
-  if (active_anchor_ == anchor) SetActiveAnchor(replacement);
-  if (attach_anchor_ == anchor) SetAttachAnchor(replacement);
-
-  anchor_titlebars_.erase(anchor->titlebar());
-  int index = GetAnchorIndex(anchor);
-  CHECK(index >= 0);
-  anchors_.erase(anchors_.begin() + index);
+  RemoveAnchor(anchor);
+  delete anchor;
 }
 
 

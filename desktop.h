@@ -32,6 +32,15 @@ class Desktop {
   // Create a new anchor.
   Anchor* CreateAnchor(const string& name, int x, int y);
 
+  // Add an anchor to this desktop.  Ownership is transferred to the
+  // desktop.
+  void AddAnchor(Anchor* anchor);
+
+  // Remove an anchor from this desktop.  The anchor is not deleted, but
+  // ownership of it is released; the caller is responsible for deleting
+  // 'anchor'.
+  void RemoveAnchor(Anchor *anchor);
+
   // Add 'window' to the active anchor.
   void AddWindow(Window* window);
 
@@ -74,6 +83,7 @@ class Desktop {
  private:
   friend class ::DesktopTestSuite;
 
+  // Remove 'anchor' from the desktop and delete it.
   void DestroyAnchor(Anchor* anchor);
 
   // Get the index of 'anchor' within 'anchors_'.

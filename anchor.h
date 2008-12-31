@@ -14,6 +14,7 @@ class AnchorTestSuite;
 
 namespace wham {
 
+class Desktop;  // from desktop.h
 class Window;   // from window.h
 class XWindow;  // from x-window.h
 
@@ -38,6 +39,8 @@ class Anchor {
   string name() const { return name_; }
   int x() const { return x_; }
   int y() const { return y_; }
+  Desktop* desktop() const { return desktop_; }
+  void set_desktop(Desktop* desktop) { desktop_ = desktop; }
   bool temporary() const { return temporary_; }
   void set_temporary(bool temporary) { temporary_ = temporary; }
   XWindow* titlebar() { return titlebar_; }
@@ -134,9 +137,12 @@ class Anchor {
 
   // The anchor's position on the screen.  This is the top-left point of
   // the titlebar if gravity_ is TOP_LEFT, the bottom-right point of the
-  // titlebar for BOTTOM_RIGHt, and so on.
+  // titlebar for BOTTOM_RIGHT, and so on.
   int x_;
   int y_;
+
+  // The desktop containing this anchor.
+  Desktop* desktop_;
 
   // Should this anchor be destroyed when it doesn't contain any windows?
   bool temporary_;

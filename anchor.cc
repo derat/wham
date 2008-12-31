@@ -20,6 +20,7 @@ Anchor::Anchor(const string& name, int x, int y)
     : name_(),
       x_(x),
       y_(y),
+      desktop_(NULL),
       temporary_(false),
       active_index_(0),
       active_window_(NULL),
@@ -37,6 +38,7 @@ Anchor::Anchor(const string& name, int x, int y)
 
 Anchor::~Anchor() {
   titlebar_->Destroy();
+  desktop_ = NULL;
   active_window_ = NULL;
   titlebar_ = NULL;
 }
@@ -89,6 +91,8 @@ void Anchor::RemoveWindow(Window* window) {
       DrawTitlebar();
     }
   }
+
+  // FIXME: tell the desktop to destroy us if we're temporary?
 }
 
 
