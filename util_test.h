@@ -49,6 +49,17 @@ class UtilTestSuite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(ptr3.refs_, ptr4.refs_);
     TS_ASSERT_EQUALS(*ptr2.refs_, 1);
     TS_ASSERT_EQUALS(*ptr3.refs_, 2);
+
+    // Test the release() method.
+    int* i3 = new int(2);
+    ref_ptr<int> ptr5(i3);
+    TS_ASSERT_EQUALS(ptr5.ptr_, i3);
+    TS_ASSERT_EQUALS(*ptr5.refs_, 1);
+    int* i3_ptr = ptr5.release();
+    TS_ASSERT_EQUALS(i3_ptr, i3);
+    TS_ASSERT_EQUALS(ptr5.ptr_, static_cast<int*>(NULL));
+    TS_ASSERT_EQUALS(ptr5.refs_, static_cast<int*>(NULL));
+    delete i3;
   }
 
   void testSplitString() {

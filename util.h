@@ -146,6 +146,20 @@ class ref_ptr {
     refs_ = other.refs_;
     other.refs_ = tmp_refs;
   }
+
+  // Release and return the pointer.
+  // This must be the only reference to it.
+  T* release() {
+    if (refs_ != NULL) {
+      CHECK_EQ(*refs_, 1);
+      delete refs_;
+      refs_ = NULL;
+    }
+    T* ptr = ptr_;
+    ptr_ = NULL;
+    return ptr;
+  }
+
   bool operator==(const ref_ptr<T>& other) const {
     return ptr_ == other.ptr_;
   }
