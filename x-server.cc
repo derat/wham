@@ -255,6 +255,10 @@ void XServer::ProcessEvent(WindowManager *window_manager) {
     XKeyEvent& e = event.xkey;
     DEBUG << "KeyRelease: window=0x" << hex << e.window << dec
           << " keycode=" << e.keycode << " state=" << e.state;
+  } else if (event.type == MappingNotify) {
+    XMappingEvent& e = event.xmapping;
+    DEBUG << "MappingNotify";
+    XRefreshKeyboardMapping(&e);
   } else if (event.type == MapRequest) {
     XMapRequestEvent& e = event.xmaprequest;
     DEBUG << "MapRequest: window=0x" << hex << e.window;
