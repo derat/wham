@@ -13,6 +13,8 @@ namespace wham {
 
 Window::Window(XWindow* xwin)
     : xwin_(xwin),
+      frame_(NULL),
+      anchor_(NULL),
       props_(),
       configs_(),
       tagged_(false) {

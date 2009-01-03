@@ -67,9 +67,6 @@ class WindowManager {
   // Check if the passed-in X window is an anchor titlebar or not.
   bool IsAnchorWindow(XWindow* xwin) const;
 
-  // Get the desktop containing 'anchor'.
-  Desktop* GetDesktopContainingAnchor(const Anchor* anchor) const;
-
   // Execute the passed-in command.
   bool Exec(const string& command) const;
 
@@ -98,6 +95,9 @@ class WindowManager {
 
   // Remove 'window' from 'desktop'.
   void RemoveWindowFromDesktop(Window* window, Desktop* desktop);
+
+  // Should a window currently be mapped onscreen?
+  bool WindowShouldBeMapped(Window* window) const;
 
   // Map from client windows to Window objects.
   typedef map<XWindow*, ref_ptr<Window> > WindowMap;

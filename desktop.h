@@ -54,10 +54,6 @@ class Desktop {
   // Look up an anchor based on its titlebar.
   Anchor* GetAnchorByTitlebar(const XWindow* titlebar) const;
 
-  // Find the anchor containing the passed-in window.
-  // Returns NULL if no such anchor exists.
-  Anchor* GetAnchorContainingWindow(Window* window) const;
-
   // Get all anchors with a titlebar covering a given position.
   void GetAnchorsAtPosition(int x, int y, vector<Anchor*>* anchors) const;
 
@@ -69,7 +65,8 @@ class Desktop {
     return anchor_titlebars_.count(xwin);
   }
 
-  string name() { return name_; }
+  const string& name() const { return name_; }
+  bool visible() const { return visible_; }
   Anchor* active_anchor() { return active_anchor_; }
   Anchor* attach_anchor() { return attach_anchor_; }
 
@@ -92,6 +89,9 @@ class Desktop {
 
   // The desktop's name.
   string name_;
+
+  // Is this desktop visible?
+  bool visible_;
 
   // Anchors contained within this desktop.
   typedef vector<ref_ptr<Anchor> > AnchorVector;

@@ -41,7 +41,7 @@ env = Environment(
       'RunTests': run_tests_builder,
     },
     ENV=os.environ)
-env['CCFLAGS'] = '-Wall -Werror'
+env['CCFLAGS'] = '-Wall -Werror -g'
 env.ParseConfig('pkg-config x11 --cflags --libs')
 env.ParseConfig('pkg-config libpcrecpp --cflags --libs')
 

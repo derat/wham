@@ -23,7 +23,7 @@ using namespace std;
 #define CHECK(x)                                                               \
   if (!(x)) {                                                                  \
     ERROR << "Assertion \"" #x "\" failed; exiting";                           \
-    exit(1);                                                                   \
+    abort();                                                                   \
   }
 
 // FIXME: this is completely lame; it should print the values without
@@ -32,7 +32,7 @@ using namespace std;
   if ((x) != (y)) {                                                            \
     ERROR << "Assertion " #x " == " #y " failed; exiting (\""                  \
           << (x) << "\" != \"" << (y) << "\")";                                \
-    exit(1);                                                                   \
+    abort();                                                                   \
   }
 
 #if 0
@@ -44,7 +44,7 @@ inline void CHECK_EQ_func(const char& a_expr,
   if (a != b) {
     ERROR << "Assertion " << a_expr << " == " << b_expr << " failed; "
           << "exiting (\"" << a << "\" != \"" << b << "\")";
-    exit(1);
+    abort();
   }
 }
 

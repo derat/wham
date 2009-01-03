@@ -8,6 +8,7 @@
 #include <limits>
 
 #include "config.h"
+#include "desktop.h"
 #include "drawing-engine.h"
 #include "util.h"
 #include "window.h"
@@ -52,7 +53,10 @@ void Anchor::Hide() {
 
 void Anchor::Show() {
   titlebar_->Map();
-  if (active_window_) active_window_->Map();
+  if (active_window_) {
+    active_window_->Map();
+    if (active_) active_window_->TakeFocus();
+  }
 }
 
 
@@ -63,20 +67,28 @@ void Anchor::SetName(const string& name) {
 
 
 void Anchor::AddWindow(Window* window) {
+  CHECK(window);
   DEBUG << "AddWindow: anchor=" << this
         << " window=0x" << hex << window->id();
   CHECK(find(windows_.begin(), windows_.end(), window) == windows_.end());
   windows_.push_back(window);
+
+  CHECK(!window->anchor());
+  window->set_anchor(this);
+
   if (!active_window_) SetActiveWindow(0);
+  DrawTitlebar();
 }
 
 
 void Anchor::RemoveWindow(Window* window) {
+  CHECK(window);
   DEBUG << "RemoveWindow: anchor=" << this
         << " window=0x" << hex << window->id();
   WindowVector::iterator it = find(windows_.begin(), windows_.end(), window);
   CHECK(it != windows_.end());
   windows_.erase(it);
+  window->set_anchor(NULL);
 
   // If we removed the active window, we select a new one if possible.
   if (window == active_window_) {
@@ -87,12 +99,12 @@ void Anchor::RemoveWindow(Window* window) {
       size_t new_index = active_index_;
       if (new_index >= windows_.size()) new_index = windows_.size() - 1;
       SetActiveWindow(new_index);
-    } else {
-      DrawTitlebar();
     }
   }
 
-  // FIXME: tell the desktop to destroy us if we're temporary?
+  DrawTitlebar();
+
+  // FIXME: tell the desktop to destroy us if we're temporary and empty?
 }
 
 
@@ -157,18 +169,18 @@ bool Anchor::SetActiveWindow(uint index) {
     return true;
   }
 
-  // Otherwise, we need to show a new window.  If another window is already
-  // being shown, unmap it first.
-  if (active_window_ != NULL) active_window_->Unmap();
-
-  // Then, move the new window to the correct location and map it.
+  Window* old_active_window = active_window_;
   active_index_ = index;
   active_window_ = windows_[active_index_];
   CHECK(active_window_);
-  UpdateWindowPosition(active_window_);
-  active_window_->MakeSibling(*titlebar_);
-  active_window_->Map();
-  active_window_->TakeFocus();
+
+  if (desktop()->visible()) {
+    if (old_active_window != NULL) old_active_window->Unmap();
+    UpdateWindowPosition(active_window_);
+    active_window_->MakeSibling(*titlebar_);
+    active_window_->Map();
+    active_window_->TakeFocus();
+  }
 
   DrawTitlebar();
   return true;

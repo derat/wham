@@ -12,7 +12,8 @@
 namespace wham {
 
 Desktop::Desktop()
-    : active_anchor_(NULL),
+    : visible_(false),
+      active_anchor_(NULL),
       attach_anchor_(NULL) {
   static int num = 0;
   name_ = StringPrintf("desktop%d", num);
@@ -21,6 +22,7 @@ Desktop::Desktop()
 
 
 void Desktop::Hide() {
+  visible_ = false;
   for (vector<ref_ptr<Anchor> >::const_iterator anchor = anchors_.begin();
        anchor != anchors_.end(); ++anchor) {
     (*anchor)->Hide();
@@ -29,6 +31,7 @@ void Desktop::Hide() {
 
 
 void Desktop::Show() {
+  visible_ = true;
   for (vector<ref_ptr<Anchor> >::const_iterator anchor = anchors_.begin();
        anchor != anchors_.end(); ++anchor) {
     (*anchor)->Show();
@@ -121,13 +124,6 @@ Anchor* Desktop::GetAnchorByTitlebar(const XWindow* titlebar) const {
   CHECK(titlebar);
   return FindWithDefault(
       anchor_titlebars_, titlebar, static_cast<Anchor*>(NULL));
-}
-
-
-Anchor* Desktop::GetAnchorContainingWindow(Window* window) const {
-  CHECK(window);
-  return FindWithDefault(
-      window_anchors_, window, static_cast<Anchor*>(NULL));
 }
 
 

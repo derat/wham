@@ -160,7 +160,7 @@ void WindowManager::HandleEnterWindow(XWindow* xwin) {
     // client window
     Window* window =
         FindWithDefault(windows_, xwin, ref_ptr<Window>()).get();
-    if (window) anchor = active_desktop_->GetAnchorContainingWindow(window);
+    if (window) anchor = window->anchor();
     // FIXME: handle window borders
   }
   // In either case, we want to make this anchor active (which will also
@@ -185,8 +185,6 @@ void WindowManager::HandleMapRequest(XWindow* xwin) {
   }
 
   if (windows_.find(xwin) == windows_.end()) {
-    // FIXME
-    //xwin->SetBorder(Config::Get()->window_border);
     xwin->SetBorder(0);
     xwin->SelectClientEvents();
     ref_ptr<Window> window(new Window(xwin));
@@ -198,7 +196,8 @@ void WindowManager::HandleMapRequest(XWindow* xwin) {
     } else {
       HandleTransientFor(window.get(), transient_for);
     }
-    window->Map();
+
+    if (WindowShouldBeMapped(window.get())) window->Map();
   }
 }
 
@@ -232,9 +231,7 @@ void WindowManager::HandlePropertyChange(
     bool changed = false;
     window->HandlePropertyChange(type, &changed);
     if (changed) {
-      CHECK(active_desktop_);
-      Anchor* anchor = active_desktop_->GetAnchorContainingWindow(window);
-      if (anchor) anchor->DrawTitlebar();
+      window->anchor()->DrawTitlebar();
     }
   }
 }
@@ -355,28 +352,23 @@ void WindowManager::SetActiveDesktop(Desktop* desktop) {
 
 void WindowManager::AttachTaggedWindows(Anchor* anchor) {
   CHECK(anchor);
-  Desktop* desktop = GetDesktopContainingAnchor(anchor);
+  Desktop* desktop = anchor->desktop();
   CHECK(desktop);
 
   while (!tagged_windows_.empty()) {
     Window* window = *(tagged_windows_.begin());
     ToggleWindowTag(window);
 
-    Anchor* old_anchor = desktop->GetAnchorContainingWindow(window);
-    if (old_anchor) {
-      // If the window is already present on the desktop owning the anchor
-      // that we're attaching it to, we need to remove it from its old
-      // anchor.
-      if (old_anchor != anchor) {
-        // But only if it's actually getting moved to a new anchor.
-        RemoveWindowFromDesktop(window, desktop);
-        AddWindowToDesktop(window, desktop, anchor);
-      }
-    } else {
-      // Otherwise, we'll leave the window present on its old desktop but
-      // also add it to the new one.
-      AddWindowToDesktop(window, desktop, anchor);
-    }
+    Anchor* old_anchor = window->anchor();
+    CHECK(old_anchor);
+    Desktop* old_desktop = old_anchor->desktop();
+    CHECK(old_desktop);
+
+    if (anchor == old_anchor) continue;
+
+    RemoveWindowFromDesktop(window, old_desktop);
+    AddWindowToDesktop(window, desktop, anchor);
+    if (!WindowShouldBeMapped(window)) window->Unmap();
   }
 }
 
@@ -391,8 +383,7 @@ void WindowManager::ToggleWindowTag(Window* window) {
     tagged_windows_.insert(window);
     window->set_tagged(true);
   }
-  Anchor* anchor = active_desktop_->GetAnchorContainingWindow(window);
-  if (anchor != NULL) anchor->DrawTitlebar();
+  window->anchor()->DrawTitlebar();
 }
 
 
@@ -410,15 +401,6 @@ bool WindowManager::IsAnchorWindow(XWindow* xwin) const {
     if ((*desktop)->IsTitlebarWindow(xwin)) return true;
   }
   return false;
-}
-
-
-Desktop* WindowManager::GetDesktopContainingAnchor(const Anchor* anchor) const {
-  for (DesktopVector::const_iterator desktop = desktops_.begin();
-       desktop != desktops_.end(); ++desktop) {
-    if (desktop->get()->HasAnchor(anchor)) return desktop->get();
-  }
-  return NULL;
 }
 
 
@@ -448,16 +430,16 @@ void WindowManager::HandleTransientFor(Window* transient, Window* win) {
   CHECK(transient);
   CHECK(win);
 
-  // FIXME: find the right desktop(s)
-  CHECK(active_desktop_);
-  Anchor* win_anchor = active_desktop_->GetAnchorContainingWindow(win);
+  Anchor* win_anchor = win->anchor();
   CHECK(win_anchor);
+  Desktop* desktop = win_anchor->desktop();
+  CHECK(desktop);
 
   int x = win->x() + win->width() / 2 - transient->width() / 2;
   int y = win->y() + win->height() / 2 - transient->height() / 2;
-  Anchor* anchor = active_desktop_->CreateAnchor("transient", x, y);
+  Anchor* anchor = desktop->CreateAnchor("transient", x, y);
   anchor->set_temporary(true);
-  AddWindowToDesktop(transient, active_desktop_, anchor);
+  AddWindowToDesktop(transient, desktop, anchor);
 }
 
 
@@ -499,5 +481,13 @@ void WindowManager::RemoveWindowFromDesktop(Window* window, Desktop* desktop) {
   desktop->RemoveWindow(window);
   window_desktops_[window].erase(desktop);
 }
+
+
+bool WindowManager::WindowShouldBeMapped(Window* window) const {
+  CHECK(window);
+  return (window->anchor()->desktop() == active_desktop_ &&
+          window->anchor()->active_window() == window);
+}
+
 
 }  // namespace wham

@@ -14,6 +14,7 @@ class WindowTestSuite;
 
 namespace wham {
 
+class Anchor;
 class XWindow;
 
 class Window {
@@ -65,6 +66,9 @@ class Window {
   XWindow* frame() const { return frame_; }
   XWindow* transient_for() const { return props_.transient_for; }
 
+  Anchor* anchor() const { return anchor_; }
+  void set_anchor(Anchor* anchor) { anchor_ = anchor; }
+
  private:
   friend class ::WindowTestSuite;
 
@@ -86,10 +90,13 @@ class Window {
 
   // A pointer to information about the X window; used for interacting with
   // the X server.
-  XWindow* xwin_;  // not owned
+  XWindow* xwin_;   // not owned
 
   // A parent window created to provide window decorations.
   XWindow* frame_;  // not owned
+
+  // The anchor containing this window.
+  Anchor* anchor_;  // not owned
 
   WindowProperties props_;
 
