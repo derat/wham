@@ -37,6 +37,8 @@ class DrawingEngine {
   // Draw an anchor's titlebar.
   void DrawAnchor(const Anchor& anchor, XWindow* titlebar);
 
+  void DrawWindowFrame(XWindow* frame);
+
   // TODO: For operations that could potentially redraw the same objects
   // multiple times, it'd be nice if the caller could call StartBuffering()
   // first and Finalize() at the end.  When buffering is enabled, methods
@@ -80,6 +82,9 @@ class DrawingEngine {
       ACTIVE_ANCHOR__ACTIVE_WINDOW__PADDING,
       ACTIVE_ANCHOR__INACTIVE_WINDOW__BORDER_WIDTH,
       ACTIVE_ANCHOR__INACTIVE_WINDOW__PADDING,
+
+      ACTIVE_WINDOW__FRAME_COLOR,
+      INACTIVE_WINDOW__FRAME_COLOR,
     };
 
     struct Colors {
@@ -180,6 +185,7 @@ class DrawingEngine {
                uint height,
                const string& color);
 
+  // Draw a set of borders, filling them with a background color.
   void DrawBorders(::Window win,
                    int x,
                    int y,

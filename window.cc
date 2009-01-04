@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include "config.h"
+#include "drawing-engine.h"
 #include "x-server.h"
 #include "x-window.h"
 
@@ -61,6 +62,7 @@ void Window::Resize(uint width, uint height) {
 
 
 void Window::Map() {
+  DrawFrame();
   frame_->Map();
 }
 
@@ -190,6 +192,11 @@ bool Window::UpdateProperties(WindowProperties::ChangeType type,
   *changed = (new_props != props_);
   props_ = new_props;
   return true;
+}
+
+
+void Window::DrawFrame() {
+  DrawingEngine::Get()->DrawWindowFrame(frame_);
 }
 
 }  // namespace wham
