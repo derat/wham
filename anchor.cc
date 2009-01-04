@@ -156,9 +156,8 @@ void Anchor::SetAttach(bool attach) {
 bool Anchor::SetActiveWindow(uint index) {
   DEBUG << "SetActiveWindow: anchor=" << this << " index=" << index;
   if (index < 0 || index >= windows_.size()) {
-    ERROR << "Ignoring request to activate window " << index
-          << " in anchor 0x" << hex << this << " containing " << dec
-          << windows_.size() << " window(s)";
+    ERROR << "Ignoring request to activate window " << index << " in anchor "
+          << this << " containing " << windows_.size() << " window(s)";
     return false;
   }
 
