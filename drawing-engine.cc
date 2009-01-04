@@ -21,30 +21,10 @@ namespace wham {
 ref_ptr<DrawingEngine> DrawingEngine::singleton_(new DrawingEngine);
 
 const DrawingEngine::Style::StringDef DrawingEngine::Style::string_defs_[] = {
-  { INACTIVE_ANCHOR__BACKGROUND,
-    "inactive_anchor.background", "#999999" },
   { INACTIVE_ANCHOR__FONT,
     "inactive_anchor.font", "fixed" },
-  { INACTIVE_ANCHOR__ACTIVE_WINDOW__BACKGROUND,
-    "inactive_anchor.active_window.background", "#666666" },
-  { INACTIVE_ANCHOR__ACTIVE_WINDOW__TEXT_COLOR,
-    "inactive_anchor.active_window.text_color", "#ffffff" },
-  { INACTIVE_ANCHOR__INACTIVE_WINDOW__BACKGROUND,
-    "inactive_anchor.inactive_window.background", "#999999" },
-  { INACTIVE_ANCHOR__INACTIVE_WINDOW__TEXT_COLOR,
-    "inactive_anchor.inactive_window.text_color", "#222222" },
-  { ACTIVE_ANCHOR__BACKGROUND,
-    "active_anchor.background", "#bbbbbb" },
   { ACTIVE_ANCHOR__FONT,
     "active_anchor.font", "fixed" },
-  { ACTIVE_ANCHOR__ACTIVE_WINDOW__BACKGROUND,
-    "active_anchor.active_window.background", "#3d4479" },
-  { ACTIVE_ANCHOR__ACTIVE_WINDOW__TEXT_COLOR,
-    "active_anchor.active_window.text_color", "#ffffff" },
-  { ACTIVE_ANCHOR__INACTIVE_WINDOW__BACKGROUND,
-    "active_anchor.inactive_window.background", "#bbbbbb" },
-  { ACTIVE_ANCHOR__INACTIVE_WINDOW__TEXT_COLOR,
-    "active_anchor.inactive_window.text_color", "#555555" },
   { INVALID_TYPE, NULL, NULL },
 };
 
@@ -82,25 +62,25 @@ const DrawingEngine::Style::UintDef DrawingEngine::Style::uint_defs_[] = {
 
 const DrawingEngine::Style::ColorsDef
     DrawingEngine::Style::colors_defs_[] = {
-  { INACTIVE_ANCHOR__BORDER_COLOR,
-    "inactive_anchor.border_color",
-    "#bbbbbb", "#bbbbbb", "#666666", "#666666" },
-  { INACTIVE_ANCHOR__ACTIVE_WINDOW__BORDER_COLOR,
-    "inactive_anchor.active_window.border_color",
-    "#333333", "#333333", "#888888", "#888888" },
-  { INACTIVE_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR,
-    "inactive_anchor.inactive_window.border_color",
-    "#bbbbbb", "#bbbbbb", "#666666", "#666666" },
-  { ACTIVE_ANCHOR__BORDER_COLOR,
-    "active_anchor.border_color",
-    "#dddddd", "#dddddd", "#999999", "#999999" },
-  { ACTIVE_ANCHOR__ACTIVE_WINDOW__BORDER_COLOR,
-    "active_anchor.active_window.border_color",
-    "#272c4e", "#272c4e", "#5f6abd", "#5f6abd" },
-  { ACTIVE_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR,
-    "active_anchor.inactive_window.border_color",
-    "#dddddd", "#dddddd", "#999999", "#999999" },
-  { INVALID_TYPE, NULL, NULL, NULL, NULL, NULL },
+  { INACTIVE_ANCHOR__COLOR,
+    "inactive_anchor.color",
+    "#999999", "#ffffff", "#bbbbbb", "#bbbbbb", "#666666", "#666666" },
+  { INACTIVE_ANCHOR__ACTIVE_WINDOW__COLOR,
+    "inactive_anchor.active_window.color",
+    "#666666", "#ffffff", "#333333", "#333333", "#888888", "#888888" },
+  { INACTIVE_ANCHOR__INACTIVE_WINDOW__COLOR,
+    "inactive_anchor.inactive_window.color",
+    "#999999", "#222222", "#bbbbbb", "#bbbbbb", "#666666", "#666666" },
+  { ACTIVE_ANCHOR__COLOR,
+    "active_anchor.color",
+    "#bbbbbb", "#ffffff", "#dddddd", "#dddddd", "#999999", "#999999" },
+  { ACTIVE_ANCHOR__ACTIVE_WINDOW__COLOR,
+    "active_anchor.active_window.color",
+    "#3d4479", "#ffffff", "#272c4e", "#272c4e", "#5f6abd", "#5f6abd" },
+  { ACTIVE_ANCHOR__INACTIVE_WINDOW__COLOR,
+    "active_anchor.inactive_window.color",
+    "#bbbbbb", "#555555", "#dddddd", "#dddddd", "#999999", "#999999" },
+  { INVALID_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
 };
 
 bool DrawingEngine::Style::initialized_ = false;
@@ -145,14 +125,9 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor, XWindow* titlebar) {
   uint iwindow_border = 0;
   uint iwindow_padding = 0;
   const string* font = NULL;
-  const string* bg = NULL;
-  const string* awindow_text = NULL;
-  const string* iwindow_text = NULL;
-  const string* awindow_bg = NULL;
-  const string* iwindow_bg = NULL;
-  const Style::Colors* border_colors = NULL;
-  const Style::Colors* awindow_border_colors = NULL;
-  const Style::Colors* iwindow_border_colors = NULL;
+  const Style::Colors* anchor_colors = NULL;
+  const Style::Colors* awindow_colors = NULL;
+  const Style::Colors* iwindow_colors = NULL;
 
   if (anchor.active()) {
     border = u(Style::ACTIVE_ANCHOR__BORDER_WIDTH);
@@ -163,16 +138,9 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor, XWindow* titlebar) {
     iwindow_border = u(Style::ACTIVE_ANCHOR__INACTIVE_WINDOW__BORDER_WIDTH);
     iwindow_padding = u(Style::ACTIVE_ANCHOR__INACTIVE_WINDOW__PADDING);
     font = &(s(Style::ACTIVE_ANCHOR__FONT));
-    bg = &(s(Style::ACTIVE_ANCHOR__BACKGROUND));
-    awindow_text = &(s(Style::ACTIVE_ANCHOR__ACTIVE_WINDOW__TEXT_COLOR));
-    iwindow_text = &(s(Style::ACTIVE_ANCHOR__INACTIVE_WINDOW__TEXT_COLOR));
-    awindow_bg = &(s(Style::ACTIVE_ANCHOR__ACTIVE_WINDOW__BACKGROUND));
-    iwindow_bg = &(s(Style::ACTIVE_ANCHOR__INACTIVE_WINDOW__BACKGROUND));
-    border_colors = &(c(Style::ACTIVE_ANCHOR__BORDER_COLOR));
-    awindow_border_colors =
-        &(c(Style::ACTIVE_ANCHOR__ACTIVE_WINDOW__BORDER_COLOR));
-    iwindow_border_colors =
-        &(c(Style::ACTIVE_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR));
+    anchor_colors = &(c(Style::ACTIVE_ANCHOR__COLOR));
+    awindow_colors = &(c(Style::ACTIVE_ANCHOR__ACTIVE_WINDOW__COLOR));
+    iwindow_colors = &(c(Style::ACTIVE_ANCHOR__INACTIVE_WINDOW__COLOR));
   } else {
     border = u(Style::INACTIVE_ANCHOR__BORDER_WIDTH);
     padding = u(Style::INACTIVE_ANCHOR__PADDING);
@@ -182,16 +150,9 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor, XWindow* titlebar) {
     iwindow_border = u(Style::INACTIVE_ANCHOR__INACTIVE_WINDOW__BORDER_WIDTH);
     iwindow_padding = u(Style::INACTIVE_ANCHOR__INACTIVE_WINDOW__PADDING);
     font = &(s(Style::INACTIVE_ANCHOR__FONT));
-    bg = &(s(Style::INACTIVE_ANCHOR__BACKGROUND));
-    awindow_text = &(s(Style::INACTIVE_ANCHOR__ACTIVE_WINDOW__TEXT_COLOR));
-    iwindow_text = &(s(Style::INACTIVE_ANCHOR__INACTIVE_WINDOW__TEXT_COLOR));
-    awindow_bg = &(s(Style::INACTIVE_ANCHOR__ACTIVE_WINDOW__BACKGROUND));
-    iwindow_bg = &(s(Style::INACTIVE_ANCHOR__INACTIVE_WINDOW__BACKGROUND));
-    border_colors = &(c(Style::INACTIVE_ANCHOR__BORDER_COLOR));
-    awindow_border_colors =
-        &(c(Style::INACTIVE_ANCHOR__ACTIVE_WINDOW__BORDER_COLOR));
-    iwindow_border_colors =
-        &(c(Style::INACTIVE_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR));
+    anchor_colors = &(c(Style::INACTIVE_ANCHOR__COLOR));
+    awindow_colors = &(c(Style::INACTIVE_ANCHOR__ACTIVE_WINDOW__COLOR));
+    iwindow_colors = &(c(Style::INACTIVE_ANCHOR__INACTIVE_WINDOW__COLOR));
   }
 
   int ascent = 0, descent = 0;
@@ -223,7 +184,7 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor, XWindow* titlebar) {
 
   titlebar->SetBorder(0);
   titlebar->Resize(width, height);
-  DrawBorders(win, 0, 0, width, height, *bg, *border_colors, border);
+  DrawBorders(win, 0, 0, width, height, *anchor_colors, border);
 
   // FIXME: set all window's backgrounds on init
 
@@ -231,11 +192,11 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor, XWindow* titlebar) {
     DrawBorders(win, border + padding, border + padding,
                 width - 2 * (border + padding),
                 height - 2 * (border + padding),
-                *iwindow_bg, *iwindow_border_colors, iwindow_border);
+                *iwindow_colors, iwindow_border);
     DrawText(win,
              border + padding + iwindow_border + iwindow_padding,
              border + padding + iwindow_border + iwindow_padding + ascent,
-             anchor_name, *font, *iwindow_text);
+             anchor_name, *font, iwindow_colors->fg);
   } else {
     uint width_for_titles =
         width - 2 * (border + padding) - (windows.size() - 1) * spacing;
@@ -254,8 +215,7 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor, XWindow* titlebar) {
       int this_height = height - 2 * (border + padding);
 
       DrawBorders(win, x, y, this_width, this_height,
-                  active ? *awindow_bg : *iwindow_bg,
-                  active ? *awindow_border_colors : *iwindow_border_colors,
+                  active ? *awindow_colors : *iwindow_colors,
                   active ? awindow_border : iwindow_border);
 
       uint gap = active ?
@@ -266,7 +226,7 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor, XWindow* titlebar) {
       string title = tags.empty() ? "" : "[" + tags + "] ";
       title += (*window)->title();
       DrawText(win, x + gap, y + gap + ascent, title, *font,
-               active ? *awindow_text : *iwindow_text);
+               active ? awindow_colors->fg : iwindow_colors->fg);
     }
   }
 }
@@ -286,7 +246,9 @@ DrawingEngine::Style::Style() {
   for (int i = 0; colors_defs_[i].name != NULL; ++i) {
     const ColorsDef& def = colors_defs_[i];
     colors_.insert(
-        make_pair(def.type, Colors(def.top, def.left, def.bottom, def.right)));
+        make_pair(def.type,
+                  Colors(def.bg, def.fg, def.top,
+                         def.left, def.bottom, def.right)));
   }
 }
 
@@ -376,18 +338,17 @@ void DrawingEngine::DrawBorders(::Window win,
                                 int y,
                                 uint width,
                                 uint height,
-                                const string& background,
-                                const Style::Colors& border_colors,
+                                const Style::Colors& colors,
                                 uint border_width) {
-  DrawBox(win, x, y, width, height, background);
+  DrawBox(win, x, y, width, height, colors.bg);
   if (border_width) {
-    DrawBox(win, x, y, width, border_width, border_colors.top);
+    DrawBox(win, x, y, width, border_width, colors.top);
     DrawBox(win, x, y + border_width, border_width, height - border_width,
-            border_colors.left);
+            colors.left);
     DrawBox(win, x + border_width, y + height - border_width,
-            width - border_width, border_width, border_colors.bottom);
+            width - border_width, border_width, colors.bottom);
     DrawBox(win, x + width - border_width, y + border_width,
-            border_width, height - 2 * border_width, border_colors.right);
+            border_width, height - 2 * border_width, colors.right);
   }
 }
 

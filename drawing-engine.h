@@ -55,12 +55,10 @@ class DrawingEngine {
     enum Type {
       INVALID_TYPE,
 
-      INACTIVE_ANCHOR__BACKGROUND,
       INACTIVE_ANCHOR__FONT,
-      INACTIVE_ANCHOR__ACTIVE_WINDOW__BACKGROUND,
-      INACTIVE_ANCHOR__ACTIVE_WINDOW__TEXT_COLOR,
-      INACTIVE_ANCHOR__INACTIVE_WINDOW__BACKGROUND,
-      INACTIVE_ANCHOR__INACTIVE_WINDOW__TEXT_COLOR,
+      INACTIVE_ANCHOR__COLOR,
+      INACTIVE_ANCHOR__ACTIVE_WINDOW__COLOR,
+      INACTIVE_ANCHOR__INACTIVE_WINDOW__COLOR,
 
       INACTIVE_ANCHOR__BORDER_WIDTH,
       INACTIVE_ANCHOR__PADDING,
@@ -70,16 +68,10 @@ class DrawingEngine {
       INACTIVE_ANCHOR__INACTIVE_WINDOW__BORDER_WIDTH,
       INACTIVE_ANCHOR__INACTIVE_WINDOW__PADDING,
 
-      INACTIVE_ANCHOR__BORDER_COLOR,
-      INACTIVE_ANCHOR__ACTIVE_WINDOW__BORDER_COLOR,
-      INACTIVE_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR,
-
-      ACTIVE_ANCHOR__BACKGROUND,
       ACTIVE_ANCHOR__FONT,
-      ACTIVE_ANCHOR__ACTIVE_WINDOW__BACKGROUND,
-      ACTIVE_ANCHOR__ACTIVE_WINDOW__TEXT_COLOR,
-      ACTIVE_ANCHOR__INACTIVE_WINDOW__BACKGROUND,
-      ACTIVE_ANCHOR__INACTIVE_WINDOW__TEXT_COLOR,
+      ACTIVE_ANCHOR__COLOR,
+      ACTIVE_ANCHOR__ACTIVE_WINDOW__COLOR,
+      ACTIVE_ANCHOR__INACTIVE_WINDOW__COLOR,
 
       ACTIVE_ANCHOR__BORDER_WIDTH,
       ACTIVE_ANCHOR__PADDING,
@@ -88,21 +80,23 @@ class DrawingEngine {
       ACTIVE_ANCHOR__ACTIVE_WINDOW__PADDING,
       ACTIVE_ANCHOR__INACTIVE_WINDOW__BORDER_WIDTH,
       ACTIVE_ANCHOR__INACTIVE_WINDOW__PADDING,
-
-      ACTIVE_ANCHOR__BORDER_COLOR,
-      ACTIVE_ANCHOR__ACTIVE_WINDOW__BORDER_COLOR,
-      ACTIVE_ANCHOR__INACTIVE_WINDOW__BORDER_COLOR,
     };
 
     struct Colors {
-      Colors(const string& top,
+      Colors(const string& bg,
+             const string& fg,
+             const string& top,
              const string& left,
              const string& bottom,
              const string& right)
-          : top(top),
+          : bg(bg),
+            fg(fg),
+            top(top),
             left(left),
             bottom(bottom),
             right(right) {}
+      string bg;
+      string fg;
       string top;
       string left;
       string bottom;
@@ -131,10 +125,13 @@ class DrawingEngine {
       uint default_value;
     };
 
-    // Struct describing a set of four colors belonging to the style.
+    // Struct describing the background color and set of four border colors
+    // belonging to the style.
     struct ColorsDef {
       Type type;
       const char* name;
+      const char* bg;
+      const char* fg;
       const char* top;
       const char* left;
       const char* bottom;
@@ -188,8 +185,7 @@ class DrawingEngine {
                    int y,
                    uint width,
                    uint height,
-                   const string& background,
-                   const Style::Colors& border_colors,
+                   const Style::Colors& colors,
                    uint border_width);
 
   // Change the color used by 'gc_'.
