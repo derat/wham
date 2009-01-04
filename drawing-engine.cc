@@ -80,6 +80,12 @@ const DrawingEngine::Style::ColorsDef
   { ACTIVE_ANCHOR__INACTIVE_WINDOW__COLOR,
     "active_anchor.inactive_window.color",
     "#bbbbbb", "#555555", "#dddddd", "#dddddd", "#999999", "#999999" },
+  { ACTIVE_WINDOW__FRAME_COLOR,
+    "active_window.frame_color",
+    "#777777", "#777777", "#555555", "#555555", "#999999", "#999999" },
+  { INACTIVE_WINDOW__FRAME_COLOR,
+    "inactive_window.frame",
+    "#777777", "#777777", "#555555", "#555555", "#999999", "#999999" },
   { INVALID_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
 };
 
@@ -229,6 +235,24 @@ void DrawingEngine::DrawAnchor(const Anchor& anchor, XWindow* titlebar) {
                active ? awindow_colors->fg : iwindow_colors->fg);
     }
   }
+}
+
+
+void DrawingEngine::DrawWindowFrame(XWindow* frame) {
+  // Don't do anything if there's no real X connection.
+  if (XServer::Testing()) {
+    return;
+  }
+
+  InitIfNeeded();
+  ::Window win = frame->id();
+
+  const Style::Colors* colors = NULL;
+  // FIXME: get color for inactive windows too
+  colors = &(c(Style::ACTIVE_WINDOW__FRAME_COLOR));
+
+  DrawBorders(win, 0, 0, frame->width(), frame->height(), *colors, 1);
+  // FIXME: draw inside frame with swapped colors
 }
 
 

@@ -88,6 +88,9 @@ class Window {
   // Update 'props_' with this window's properties.
   bool UpdateProperties(WindowProperties::ChangeType type, bool* changed);
 
+  // Instruct the drawing engine to draw the window frame.
+  void DrawFrame();
+
   // A pointer to information about the X window; used for interacting with
   // the X server.
   XWindow* xwin_;   // not owned

@@ -173,7 +173,7 @@ void WindowManager::HandleExposeWindow(XWindow* xwin) {
   CHECK(active_desktop_);
   Anchor* anchor = active_desktop_->GetAnchorByTitlebar(xwin);
   if (anchor) anchor->DrawTitlebar();
-  // FIXME: handle window borders
+  // FIXME: handle window frames
 }
 
 
