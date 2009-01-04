@@ -76,7 +76,14 @@ void Anchor::AddWindow(Window* window) {
   CHECK(!window->anchor());
   window->set_anchor(this);
 
-  if (!active_window_) SetActiveWindow(0);
+  if (!active_window_) {
+    SetActiveWindow(0);
+  } else {
+    // FIXME: This is pretty ugly.  Find a cleaner way to map or unmap
+    // windows after a move depending on whether they should be visible or
+    // not.
+    window->Unmap();
+  }
   DrawTitlebar();
 }
 
