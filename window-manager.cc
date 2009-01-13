@@ -172,8 +172,18 @@ void WindowManager::HandleEnterWindow(XWindow* xwin) {
 void WindowManager::HandleExposeWindow(XWindow* xwin) {
   CHECK(active_desktop_);
   Anchor* anchor = active_desktop_->GetAnchorByTitlebar(xwin);
-  if (anchor) anchor->DrawTitlebar();
-  // FIXME: handle window frames
+  if (anchor) {
+    anchor->DrawTitlebar();
+    return;
+  }
+
+  Window* window = FindWithDefault(frames_,
+                                   static_cast<const XWindow*>(xwin),
+                                   static_cast<Window*>(NULL));
+  if (window) {
+    window->DrawFrame();
+    return;
+  }
 }
 
 
@@ -184,21 +194,22 @@ void WindowManager::HandleMapRequest(XWindow* xwin) {
     return;
   }
 
-  if (windows_.find(xwin) == windows_.end()) {
-    xwin->SetBorder(0);
-    xwin->SelectClientEvents();
-    ref_ptr<Window> window(new Window(xwin));
-    windows_.insert(make_pair(xwin, window));
-    Window* transient_for = GetTransientFor(window.get());
-    if (transient_for == NULL) {
-      CHECK(active_desktop_);
-      AddWindowToDesktop(window.get(), active_desktop_, NULL);
-    } else {
-      HandleTransientFor(window.get(), transient_for);
-    }
+  if (windows_.find(xwin) != windows_.end()) return;
 
-    if (WindowShouldBeMapped(window.get())) window->Map();
+  xwin->SetBorder(0);
+  xwin->SelectClientEvents();
+  ref_ptr<Window> window(new Window(xwin));
+  windows_.insert(make_pair(xwin, window));
+  frames_.insert(make_pair(window->frame(), window.get()));
+  Window* transient_for = GetTransientFor(window.get());
+  if (transient_for == NULL) {
+    CHECK(active_desktop_);
+    AddWindowToDesktop(window.get(), active_desktop_, NULL);
+  } else {
+    HandleTransientFor(window.get(), transient_for);
   }
+
+  if (WindowShouldBeMapped(window.get())) window->Map();
 }
 
 
@@ -248,6 +259,7 @@ void WindowManager::HandleUnmapWindow(XWindow* xwin) {
     RemoveWindowFromDesktop(window, *desktop);
   }
   window_desktops_.erase(window);
+  frames_.erase(window->frame());
   windows_.erase(xwin);
 }
 

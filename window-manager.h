@@ -103,6 +103,10 @@ class WindowManager {
   typedef map<XWindow*, ref_ptr<Window> > WindowMap;
   WindowMap windows_;
 
+  // Map from each window frame to the window owning it.
+  typedef map<const XWindow*, Window*> FrameMap;
+  FrameMap frames_;
+
   // Map from a window to all desktops where it's present.
   map<Window*, set<Desktop*> > window_desktops_;
 

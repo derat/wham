@@ -100,6 +100,11 @@ void Window::HandlePropertyChange(
 }
 
 
+void Window::DrawFrame() {
+  DrawingEngine::Get()->DrawWindowFrame(frame_);
+}
+
+
 int Window::x() const { return frame_->x(); }
 
 
@@ -192,11 +197,6 @@ bool Window::UpdateProperties(WindowProperties::ChangeType type,
   *changed = (new_props != props_);
   props_ = new_props;
   return true;
-}
-
-
-void Window::DrawFrame() {
-  DrawingEngine::Get()->DrawWindowFrame(frame_);
 }
 
 }  // namespace wham

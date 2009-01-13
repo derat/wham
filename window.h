@@ -43,6 +43,9 @@ class Window {
   // window if necessary.
   void HandlePropertyChange(WindowProperties::ChangeType type, bool* changed);
 
+  // Instruct the drawing engine to draw the window frame.
+  void DrawFrame();
+
   string title() const { return props_.window_name; }
 
   // Position of the top-left corner of the window's frame.
@@ -87,9 +90,6 @@ class Window {
 
   // Update 'props_' with this window's properties.
   bool UpdateProperties(WindowProperties::ChangeType type, bool* changed);
-
-  // Instruct the drawing engine to draw the window frame.
-  void DrawFrame();
 
   // A pointer to information about the X window; used for interacting with
   // the X server.
