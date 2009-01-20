@@ -151,8 +151,8 @@ class Anchor {
   typedef vector<Window*> WindowVector;
   WindowVector windows_;  // not owned
 
-  // Index into 'windows_' of the currently-active window, and a pointer to
-  // the window itself
+  // Index into 'windows_' of the currently-active window (that is, the
+  // visible one in the anchor), and a pointer to the window itself
   uint active_index_;
   Window* active_window_;
 
@@ -162,7 +162,8 @@ class Anchor {
   // Titlebar window; not owned.
   XWindow* titlebar_;
 
-  // Is this anchor active?
+  // Is this anchor active?  "Active" in this context means that the
+  // anchor's active window currently has focus.
   bool active_;
 
   // Do new windows get attached to this anchor?
