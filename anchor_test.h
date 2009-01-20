@@ -139,22 +139,26 @@ class AnchorTestSuite : public CxxTest::TestSuite {
   }
 
   void testSetActive() {
-    Anchor anchor("test", 10, 20);
-    TS_ASSERT(!anchor.active());
-    anchor.SetActive(true);
-    TS_ASSERT(anchor.active());
-    anchor.SetActive(false);
-    TS_ASSERT(!anchor.active());
+    ref_ptr<Desktop> desktop;
+    Anchor* anchor = NULL;
+    CreateAnchorForTests(&desktop, &anchor, 10, 20);
+    TS_ASSERT(anchor->active());
+    anchor->SetActive(false);
+    TS_ASSERT(!anchor->active());
+    anchor->SetActive(true);
+    TS_ASSERT(anchor->active());
     // FIXME: Check that the anchor is redrawn when the state changes.
   }
 
   void testSetAttach() {
-    Anchor anchor("test", 10, 20);
-    TS_ASSERT(!anchor.attach());
-    anchor.SetAttach(true);
-    TS_ASSERT(anchor.attach());
-    anchor.SetAttach(false);
-    TS_ASSERT(!anchor.attach());
+    ref_ptr<Desktop> desktop;
+    Anchor* anchor = NULL;
+    CreateAnchorForTests(&desktop, &anchor, 10, 20);
+    TS_ASSERT(anchor->attach());
+    anchor->SetAttach(false);
+    TS_ASSERT(!anchor->attach());
+    anchor->SetAttach(true);
+    TS_ASSERT(anchor->attach());
     // FIXME: Check that the anchor is redrawn when the state changes.
   }
 

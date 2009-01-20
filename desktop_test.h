@@ -20,6 +20,7 @@ class DesktopTestSuite : public CxxTest::TestSuite {
   void setUp() {
     XServer::SetupTesting();
     desktop_.reset(new Desktop);
+    desktop_->Show();
   }
 
   void testHide_Show() {
