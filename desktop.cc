@@ -59,7 +59,12 @@ void Desktop::AddAnchor(Anchor* anchor) {
     SetActiveAnchor(anchor);
     SetAttachAnchor(anchor);
   }
-  // FIXME: show anchor if desktop is visible
+
+  if (visible_) {
+    anchor->Show();
+  } else {
+    anchor->Hide();
+  }
 }
 
 
@@ -77,7 +82,6 @@ void Desktop::RemoveAnchor(Anchor *anchor) {
     if (attach_anchor_ == anchor) SetAttachAnchor(replacement);
   }
 
-  // FIXME: hide anchor if desktop is visible
   anchor->set_desktop(NULL);
   anchor_titlebars_.erase(anchor->titlebar());
   int index = GetAnchorIndex(anchor);

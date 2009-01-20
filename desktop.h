@@ -33,12 +33,14 @@ class Desktop {
   Anchor* CreateAnchor(const string& name, int x, int y);
 
   // Add an anchor to this desktop.  Ownership is transferred to the
-  // desktop.
+  // desktop.  The anchor is shown or hidden depending on whether the
+  // desktop is visible or hidden, respectively.
   void AddAnchor(Anchor* anchor);
 
   // Remove an anchor from this desktop.  The anchor is not deleted, but
   // ownership of it is released; the caller is responsible for deleting
-  // 'anchor'.
+  // 'anchor'.  The visibility of the anchor isn't changed; AddAnchor()
+  // takes care of that.
   void RemoveAnchor(Anchor *anchor);
 
   // Add 'window' to the active anchor.
