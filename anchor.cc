@@ -68,8 +68,8 @@ void Anchor::SetName(const string& name) {
 
 void Anchor::AddWindow(Window* window) {
   CHECK(window);
-  DEBUG << "AddWindow: anchor=" << this
-        << " window=0x" << hex << window->id();
+  DEBUG << "AddWindow: anchor=" << DebugString()
+        << " window=" << window->DebugString();
   CHECK(find(windows_.begin(), windows_.end(), window) == windows_.end());
   windows_.push_back(window);
 
@@ -90,8 +90,8 @@ void Anchor::AddWindow(Window* window) {
 
 void Anchor::RemoveWindow(Window* window) {
   CHECK(window);
-  DEBUG << "RemoveWindow: anchor=" << this
-        << " window=0x" << hex << window->id();
+  DEBUG << "RemoveWindow: anchor=" << DebugString()
+        << " window=" << window->DebugString();
   WindowVector::iterator it = find(windows_.begin(), windows_.end(), window);
   CHECK(it != windows_.end());
   windows_.erase(it);
@@ -161,7 +161,7 @@ void Anchor::SetAttach(bool attach) {
 
 
 bool Anchor::SetActiveWindow(uint index) {
-  DEBUG << "SetActiveWindow: anchor=" << this << " index=" << index;
+  DEBUG << "SetActiveWindow: anchor=" << DebugString() << " index=" << index;
   if (index < 0 || index >= windows_.size()) {
     ERROR << "Ignoring request to activate window " << index << " in anchor "
           << this << " containing " << windows_.size() << " window(s)";
@@ -295,6 +295,11 @@ void Anchor::GetGravityDirection(Gravity gravity, int* dx, int* dy) {
   } else {
     ERROR << "Unknown gravity " << gravity;
   }
+}
+
+
+string Anchor::DebugString() const {
+  return StringPrintf("%p (%s)", this, name_.c_str());
 }
 
 

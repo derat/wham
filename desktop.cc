@@ -41,14 +41,15 @@ void Desktop::Show() {
 
 Anchor* Desktop::CreateAnchor(const string& name, int x, int y) {
   Anchor* anchor = new Anchor(name, x, y);
-  DEBUG << "Created anchor " << anchor << " (" << anchor->name() << ")";
+  DEBUG << "Created anchor " << anchor->DebugString();
   AddAnchor(anchor);
   return anchor;
 }
 
 
 void Desktop::AddAnchor(Anchor* anchor) {
-  DEBUG << "Adding anchor " << anchor << " to desktop " << this;
+  DEBUG << "Adding anchor " << anchor->DebugString()
+        << " to desktop " << DebugString();
   CHECK(anchor);
   CHECK(anchor->desktop() == NULL);
 
@@ -69,7 +70,8 @@ void Desktop::AddAnchor(Anchor* anchor) {
 
 
 void Desktop::RemoveAnchor(Anchor *anchor) {
-  DEBUG << "Removing anchor " << anchor << " from desktop " << this;
+  DEBUG << "Removing anchor " << anchor->DebugString()
+        << " from desktop " << DebugString();
   CHECK(anchor);
   CHECK(anchor->desktop() == this);
 
@@ -202,9 +204,14 @@ bool Desktop::HasAnchor(const Anchor* anchor) const {
 }
 
 
+string Desktop::DebugString() const {
+  return StringPrintf("%p (%s)", this, name_.c_str());
+}
+
+
 void Desktop::DestroyAnchor(Anchor* anchor) {
   CHECK(anchor);
-  DEBUG << "Destroying anchor " << anchor << " (" << anchor->name() << ")";
+  DEBUG << "Destroying anchor " << anchor->DebugString();
   // FIXME: figure out what should be done wrt closing anchors that still
   // contain windows
   CHECK(anchor->windows().empty());

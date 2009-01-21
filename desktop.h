@@ -82,6 +82,8 @@ class Desktop {
   // Returns true if this desktop contains 'anchor' and false otherwise.
   bool HasAnchor(const Anchor* anchor) const;
 
+  string DebugString() const;
+
  private:
   friend class ::DesktopTestSuite;
 

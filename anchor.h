@@ -118,6 +118,8 @@ class Anchor {
 
   static void GetGravityDirection(Gravity gravity, int* dx, int* dy);
 
+  string DebugString() const;
+
  private:
   friend class ::AnchorTestSuite;
 

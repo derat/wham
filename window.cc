@@ -126,6 +126,12 @@ uint Window::frame_height() const { return frame_->height(); }
 uint Window::id() const { return xwin_->id(); }
 
 
+string Window::DebugString() const {
+  return StringPrintf(
+      "%p (id=0x%x title=%s)", this, xwin_->id(), title().c_str());
+}
+
+
 bool Window::Classify() {
   DEBUG << "Classifying window 0x" << hex << xwin_->id();
   if (!WindowClassifier::Get()->ClassifyWindow(props_, &configs_)) {

@@ -72,6 +72,8 @@ class Window {
   Anchor* anchor() const { return anchor_; }
   void set_anchor(Anchor* anchor) { anchor_ = anchor; }
 
+  string DebugString() const;
+
  private:
   friend class ::WindowTestSuite;
 

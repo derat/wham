@@ -333,11 +333,11 @@ Desktop* WindowManager::CreateDesktop() {
     int i = GetDesktopIndex(active_desktop_);
     CHECK(i >= 0 && i < static_cast<int>(desktops_.size()));
     it = desktops_.begin() + i + 1;
-    DEBUG << "Inserting desktop after position " << i;
+    DEBUG << "Inserting new desktop after position " << i;
   }
   ref_ptr<Desktop> desktop(new Desktop());
   desktops_.insert(it, desktop);
-  DEBUG << "Created desktop " << desktop->name();
+  DEBUG << "Created desktop " << desktop->DebugString();
   return desktop.get();
 }
 
@@ -354,7 +354,7 @@ int WindowManager::GetDesktopIndex(Desktop* desktop) {
 
 void WindowManager::SetActiveDesktop(Desktop* desktop) {
   CHECK(desktop);
-  DEBUG << "Switching to desktop " << desktop->name();
+  DEBUG << "Switching to desktop " << desktop->DebugString();
   if (desktop == active_desktop_) return;
   if (active_desktop_) active_desktop_->Hide();
   active_desktop_ = desktop;
