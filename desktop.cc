@@ -104,8 +104,6 @@ void Desktop::AddWindowToAnchor(Window* window, Anchor* anchor) {
   CHECK(anchor);
   CHECK(!IsTitlebarWindow(window->xwin()));
   anchor->AddWindow(window);
-  // FIXME: huh?  why was i doing this?
-  //anchor->SetActiveWindow(anchor->windows().size()-1);
   window_anchors_.insert(make_pair(window, anchor));
 }
 

@@ -25,7 +25,8 @@ class Desktop {
  public:
   Desktop();
 
-  // Hide or show this desktop.
+  // Hide or show this desktop (by updating 'visible_' and hiding or
+  // showing all anchors on it).
   void Hide();
   void Show();
 
@@ -59,6 +60,8 @@ class Desktop {
   // Get all anchors with a titlebar covering a given position.
   void GetAnchorsAtPosition(int x, int y, vector<Anchor*>* anchors) const;
 
+  // Make the passed-in anchor, which must be on this desktop, be active.
+  // Makes the previously-active anchor unactive first.
   void SetActiveAnchor(Anchor* anchor);
 
   void SetAttachAnchor(Anchor* anchor);

@@ -38,16 +38,19 @@ class DesktopTestSuite : public CxxTest::TestSuite {
     // Initially, both anchors should be mapped.
     TS_ASSERT(xwin1->mapped());
     TS_ASSERT(xwin2->mapped());
+    TS_ASSERT(desktop_->visible());
 
     // After hiding the desktop, both should be unmapped.
     desktop_->Hide();
     TS_ASSERT(!xwin1->mapped());
     TS_ASSERT(!xwin2->mapped());
+    TS_ASSERT(!desktop_->visible());
 
     // And after showing the desktop, both anchors should be mapped again.
     desktop_->Show();
     TS_ASSERT(xwin1->mapped());
     TS_ASSERT(xwin2->mapped());
+    TS_ASSERT(desktop_->visible());
   }
 
   void testCreateAnchor() {
