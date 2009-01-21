@@ -82,10 +82,10 @@ const DrawingEngine::Style::ColorsDef
     "#bbbbbb", "#555555", "#dddddd", "#dddddd", "#999999", "#999999" },
   { ACTIVE_WINDOW__FRAME_COLOR,
     "active_window.frame_color",
-    "#777777", "#777777", "#555555", "#555555", "#999999", "#999999" },
+    "#777777", "#777777", "#333333", "#333333", "#aaaaaa", "#aaaaaa" },
   { INACTIVE_WINDOW__FRAME_COLOR,
     "inactive_window.frame",
-    "#777777", "#777777", "#555555", "#555555", "#999999", "#999999" },
+    "#777777", "#777777", "#333333", "#333333", "#aaaaaa", "#aaaaaa" },
   { INVALID_TYPE, NULL, NULL, NULL, NULL, NULL, NULL, NULL },
 };
 

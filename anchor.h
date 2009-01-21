@@ -152,7 +152,7 @@ class Anchor {
   WindowVector windows_;  // not owned
 
   // Index into 'windows_' of the currently-active window (that is, the
-  // visible one in the anchor), and a pointer to the window itself
+  // visible one in the anchor), and a pointer to the window itself.
   uint active_index_;
   Window* active_window_;
 
