@@ -6,6 +6,7 @@
 
 #include <vector>
 
+#include "command.h"
 #include "util.h"
 
 using namespace std;
@@ -68,6 +69,11 @@ class Anchor {
   // Move the anchor to a new position.
   // The anchor will be constrained within the root window's dimensions.
   void Move(int x, int y);
+
+  // Move the anchor in the specified direction.
+  // TODO: Make it only move until it hits another object, rather than just
+  // getting shifted all of the way to the edge of the screen.
+  void Slide(Command::Direction direction);
 
   // Raise this anchor to the top of the stacking order.
   void Raise();

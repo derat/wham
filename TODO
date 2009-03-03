@@ -1,3 +1,4 @@
+- fix max height to subtract titlebar height
 - kill window-in-multiple-anchors concept, replace with sticky anchors
   (after thinking about this some more to make sure that there are no
   useful cases)

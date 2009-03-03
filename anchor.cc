@@ -139,6 +139,22 @@ void Anchor::Move(int x, int y) {
 }
 
 
+void Anchor::Slide(Command::Direction direction) {
+  if (direction == Command::LEFT) {
+    Move(0, y_);
+  } else if (direction == Command::RIGHT) {
+    // Move() will take care of the constraining us within the root window.
+    Move(XServer::Get()->width(), y_);
+  } else if (direction == Command::UP) {
+    Move(x_, 0);
+  } else if (direction == Command::DOWN) {
+    Move(x_, XServer::Get()->height());
+  } else {
+    ERROR << "Got request to slide anchor in unknown direction " << direction;
+  }
+}
+
+
 void Anchor::Raise() {
   titlebar_->Raise();
   if (active_window_) active_window_->MakeSibling(*titlebar_);

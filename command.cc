@@ -20,6 +20,7 @@ const Command::Info Command::info_[] = {
   { "exec",                      EXEC,                      STRING_ARG },
   { "set_attach_anchor",         SET_ATTACH_ANCHOR,         NO_ARG },
   { "shift_window_in_anchor",    SHIFT_WINDOW_IN_ANCHOR,    BOOL_ARG },
+  { "slide_anchor",              SLIDE_ANCHOR,              DIRECTION_ARG },
   { "switch_nearest_anchor",     SWITCH_NEAREST_ANCHOR,     DIRECTION_ARG },
   { "switch_nth_desktop",        SWITCH_NTH_DESKTOP,        INT_ARG },
   { "switch_nth_window",         SWITCH_NTH_WINDOW,         INT_ARG },

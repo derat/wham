@@ -44,9 +44,12 @@ key_bindings {
   bind Mod+l switch_nearest_anchor right
   bind Mod+Shift+l shift_window_in_anchor true
   bind Mod+Alt+Shift+l cycle_desktop true
+  bind Mod+m,h slide_anchor left
+  bind Mod+m,j slide_anchor down
+  bind Mod+m,k slide_anchor up
+  bind Mod+m,l slide_anchor right
   bind Mod+n create_anchor
   bind Mod+t toggle_tag
-  bind Mod+u,Shift+t exec /usr/bin/urxvt
 }
 
 window {

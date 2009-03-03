@@ -306,6 +306,9 @@ void WindowManager::HandleCommand(const Command &cmd) {
   } else if (cmd.type() == Command::SHIFT_WINDOW_IN_ANCHOR) {
     Anchor* anchor = active_desktop_->active_anchor();
     if (anchor) anchor->ShiftActiveWindow(cmd.GetBoolArg());
+  } else if (cmd.type() == Command::SLIDE_ANCHOR) {
+    Anchor* anchor = active_desktop_->active_anchor();
+    if (anchor) anchor->Slide(cmd.GetDirectionArg());
   } else if (cmd.type() == Command::SWITCH_NEAREST_ANCHOR) {
     Anchor* anchor = active_desktop_->GetNearestAnchor(cmd.GetDirectionArg());
     if (anchor) SetActiveAnchor(anchor);
