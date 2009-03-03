@@ -53,13 +53,17 @@ window {
   criteria {
     app_name urxvt
   }
-  config default {
+  config 80_max {
     width 80u
     height *
   }
-  config wide {
+  config 120_max {
     width 120u
     height *
+  }
+  config 80_25 {
+    width 80u
+    height 25u
   }
 }
 

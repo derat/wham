@@ -43,6 +43,7 @@ Window::~Window() {
 
 
 void Window::CycleConfig(bool forward) {
+  configs_.CycleActiveConfig(forward);
   ApplyActiveConfig();
 }
 
