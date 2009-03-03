@@ -5,6 +5,7 @@
 
 #include <sstream>
 
+#include "anchor.h"
 #include "config.h"
 #include "drawing-engine.h"
 #include "x-server.h"
@@ -148,6 +149,8 @@ void Window::ApplyConfig(const WindowConfig& config) {
   DEBUG << "Applying config " << config.DebugString()
         << " to 0x" << hex << xwin_->id();
 
+  uint border = Config::Get()->window_border;
+
   uint width = 0;
   if (config.width_type == WindowConfig::DIMENSION_PIXELS) {
     width = config.width;
@@ -156,7 +159,7 @@ void Window::ApplyConfig(const WindowConfig& config) {
   } else if (config.width_type == WindowConfig::DIMENSION_APP) {
     width = props_.width > 0 ? props_.width : xwin_->initial_width();
   } else if (config.width_type == WindowConfig::DIMENSION_MAX) {
-    width = XServer::Get()->width(); // FIXME: ugly
+    width = XServer::Get()->width() - 2 * border;
   } else {
     ERROR << "Unknown width type " << config.width_type;
   }
@@ -169,7 +172,9 @@ void Window::ApplyConfig(const WindowConfig& config) {
   } else if (config.height_type == WindowConfig::DIMENSION_APP) {
     height = props_.height > 0 ? props_.height : xwin_->initial_height();
   } else if (config.height_type == WindowConfig::DIMENSION_MAX) {
-    height = XServer::Get()->height(); // FIXME: ugly
+    height = XServer::Get()->height()
+             - (anchor_ ? anchor_->titlebar()->height() : 0)
+             - 2 * border;
   } else {
     ERROR << "Unknown height type " << config.height_type;
   }

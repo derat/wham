@@ -70,7 +70,15 @@ class Window {
   XWindow* transient_for() const { return props_.transient_for; }
 
   Anchor* anchor() const { return anchor_; }
-  void set_anchor(Anchor* anchor) { anchor_ = anchor; }
+  void set_anchor(Anchor* anchor) {
+    anchor_ = anchor;
+    if (anchor_) {
+      // TODO: We want to resize vertically-maximized windows to take the
+      // anchor's titlebar into account, but is this the best place to do
+      // it?
+      Classify();
+    }
+  }
 
   string DebugString() const;
 
