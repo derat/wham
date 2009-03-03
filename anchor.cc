@@ -149,7 +149,10 @@ void Anchor::SetActive(bool active) {
   if (active == active_) return;
   active_ = active;
   DrawTitlebar();
-  if (desktop_->visible() && active_window_) active_window_->TakeFocus();
+  if (active && desktop_->visible()) {
+    titlebar_->WarpPointer(0, 0);
+    if (active_window_) active_window_->TakeFocus();
+  }
 }
 
 

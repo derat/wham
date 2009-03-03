@@ -40,6 +40,7 @@ class XWindow {
   virtual void Raise();
   virtual void MakeSibling(const XWindow& leader);
   virtual void Reparent(XWindow* parent, int x, int y);
+  virtual void WarpPointer(int x, int y);
   // FIXME: change this to UpdateGeometry() and just update in-object vals
   virtual void GetGeometry(int* x,
                            int* y,

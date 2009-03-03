@@ -28,6 +28,7 @@ class MockXWindow : public XWindow {
   void Raise();
   void MakeSibling(const XWindow& leader);
   void Reparent(XWindow* parent, int x, int y);
+  void WarpPointer(int x, int y);
   void GetGeometry(int* x,
                    int* y,
                    uint* width,

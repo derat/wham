@@ -67,6 +67,10 @@ void MockXWindow::Reparent(XWindow* parent, int x, int y) {
 }
 
 
+void MockXWindow::WarpPointer(int x, int y) {
+}
+
+
 void MockXWindow::GetGeometry(int* x,
                               int* y,
                               uint* width,

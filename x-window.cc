@@ -226,6 +226,14 @@ void XWindow::Reparent(XWindow* parent, int x, int y) {
 }
 
 
+void XWindow::WarpPointer(int x, int y) {
+  // FIXME: Figure out why this doesn't seem to be working.  Maybe one
+  // can't warp the cursor under Xnest?
+  DEBUG << "WarpPointer: id=0x" << hex << id_ << " x=" << x << " y=" << y;
+  XWarpPointer(dpy(), None, id_, 0, 0, 0, 0, x, y);
+}
+
+
 void XWindow::GetGeometry(int* x,
                           int* y,
                           uint* width,
