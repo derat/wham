@@ -8,6 +8,7 @@
 
 #include "command.h"
 #include "util.h"
+#include "x-server.h"  // for TimeoutFunction
 
 using namespace std;
 
@@ -15,9 +16,9 @@ class AnchorTestSuite;
 
 namespace wham {
 
-class Desktop;  // from desktop.h
-class Window;   // from window.h
-class XWindow;  // from x-window.h
+class Desktop;          // from desktop.h
+class Window;           // from window.h
+class XWindow;          // from x-window.h
 
 // A collection of windows, exactly one of which is visible at any given
 // time.
@@ -69,6 +70,10 @@ class Anchor {
   // Move the anchor to a new position.
   // The anchor will be constrained within the root window's dimensions.
   void Move(int x, int y);
+
+  // Animate the anchor smoothly moving to a new position.
+  // The anchor will be constrained within the root window's dimensions.
+  void AnimateMove(int x, int y);
 
   // Move the anchor in the specified direction.
   // TODO: Make it only move until it hits another object, rather than just
@@ -128,6 +133,27 @@ class Anchor {
 
  private:
   friend class ::AnchorTestSuite;
+  friend class MoveTimeoutFunction;
+
+  class MoveTimeoutFunction : public XServer::TimeoutFunction {
+   public:
+    MoveTimeoutFunction(Anchor *anchor)
+        : anchor_(anchor) {
+      CHECK(anchor_);
+    }
+
+    void operator()();
+
+   private:
+    Anchor *anchor_;
+  };
+
+  // Constrain a potential position for the anchor within the root window's
+  // dimensions.
+  void ConstrainCoordinates(int* x, int* y) const;
+
+  // Method that actually moves the anchor to the passed-in position.
+  void MoveInternal(int x, int y);
 
   // Move the titlebar window to the appropriate position, given the
   // position of the anchor and its gravity.
@@ -148,6 +174,11 @@ class Anchor {
   // titlebar for BOTTOM_RIGHT, and so on.
   int x_;
   int y_;
+
+  // When an anchor's position is being animated, these contain the final
+  // desired position, differing from 'x_' and 'y_' (the current position).
+  int target_x_;
+  int target_y_;
 
   // The desktop containing this anchor.
   Desktop* desktop_;
@@ -176,6 +207,8 @@ class Anchor {
 
   // Do new windows get attached to this anchor?
   bool attach_;
+
+  bool move_animation_in_progress_;
 
   DISALLOW_EVIL_CONSTRUCTORS(Anchor);
 };

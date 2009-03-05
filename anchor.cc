@@ -21,6 +21,8 @@ Anchor::Anchor(const string& name, int x, int y)
     : name_(),
       x_(x),
       y_(y),
+      target_x_(x),
+      target_y_(y),
       desktop_(NULL),
       temporary_(false),
       active_index_(0),
@@ -28,7 +30,8 @@ Anchor::Anchor(const string& name, int x, int y)
       gravity_(TOP_LEFT),
       titlebar_(XWindow::Create(x, y, 1, 1)),
       active_(false),
-      attach_(false) {
+      attach_(false),
+      move_animation_in_progress_(false) {
   CHECK(titlebar_);
   SetName(name);
   DrawTitlebar();
@@ -116,39 +119,37 @@ void Anchor::RemoveWindow(Window* window) {
 
 
 void Anchor::Move(int x, int y) {
-  // Constrain the anchor within the root window's dimensions.
-  CHECK(titlebar_->width() > 0 && titlebar_->height() > 0);
-  int min_x = (gravity_ == TOP_LEFT || gravity_ == BOTTOM_LEFT) ?
-      0 : titlebar_->width();
-  int max_x = (gravity_ == TOP_LEFT || gravity_ == BOTTOM_LEFT) ?
-      XServer::Get()->width() - titlebar_->width() :
-      XServer::Get()->width();
-  int min_y = (gravity_ == TOP_LEFT || gravity_ == TOP_RIGHT) ?
-      0 : titlebar_->height();
-  int max_y = (gravity_ == TOP_LEFT || gravity_ == TOP_RIGHT) ?
-      XServer::Get()->height() - titlebar_->height() :
-      XServer::Get()->height();
-  x = min(max(min_x, x), max_x);
-  y = min(max(min_y, y), max_y);
+  ConstrainCoordinates(&x, &y);
+  target_x_ = x;
+  target_y_ = y;
+  MoveInternal(x, y);
+}
 
-  x_ = x;
-  y_ = y;
 
-  UpdateTitlebarPosition();
-  if (active_window_) UpdateWindowPosition(active_window_);
+void Anchor::AnimateMove(int x, int y) {
+  ConstrainCoordinates(&x, &y);
+  target_x_ = x;
+  target_y_ = y;
+
+  if (!move_animation_in_progress_) {
+    move_animation_in_progress_ = true;
+    MoveTimeoutFunction func(this);
+    func();
+  }
 }
 
 
 void Anchor::Slide(Command::Direction direction) {
   if (direction == Command::LEFT) {
-    Move(0, y_);
+    AnimateMove(0, y_);
   } else if (direction == Command::RIGHT) {
-    // Move() will take care of the constraining us within the root window.
-    Move(XServer::Get()->width(), y_);
+    // AnimateMove() will take care of the constraining us within the root
+    // window.
+    AnimateMove(XServer::Get()->width(), y_);
   } else if (direction == Command::UP) {
-    Move(x_, 0);
+    AnimateMove(x_, 0);
   } else if (direction == Command::DOWN) {
-    Move(x_, XServer::Get()->height());
+    AnimateMove(x_, XServer::Get()->height());
   } else {
     ERROR << "Got request to slide anchor in unknown direction " << direction;
   }
@@ -319,6 +320,58 @@ void Anchor::GetGravityDirection(Gravity gravity, int* dx, int* dy) {
 
 string Anchor::DebugString() const {
   return StringPrintf("%p (%s)", this, name_.c_str());
+}
+
+
+void Anchor::MoveTimeoutFunction::operator()() {
+  if (anchor_->x_ == anchor_->target_x_ &&
+      anchor_->y_ == anchor_->target_y_) {
+    DEBUG << "Done animating anchor " << anchor_->DebugString();
+    anchor_->move_animation_in_progress_ = false;
+    return;
+  }
+
+  int denom = 2;
+  int dx = (anchor_->target_x_ - anchor_->x_) / denom;
+  int dy = (anchor_->target_y_ - anchor_->y_) / denom;
+
+  // When we get close, just move us all the way there.
+  if (!dx) dx = anchor_->target_x_ - anchor_->x_;
+  if (!dy) dy = anchor_->target_y_ - anchor_->y_;
+
+  DEBUG << "Moving anchor " << anchor_->DebugString() << " to ("
+        << (anchor_->x_ + dx) << ", " << (anchor_->y_ + dy) << "), "
+        << "target is (" << anchor_->target_x_ << ", "
+        << anchor_->target_y_ << ")";
+  anchor_->MoveInternal(anchor_->x_ + dx, anchor_->y_ + dy);
+  XServer::Get()->RegisterTimeout(new MoveTimeoutFunction(anchor_), 0.0333);
+}
+
+
+void Anchor::ConstrainCoordinates(int* x, int* y) const {
+  CHECK(titlebar_->width() > 0 && titlebar_->height() > 0);
+  int min_x = (gravity_ == TOP_LEFT || gravity_ == BOTTOM_LEFT) ?
+      0 : titlebar_->width();
+  int max_x = (gravity_ == TOP_LEFT || gravity_ == BOTTOM_LEFT) ?
+      XServer::Get()->width() - titlebar_->width() :
+      XServer::Get()->width();
+  int min_y = (gravity_ == TOP_LEFT || gravity_ == TOP_RIGHT) ?
+      0 : titlebar_->height();
+  int max_y = (gravity_ == TOP_LEFT || gravity_ == TOP_RIGHT) ?
+      XServer::Get()->height() - titlebar_->height() :
+      XServer::Get()->height();
+  *x = min(max(min_x, *x), max_x);
+  *y = min(max(min_y, *y), max_y);
+}
+
+
+void Anchor::MoveInternal(int x, int y) {
+  ConstrainCoordinates(&x, &y);
+  x_ = x;
+  y_ = y;
+
+  UpdateTitlebarPosition();
+  if (active_window_) UpdateWindowPosition(active_window_);
 }
 
 

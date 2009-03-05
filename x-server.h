@@ -71,13 +71,16 @@ class XServer {
   // Start reading events from the X server and handling them.
   void RunEventLoop(WindowManager* window_manager);
 
-  struct TimeoutFunction {
+  class TimeoutFunction {
    public:
     virtual ~TimeoutFunction() {}
 
     virtual void operator()() = 0;
   };
 
+  // Takes ownership of 'func'.
+  // FIXME: Should have a version that runs the same function object over
+  // and over... Creating a new one for each frame of animation is lame.
   void RegisterTimeout(TimeoutFunction *func, double timeout_sec);
 
   Display* display() { return display_; }
