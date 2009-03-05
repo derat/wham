@@ -167,7 +167,8 @@ void Anchor::SetActive(bool active) {
   active_ = active;
   DrawTitlebar();
   if (active && desktop_->visible()) {
-    titlebar_->WarpPointer(0, 0);
+    // FIXME: Figure out how this should fit together with animations.
+    //titlebar_->WarpPointer(0, 0);
     if (active_window_) active_window_->TakeFocus();
   }
 }
