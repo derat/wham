@@ -6,9 +6,10 @@
 #include <algorithm>
 #include <ctime>
 
-#include "sys/select.h"
-#include "sys/time.h"
-#include "X11/Xatom.h"
+#include <sys/select.h>
+#include <sys/time.h>
+#include <X11/Xatom.h>
+#include <X11/cursorfont.h>
 
 #include "config.h"
 #include "key-bindings.h"
@@ -99,8 +100,11 @@ bool XServer::Init() {
     screen_num_ = DefaultScreen(display_);
     root_ = RootWindow(display_, screen_num_);
 
-    // FIXME
-    XSynchronize(display_, True);
+    // FIXME: Gotta free this stuff afterwards.
+    cursor_ = XCreateFontCursor(display_, XC_left_ptr);
+    XDefineCursor(display_, root_, cursor_);
+
+    //XSynchronize(display_, True);
 
     ::Window root_ret;
     int x, y;

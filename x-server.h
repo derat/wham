@@ -125,6 +125,8 @@ class XServer {
   int screen_num_;
   ::Window root_;
 
+  Cursor cursor_;
+
   // Dimensions of the root window.
   uint width_;
   uint height_;
