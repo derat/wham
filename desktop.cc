@@ -167,28 +167,33 @@ void Desktop::SetAttachAnchor(Anchor* anchor) {
 
 
 Anchor* Desktop::GetNearestAnchor(Command::Direction dir) const {
-  int dx = 0, dy = 0;
-  if (dir == Command::LEFT)       dx = -1;
-  else if (dir == Command::RIGHT) dx =  1;
-  else if (dir == Command::UP)    dy = -1;
-  else if (dir == Command::DOWN)  dy =  1;
-  else return NULL;
-
   Anchor* nearest = NULL;
   int nearest_dist = INT_MAX;
   for (AnchorVector::const_iterator anchor = anchors_.begin();
        anchor != anchors_.end(); ++anchor) {
     if (anchor->get() == active_anchor_) continue;
     int dist = 0;
-    if (dy != 0) {
-      dist = (*anchor)->y() - active_anchor_->y();
-      if (dy * dist < dy) continue;
-      // FIXME: also need to check that the anchor isn't too far to the
-      // side of the titlebar
+
+    // FIXME: Give preference to anchors that are roughly in the correct
+    // direction.
+    if (dir == Command::LEFT) {
+      dist = active_anchor_->titlebar()->left() -
+             (*anchor)->titlebar()->left();
+    } else if (dir == Command::RIGHT) {
+      dist = (*anchor)->titlebar()->right() -
+             active_anchor_->titlebar()->right();
+    } else if (dir == Command::UP) {
+      dist = active_anchor_->titlebar()->top() -
+             (*anchor)->titlebar()->top();
+    } else if (dir == Command::DOWN) {
+      dist = (*anchor)->titlebar()->bottom() -
+             active_anchor_->titlebar()->bottom();
     } else {
-      dist = (*anchor)->x() - active_anchor_->x();
-      if (dx * dist < dx) continue;
+      ERROR << "Invalid direction " << dir;
+      return NULL;
     }
+
+    if (dist <= 0) continue;
     if (dist < nearest_dist) {
       nearest = anchor->get();
       nearest_dist = dist;

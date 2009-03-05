@@ -60,6 +60,11 @@ class XWindow {
   uint width() const { return width_; }
   uint height() const { return height_; }
 
+  int left() const { return x_; }
+  int right() const { return x_ + width_; }
+  int top() const { return y_; }
+  int bottom() const { return y_ + height_; }
+
   int initial_x() const { return initial_x_; }
   int initial_y() const { return initial_y_; }
   uint initial_width() const { return initial_width_; }
