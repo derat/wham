@@ -326,7 +326,6 @@ string Anchor::DebugString() const {
 void Anchor::MoveTimeoutFunction::operator()() {
   if (anchor_->x_ == anchor_->target_x_ &&
       anchor_->y_ == anchor_->target_y_) {
-    DEBUG << "Done animating anchor " << anchor_->DebugString();
     anchor_->move_animation_in_progress_ = false;
     return;
   }
@@ -339,10 +338,6 @@ void Anchor::MoveTimeoutFunction::operator()() {
   if (!dx) dx = anchor_->target_x_ - anchor_->x_;
   if (!dy) dy = anchor_->target_y_ - anchor_->y_;
 
-  DEBUG << "Moving anchor " << anchor_->DebugString() << " to ("
-        << (anchor_->x_ + dx) << ", " << (anchor_->y_ + dy) << "), "
-        << "target is (" << anchor_->target_x_ << ", "
-        << anchor_->target_y_ << ")";
   anchor_->MoveInternal(anchor_->x_ + dx, anchor_->y_ + dy);
   XServer::Get()->RegisterTimeout(new MoveTimeoutFunction(anchor_), 0.0333);
 }
