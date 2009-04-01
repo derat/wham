@@ -80,7 +80,7 @@ class XServer {
 
   // Run 'func' in 'timeout_sec', returning an ID that can be used to
   // cancel the timeout before it's executed.  Takes ownership of 'func'.
-  // FIXME: Should have a version that runs the same function object over
+  // TODO: Should have a version that runs the same function object over
   // and over... Creating a new one for each frame of animation is kinda
   // lame.
   uint RegisterTimeout(TimeoutFunction *func, double timeout_sec);
