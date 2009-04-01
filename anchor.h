@@ -209,6 +209,7 @@ class Anchor {
   bool attach_;
 
   bool move_animation_in_progress_;
+  int move_animation_timeout_id_;
 
   DISALLOW_EVIL_CONSTRUCTORS(Anchor);
 };

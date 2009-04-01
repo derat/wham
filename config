@@ -3,7 +3,7 @@ key_bindings {
   mod_alias Alt Mod1
 
   bind Mod+F1 exec urxvt
-  bind Mod+F2 exec firefox
+  bind Mod+F2 exec /home/derat/local/firefox3/firefox
   bind Mod+F9 create_desktop
 
   bind Mod+1 switch_nth_window 0

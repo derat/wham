@@ -78,10 +78,15 @@ class XServer {
     virtual void operator()() = 0;
   };
 
-  // Takes ownership of 'func'.
+  // Run 'func' in 'timeout_sec', returning an ID that can be used to
+  // cancel the timeout before it's executed.  Takes ownership of 'func'.
   // FIXME: Should have a version that runs the same function object over
-  // and over... Creating a new one for each frame of animation is lame.
-  void RegisterTimeout(TimeoutFunction *func, double timeout_sec);
+  // and over... Creating a new one for each frame of animation is kinda
+  // lame.
+  uint RegisterTimeout(TimeoutFunction *func, double timeout_sec);
+
+  // Cancel a timeout.
+  void CancelTimeout(uint id);
 
   Display* display() { return display_; }
   int screen_num() { return screen_num_; }
@@ -146,8 +151,9 @@ class XServer {
 
   // Simple struct representing a timeout.  Takes ownership of 'func'.
   struct Timeout {
-    Timeout(TimeoutFunction *func, double time)
-        : func(func),
+    Timeout(int id, TimeoutFunction *func, double time)
+        : id(id),
+          func(func),
           time(time) {
     }
 
@@ -158,9 +164,12 @@ class XServer {
       return time > o.time;
     }
 
+    uint id;
     ref_ptr<TimeoutFunction> func;
     double time;
   };
+
+  uint next_timeout_id_;
 
   vector<Timeout> timeout_heap_;
 

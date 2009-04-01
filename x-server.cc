@@ -73,7 +73,8 @@ XServer::XServer()
       width_(0),
       height_(0),
       initialized_(false),
-      in_progress_binding_(NULL) {
+      in_progress_binding_(NULL),
+      next_timeout_id_(1) {
 }
 
 
@@ -158,14 +159,35 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
 }
 
 
-void XServer::RegisterTimeout(TimeoutFunction *func, double timeout_sec) {
+uint XServer::RegisterTimeout(TimeoutFunction *func, double timeout_sec) {
   CHECK(func);
   CHECK(timeout_sec >= 0);
 
-  Timeout timeout(func, GetCurrentTime() + timeout_sec);
+  uint id = next_timeout_id_;
+  Timeout timeout(id, func, GetCurrentTime() + timeout_sec);
   DEBUG << "Registering timeout for " << fixed << timeout.time;
   timeout_heap_.push_back(timeout);
   push_heap(timeout_heap_.begin(), timeout_heap_.end());
+
+  // FIXME: If we have long timeouts and create lots of them, we could end
+  // up recycling IDs here.  Use 64 bits?  Probably not necessary.
+  next_timeout_id_++;
+  return id;
+}
+
+
+void XServer::CancelTimeout(uint id) {
+  for (vector<Timeout>::iterator it = timeout_heap_.begin();
+       it != timeout_heap_.end(); ++it) {
+    if (it->id == id) {
+      timeout_heap_.erase(it);
+      // TODO: I suspect that I can just call make_heap(it, ...) here, but
+      // I'm not sure about it.
+      make_heap(timeout_heap_.begin(), timeout_heap_.end());
+      return;
+    }
+  }
+  ERROR << "Got request to cancel nonexistent timeout with ID " << id;
 }
 
 

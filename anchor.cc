@@ -31,7 +31,8 @@ Anchor::Anchor(const string& name, int x, int y)
       titlebar_(XWindow::Create(x, y, 1, 1)),
       active_(false),
       attach_(false),
-      move_animation_in_progress_(false) {
+      move_animation_in_progress_(false),
+      move_animation_timeout_id_(0) {
   CHECK(titlebar_);
   SetName(name);
   DrawTitlebar();
@@ -41,6 +42,9 @@ Anchor::Anchor(const string& name, int x, int y)
 
 
 Anchor::~Anchor() {
+  if (move_animation_in_progress_) {
+    XServer::Get()->CancelTimeout(move_animation_timeout_id_);
+  }
   titlebar_->Destroy();
   desktop_ = NULL;
   active_window_ = NULL;
@@ -340,7 +344,8 @@ void Anchor::MoveTimeoutFunction::operator()() {
   if (!dy) dy = anchor_->target_y_ - anchor_->y_;
 
   anchor_->MoveInternal(anchor_->x_ + dx, anchor_->y_ + dy);
-  XServer::Get()->RegisterTimeout(new MoveTimeoutFunction(anchor_), 0.0333);
+  anchor_->move_animation_timeout_id_ =
+      XServer::Get()->RegisterTimeout(new MoveTimeoutFunction(anchor_), 0.0333);
 }
 
 
