@@ -137,7 +137,7 @@ class Anchor {
 
   class MoveTimeoutFunction : public XServer::TimeoutFunction {
    public:
-    MoveTimeoutFunction(Anchor *anchor)
+    explicit MoveTimeoutFunction(Anchor *anchor)
         : anchor_(anchor) {
       CHECK(anchor_);
     }
@@ -208,6 +208,7 @@ class Anchor {
   // Do new windows get attached to this anchor?
   bool attach_;
 
+  MoveTimeoutFunction move_animation_;
   bool move_animation_in_progress_;
   int move_animation_timeout_id_;
 

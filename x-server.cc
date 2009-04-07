@@ -139,7 +139,7 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
     while (!timeout_heap_.empty() &&
            timeout_heap_[0].time <= now) {
       DEBUG << "Running timeout for " << fixed << timeout_heap_[0].time;
-      (*timeout_heap_[0].func.get())();
+      (*(timeout_heap_[0].func))();
       pop_heap(timeout_heap_.begin(), timeout_heap_.end());
       timeout_heap_.pop_back();
     }

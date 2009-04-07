@@ -79,10 +79,8 @@ class XServer {
   };
 
   // Run 'func' in 'timeout_sec', returning an ID that can be used to
-  // cancel the timeout before it's executed.  Takes ownership of 'func'.
-  // TODO: Should have a version that runs the same function object over
-  // and over... Creating a new one for each frame of animation is kinda
-  // lame.
+  // cancel the timeout before it's executed.  Ownership of 'func' remains
+  // with the caller.
   uint RegisterTimeout(TimeoutFunction *func, double timeout_sec);
 
   // Cancel a timeout.
@@ -149,12 +147,17 @@ class XServer {
 
   static bool testing_;
 
-  // Simple struct representing a timeout.  Takes ownership of 'func'.
+  // Simple struct representing a timeout.  Doesn't take ownership of
+  // 'func'.
   struct Timeout {
     Timeout(int id, TimeoutFunction *func, double time)
         : id(id),
           func(func),
           time(time) {
+    }
+
+    ~Timeout() {
+      func = NULL;
     }
 
     // Used for ordering objects in a heap, so we say that this timeout is
@@ -165,7 +168,7 @@ class XServer {
     }
 
     uint id;
-    ref_ptr<TimeoutFunction> func;
+    TimeoutFunction* func;
     double time;
   };
 
