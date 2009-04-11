@@ -6,8 +6,12 @@
 
 #include <map>
 #include <string>
+
+extern "C" {
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <xcb/xcb.h>
+}
 
 #include "command.h"
 #include "util.h"
@@ -125,6 +129,8 @@ class XServer {
                                   XKeyBindingMap* binding_map);
 
   void HandleKeyPress(KeySym keysym, uint mods, WindowManager* window_manager);
+
+  xcb_connection_t* xcb_;
 
   Display* display_;
   int screen_num_;

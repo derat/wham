@@ -35,6 +35,8 @@ test_source_builder = Builder(
     suffix='.cc',
     src_suffix='.h')
 run_tests_builder = Builder(action=run_tests)
+
+
 env = Environment(
     BUILDERS={
       'TestSource': test_source_builder,
@@ -42,8 +44,7 @@ env = Environment(
     },
     ENV=os.environ)
 env['CCFLAGS'] = '-Wall -Werror -g'
-env.ParseConfig('pkg-config x11 --cflags --libs')
-env.ParseConfig('pkg-config libpcrecpp --cflags --libs')
+env.ParseConfig('pkg-config --cflags --libs x11 libpcrecpp xcb x11-xcb')
 
 
 srcs = Split('''\

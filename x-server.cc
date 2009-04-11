@@ -8,8 +8,12 @@
 
 #include <sys/select.h>
 #include <sys/time.h>
+
+extern "C" {
 #include <X11/Xatom.h>
+#include <X11/Xlib-xcb.h>
 #include <X11/cursorfont.h>
+}
 
 #include "config.h"
 #include "key-bindings.h"
@@ -68,7 +72,8 @@ static const char* XEventTypeToName(int type) {
 
 
 XServer::XServer()
-    : display_(NULL),
+    : xcb_(NULL),
+      display_(NULL),
       screen_num_(-1),
       width_(0),
       height_(0),
@@ -100,6 +105,12 @@ bool XServer::Init() {
     }
     screen_num_ = DefaultScreen(display_);
     root_ = RootWindow(display_, screen_num_);
+
+    xcb_ = XGetXCBConnection(display_);
+    if (xcb_ == NULL) {
+      ERROR << "Couldn't get XCB connection from Xlib display";
+      return false;
+    }
 
     // FIXME: Gotta free this stuff afterwards.
     cursor_ = XCreateFontCursor(display_, XC_left_ptr);
