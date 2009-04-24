@@ -137,7 +137,7 @@ class Anchor {
 
   class MoveTimeoutFunction : public XServer::TimeoutFunction {
    public:
-    MoveTimeoutFunction(Anchor *anchor)
+    MoveTimeoutFunction(Anchor* anchor)
         : anchor_(anchor) {
       CHECK(anchor_);
     }
@@ -145,7 +145,7 @@ class Anchor {
     void operator()();
 
    private:
-    Anchor *anchor_;
+    Anchor* anchor_;
   };
 
   // Constrain a potential position for the anchor within the root window's

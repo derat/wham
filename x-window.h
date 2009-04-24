@@ -4,8 +4,11 @@
 #ifndef __X_WINDOW_H__
 #define __X_WINDOW_H__
 
+extern "C" {
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <xcb/xcb.h>
+}
 
 #include "util.h"
 #include "window-properties.h"
@@ -53,7 +56,7 @@ class XWindow {
     return id_ < o.id_;
   }
 
-  XWindow *parent() const { return parent_; }
+  XWindow* parent() const { return parent_; }
 
   int x() const { return x_; }
   int y() const { return y_; }
@@ -85,6 +88,8 @@ class XWindow {
 
  private:
   // Convenience methods.
+  static xcb_connection_t* xcb_conn();
+  static const xcb_screen_t* xcb_screen();
   static ::Display* dpy();
   static int scr();
   static ::Window root();

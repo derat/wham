@@ -72,7 +72,8 @@ static const char* XEventTypeToName(int type) {
 
 
 XServer::XServer()
-    : xcb_(NULL),
+    : xcb_conn_(NULL),
+      xcb_screen_(NULL),
       display_(NULL),
       screen_num_(-1),
       width_(0),
@@ -106,11 +107,16 @@ bool XServer::Init() {
     screen_num_ = DefaultScreen(display_);
     root_ = RootWindow(display_, screen_num_);
 
-    xcb_ = XGetXCBConnection(display_);
-    if (xcb_ == NULL) {
+    xcb_conn_ = XGetXCBConnection(display_);
+    if (xcb_conn_ == NULL) {
       ERROR << "Couldn't get XCB connection from Xlib display";
       return false;
     }
+
+    const xcb_setup_t* xcb_setup = xcb_get_setup(xcb_conn_);
+    xcb_screen_iterator_t xcb_screen_iter = xcb_setup_roots_iterator(xcb_setup);
+    for (int i = 0; i < screen_num_; ++i) xcb_screen_next(&xcb_screen_iter);
+    xcb_screen_ = xcb_screen_iter.data;
 
     // FIXME: Gotta free this stuff afterwards.
     cursor_ = XCreateFontCursor(display_, XC_left_ptr);
@@ -156,7 +162,7 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
     }
 
     struct timeval tv;
-    struct timeval *timeout_tv = NULL;
+    struct timeval* timeout_tv = NULL;
     if (!timeout_heap_.empty()) {
       FillTimeval(timeout_heap_[0].time - now, &tv);
       timeout_tv = &tv;
@@ -170,7 +176,7 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
 }
 
 
-uint XServer::RegisterTimeout(TimeoutFunction *func, double timeout_sec) {
+uint XServer::RegisterTimeout(TimeoutFunction* func, double timeout_sec) {
   CHECK(func);
   CHECK(timeout_sec >= 0);
 
@@ -231,7 +237,7 @@ void XServer::DeleteWindow(::Window id) {
 }
 
 
-void XServer::ProcessEvent(WindowManager *window_manager) {
+void XServer::ProcessEvent(WindowManager* window_manager) {
   XEvent event;
   XNextEvent(display_, &event);
 

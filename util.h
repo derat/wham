@@ -204,7 +204,7 @@ double GetCurrentTime();
 
 
 // Fill 'tv' with the time from 'time'.
-void FillTimeval(double time, struct timeval *tv);
+void FillTimeval(double time, struct timeval* tv);
 
 
 // Split a string on whitespace, saving the individual pieces to 'parts'.

@@ -42,7 +42,7 @@ class Desktop {
   // ownership of it is released; the caller is responsible for deleting
   // 'anchor'.  The visibility of the anchor isn't changed; AddAnchor()
   // takes care of that.
-  void RemoveAnchor(Anchor *anchor);
+  void RemoveAnchor(Anchor* anchor);
 
   // Add 'window' to the active anchor.
   void AddWindow(Window* window);

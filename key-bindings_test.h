@@ -18,7 +18,7 @@ class ValueTraits<KeyBindings::Combo> {
   ValueTraits(const KeyBindings::Combo& value)
       : value_(value) {
   }
-  const char *asString() {
+  const char* asString() {
     if (str_.empty()) str_ = value_.ToString();
     return str_.c_str();
   }

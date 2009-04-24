@@ -69,7 +69,7 @@ void Desktop::AddAnchor(Anchor* anchor) {
 }
 
 
-void Desktop::RemoveAnchor(Anchor *anchor) {
+void Desktop::RemoveAnchor(Anchor* anchor) {
   DEBUG << "Removing anchor " << anchor->DebugString()
         << " from desktop " << DebugString();
   CHECK(anchor);

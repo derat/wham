@@ -62,7 +62,7 @@ double GetCurrentTime() {
 }
 
 
-void FillTimeval(double time, struct timeval *tv) {
+void FillTimeval(double time, struct timeval* tv) {
   CHECK(tv);
   tv->tv_sec = static_cast<__time_t>(time);
   tv->tv_usec =

@@ -87,11 +87,13 @@ class XServer {
   // TODO: Should have a version that runs the same function object over
   // and over... Creating a new one for each frame of animation is kinda
   // lame.
-  uint RegisterTimeout(TimeoutFunction *func, double timeout_sec);
+  uint RegisterTimeout(TimeoutFunction* func, double timeout_sec);
 
   // Cancel a timeout.
   void CancelTimeout(uint id);
 
+  xcb_connection_t* xcb_conn() { return xcb_conn_; }
+  const xcb_screen_t* xcb_screen() { return xcb_screen_; }
   Display* display() { return display_; }
   int screen_num() { return screen_num_; }
   ::Window root() { return root_; }
@@ -113,7 +115,7 @@ class XServer {
 
   // Read the next event (or possibly more than one, in the case of expose
   // events) and handle it.
-  void ProcessEvent(WindowManager *window_manager);
+  void ProcessEvent(WindowManager* window_manager);
 
   // Convert a vector containing string representations of modifiers keys
   // into a bitmap consisting of the corresponding X modifier masks.
@@ -130,7 +132,8 @@ class XServer {
 
   void HandleKeyPress(KeySym keysym, uint mods, WindowManager* window_manager);
 
-  xcb_connection_t* xcb_;
+  xcb_connection_t* xcb_conn_;
+  xcb_screen_t* xcb_screen_;
 
   Display* display_;
   int screen_num_;
@@ -157,7 +160,7 @@ class XServer {
 
   // Simple struct representing a timeout.  Takes ownership of 'func'.
   struct Timeout {
-    Timeout(int id, TimeoutFunction *func, double time)
+    Timeout(int id, TimeoutFunction* func, double time)
         : id(id),
           func(func),
           time(time) {

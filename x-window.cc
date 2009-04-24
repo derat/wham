@@ -39,15 +39,22 @@ XWindow::XWindow(::Window id)
 
 
 XWindow* XWindow::Create(int x, int y, uint width, uint height) {
-  ::Window id;
+  xcb_window_t id;
   if (XServer::Testing()) {
     static int win_id = 1;
     id = win_id++;
   } else {
-    id = XCreateSimpleWindow(
-             dpy(), root(), x, y, width, height, 0 /* border */,
-             BlackPixel(dpy(), scr()),
-             WhitePixel(dpy(), scr()));
+    id = xcb_generate_id(xcb_conn());
+    xcb_create_window(xcb_conn(),
+                      XCB_COPY_FROM_PARENT,  // depth
+                      id,
+                      xcb_screen()->root,
+                      x, y,
+                      width, height,
+                      0,  // border_width
+                      XCB_WINDOW_CLASS_INPUT_OUTPUT,
+                      xcb_screen()->root_visual,
+                      0, NULL);
   }
   DEBUG << "Created window 0x" << hex << id;
   XWindow* win = XServer::Get()->GetWindow(id, true);
@@ -259,19 +266,21 @@ void XWindow::Destroy() {
 }
 
 
-::Display* XWindow::dpy() {
-  return XServer::Get()->display();
+xcb_connection_t* XWindow::xcb_conn() { return XServer::Get()->xcb_conn(); }
+
+
+const xcb_screen_t* XWindow::xcb_screen() {
+  return XServer::Get()->xcb_screen();
 }
 
 
-int XWindow::scr() {
-  return XServer::Get()->screen_num();
-}
+::Display* XWindow::dpy() { return XServer::Get()->display(); }
 
 
-::Window XWindow::root() {
-  return XServer::Get()->root();
-}
+int XWindow::scr() { return XServer::Get()->screen_num(); }
+
+
+::Window XWindow::root() { return XServer::Get()->root(); }
 
 
 XWindow* XWindow::GetTransientFor() {
