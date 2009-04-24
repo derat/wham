@@ -228,7 +228,9 @@ void XWindow::MakeSibling(const XWindow& leader) {
 
 void XWindow::Reparent(XWindow* parent, int x, int y) {
   DEBUG << "Reparent: id=0x" << hex << id_ << " parent=0x" << parent->id();
-  XReparentWindow(dpy(), id_, parent ? parent->id() : root(), x, y);
+  xcb_reparent_window(xcb_conn(), id_,
+                      parent ? parent->id() : xcb_screen()->root,
+                      x, y);
   parent_ = parent;
 }
 
@@ -246,23 +248,21 @@ void XWindow::GetGeometry(int* x,
                           uint* width,
                           uint* height,
                           uint* border_width) {
-  ::Window root;
-  int tmp_x, tmp_y;
-  uint tmp_width, tmp_height, tmp_border_width, tmp_depth;
-  XGetGeometry(dpy(), id_, &root, &tmp_x, &tmp_y, &tmp_width, &tmp_height,
-               &tmp_border_width, &tmp_depth);
-  if (x) *x = tmp_x;
-  if (y) *y = tmp_y;
-  if (width) *width = tmp_width;
-  if (height) *height = tmp_height;
-  if (border_width) *border_width = tmp_border_width;
+  xcb_get_geometry_cookie_t cookie = xcb_get_geometry(xcb_conn(), id_);
+  ref_ptr<xcb_get_geometry_reply_t> geometry(
+      xcb_get_geometry_reply(xcb_conn(), cookie, NULL));
+  if (x) *x = geometry->x;
+  if (y) *y = geometry->y;
+  if (width) *width = geometry->width;
+  if (height) *height = geometry->height;
+  if (border_width) *border_width = geometry->border_width;
 }
 
 
 void XWindow::Destroy() {
   DEBUG << "Destroy: id=0x" << hex << id_;
   XServer::Get()->DeleteWindow(id_);
-  XDestroyWindow(dpy(), id_);
+  xcb_destroy_window(xcb_conn(), id_);
 }
 
 
