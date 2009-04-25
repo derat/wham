@@ -31,6 +31,7 @@ Anchor::Anchor(const string& name, int x, int y)
       titlebar_(XWindow::Create(x, y, 1, 1)),
       active_(false),
       attach_(false),
+      move_animation_(this),
       move_animation_in_progress_(false),
       move_animation_timeout_id_(0) {
   CHECK(titlebar_);
@@ -137,8 +138,7 @@ void Anchor::AnimateMove(int x, int y) {
 
   if (!move_animation_in_progress_) {
     move_animation_in_progress_ = true;
-    MoveTimeoutFunction func(this);
-    func();
+    move_animation_();
   }
 }
 
@@ -345,7 +345,7 @@ void Anchor::MoveTimeoutFunction::operator()() {
 
   anchor_->MoveInternal(anchor_->x_ + dx, anchor_->y_ + dy);
   anchor_->move_animation_timeout_id_ =
-      XServer::Get()->RegisterTimeout(new MoveTimeoutFunction(anchor_), 0.0333);
+      XServer::Get()->RegisterTimeout(this, 0.0333);
 }
 
 
