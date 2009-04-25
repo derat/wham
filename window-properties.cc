@@ -49,6 +49,7 @@ string WindowProperties::DebugString() const {
 
 bool WindowProperties::UpdateAll(XWindow* win) {
   CHECK(win);
+  // FIXME: send these all at once
   win->UpdateProperties(this, WINDOW_NAME_CHANGE);
   win->UpdateProperties(this, ICON_NAME_CHANGE);
   win->UpdateProperties(this, COMMAND_CHANGE);

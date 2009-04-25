@@ -94,6 +94,19 @@ class XWindow {
   static int scr();
   static ::Window root();
 
+  // Request a property from this window.
+  xcb_get_property_cookie_t RequestProperty(xcb_atom_t property);
+
+  // Get a string property previously requested by RequestProperty().
+  // On failure, returns false and leaves 'out' untouched.
+  bool GetRequestedStringProperty(xcb_get_property_cookie_t cookie,
+                                  string* out);
+
+  // Convenience wrapper to synchronously get a string property.
+  bool GetStringPropertySync(xcb_atom_t property, string* out) {
+    return GetRequestedStringProperty(RequestProperty(property), out);
+  }
+
   // Get the window for which this window is a transient.
   // Returns NULL if no such window exists.
   virtual XWindow* GetTransientFor();

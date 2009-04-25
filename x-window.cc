@@ -5,6 +5,8 @@
 
 #include <iostream>
 #include <X11/Xatom.h>
+#include <xcb/xcb_atom.h>
+#include <xcb/xcb_icccm.h>
 
 #include "mock-x-window.h"
 #include "util.h"
@@ -76,22 +78,17 @@ bool XWindow::UpdateProperties(WindowProperties* props,
   CHECK(props);
 
   if (type == WindowProperties::WINDOW_NAME_CHANGE) {
-    char* window_name = NULL;
-    if (!XFetchName(dpy(), id_, &window_name)) {
-      ERROR << "XFetchName() failed for 0x" << hex << id_;
+    if (!GetStringPropertySync(WM_NAME, &props->window_name)) {
+      ERROR << "Unable to get WM_NAME property for  0x" << hex << id_;
       return false;
     }
-    props->window_name = window_name ? window_name : "";
-    if (window_name) XFree(window_name);
   } else if (type == WindowProperties::ICON_NAME_CHANGE) {
-    char* icon_name = NULL;
-    if (!XGetIconName(dpy(), id_, &icon_name)) {
-      ERROR << "XGetIconName() failed for 0x" << hex << id_;
+    if (!GetStringPropertySync(WM_ICON_NAME, &props->icon_name)) {
+      ERROR << "Unable to get WM_ICON_NAME property for  0x" << hex << id_;
       return false;
     }
-    props->icon_name = icon_name ? icon_name : "";
-    if (icon_name) XFree(icon_name);
   } else if (type == WindowProperties::COMMAND_CHANGE) {
+    // FIXME: Ubuntu's xcb library is hella old; no way to get this. :-(
     char **argv = NULL;
     int argc = 0;
     if (!XGetCommand(dpy(), id_, &argv, &argc)) {
@@ -101,6 +98,7 @@ bool XWindow::UpdateProperties(WindowProperties* props,
     // FIXME: update command
     XFreeStringList(argv);
   } else if (type == WindowProperties::CLASS_CHANGE) {
+    // FIXME: Ubuntu's xcb library is hella old; no way to get this. :-(
     XClassHint class_hint;
     if (!XGetClassHint(dpy(), id_, &class_hint)) {
       ERROR << "XGetClassHint() failed for 0x" << hex << id_;
@@ -166,7 +164,10 @@ void XWindow::Move(int x, int y) {
   if (x == x_ && y == y_) return;
   x_ = x;
   y_ = y;
-  XMoveWindow(dpy(), id_, x, y);
+  const uint32_t values[] = { x, y };
+  xcb_configure_window(xcb_conn(), id_,
+                       XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y,
+                       values);
 }
 
 
@@ -174,7 +175,10 @@ void XWindow::Resize(uint width, uint height) {
   if (width == width_ && height == height_) return;
   width_ = width;
   height_ = height;
-  XResizeWindow(dpy(), id_, width, height);
+  const uint32_t values[] = { width, height };
+  xcb_configure_window(xcb_conn(), id_,
+                       XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT,
+                       values);
 }
 
 
@@ -191,7 +195,7 @@ void XWindow::Unmap() {
 
 
 void XWindow::Map() {
-  XMapWindow(dpy(), id_);
+  xcb_map_window(xcb_conn(), id_);
 }
 
 
@@ -208,21 +212,22 @@ void XWindow::TakeFocus() {
 
 
 void XWindow::SetBorder(uint size) {
-  XSetWindowBorderWidth(dpy(), id_, size);
+  const uint32_t values[] = { size };
+  xcb_configure_window(xcb_conn(), id_, XCB_CONFIG_WINDOW_BORDER_WIDTH, values);
 }
 
 
 void XWindow::Raise() {
-  XRaiseWindow(dpy(), id_);
+  static const uint32_t values[] = { XCB_STACK_MODE_ABOVE };
+  xcb_configure_window(xcb_conn(), id_, XCB_CONFIG_WINDOW_STACK_MODE, values);
 }
 
 
 void XWindow::MakeSibling(const XWindow& leader) {
-  DEBUG << "MakeSibling: id=0x" << hex << id_ << " leader=0x" << leader.id();
-  XWindowChanges changes;
-  changes.sibling = leader.id();
-  changes.stack_mode = Below;
-  XConfigureWindow(dpy(), id_, CWSibling | CWStackMode, &changes);
+  const uint32_t values[] = { leader.id(), XCB_STACK_MODE_BELOW };
+  xcb_configure_window(xcb_conn(), id_,
+                       XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE,
+                       values);
 }
 
 
@@ -238,8 +243,17 @@ void XWindow::Reparent(XWindow* parent, int x, int y) {
 void XWindow::WarpPointer(int x, int y) {
   // FIXME: Figure out why this doesn't seem to be working.  Maybe one
   // can't warp the cursor under Xnest?
+  // FIXME FIXME: Test that it's still not working now that I'm using Xephyr.
   DEBUG << "WarpPointer: id=0x" << hex << id_ << " x=" << x << " y=" << y;
-  XWarpPointer(dpy(), None, id_, 0, 0, 0, 0, x, y);
+  xcb_warp_pointer(xcb_conn(),
+                   0,    // src_window
+                   id_,  // dst_window
+                   0,    // src_x
+                   0,    // src_y
+                   0,    // src_width
+                   0,    // src_height
+                   x,    // dst_x
+                   y);   // dst_y
 }
 
 
@@ -281,6 +295,33 @@ int XWindow::scr() { return XServer::Get()->screen_num(); }
 
 
 ::Window XWindow::root() { return XServer::Get()->root(); }
+
+
+xcb_get_property_cookie_t XWindow::RequestProperty(xcb_atom_t property) {
+  return xcb_get_property(xcb_conn(),
+                          0,     // delete
+                          id_,
+                          property,
+                          XCB_GET_PROPERTY_TYPE_ANY,
+                          0,     // offset
+                          256);  // length  FIXME
+}
+
+
+bool XWindow::GetRequestedStringProperty(xcb_get_property_cookie_t cookie,
+                                         string* out) {
+  CHECK(out);
+
+  ref_ptr<xcb_get_property_reply_t> reply(
+      xcb_get_property_reply(xcb_conn(), cookie, 0));
+  if (!reply.get()) return false;
+  // FIXME: Think I need to be safer here -- check type, etc.
+  const void* value = xcb_get_property_value(reply.get());
+  int length = xcb_get_property_value_length(reply.get());
+  *out = string(static_cast<const char*>(value), length);
+  DEBUG << "Got property \"" << *out << "\" of type " << reply->type;
+  return true;
+}
 
 
 XWindow* XWindow::GetTransientFor() {
