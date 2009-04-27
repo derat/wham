@@ -311,7 +311,15 @@ void WindowManager::HandleCommand(const Command &cmd) {
     if (anchor) anchor->Slide(cmd.GetDirectionArg());
   } else if (cmd.type() == Command::SWITCH_NEAREST_ANCHOR) {
     Anchor* anchor = active_desktop_->GetNearestAnchor(cmd.GetDirectionArg());
-    if (anchor) SetActiveAnchor(anchor);
+    if (anchor) {
+      SetActiveAnchor(anchor);
+      // FIXME: Figure out how this should fit together with animations.
+      // FIXME: This is still busted -- as soon as I move the pointer after
+      // warping it, it jumps back to its previous position.  Is this
+      // because I'm doing something wrong, or just something that happens
+      // when running under Xephyr?
+      //anchor->titlebar()->WarpPointer(0, 0);
+    }
   } else if (cmd.type() == Command::SWITCH_NTH_DESKTOP) {
     int num = cmd.GetIntArg();
     if (num >= 0 && num < static_cast<int>(desktops_.size())) {

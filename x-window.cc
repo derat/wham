@@ -241,19 +241,16 @@ void XWindow::Reparent(XWindow* parent, int x, int y) {
 
 
 void XWindow::WarpPointer(int x, int y) {
-  // FIXME: Figure out why this doesn't seem to be working.  Maybe one
-  // can't warp the cursor under Xnest?
-  // FIXME FIXME: Test that it's still not working now that I'm using Xephyr.
   DEBUG << "WarpPointer: id=0x" << hex << id_ << " x=" << x << " y=" << y;
   xcb_warp_pointer(xcb_conn(),
-                   0,    // src_window
-                   id_,  // dst_window
-                   0,    // src_x
-                   0,    // src_y
-                   0,    // src_width
-                   0,    // src_height
-                   x,    // dst_x
-                   y);   // dst_y
+                   XCB_NONE,  // src_window
+                   id_,       // dst_window
+                   0,         // src_x
+                   0,         // src_y
+                   0,         // src_width
+                   0,         // src_height
+                   x,         // dst_x
+                   y);        // dst_y
 }
 
 
