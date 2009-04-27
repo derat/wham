@@ -1,6 +1,5 @@
 key_bindings {
-  mod_alias Mod Ctrl
-  mod_alias Alt Mod1
+  mod_alias Mod Mod1
 
   bind Mod+F1 exec urxvt
   bind Mod+F2 exec /home/derat/local/firefox3/firefox
@@ -35,7 +34,7 @@ key_bindings {
   bind Mod+Shift+g cycle_anchor_gravity false
   bind Mod+h switch_nearest_anchor left
   bind Mod+Shift+h shift_window_in_anchor false
-  bind Mod+Alt+Shift+h cycle_desktop false
+  bind Mod+Ctrl+Shift+h cycle_desktop false
   bind Mod+i display_window_props
   bind Mod+j switch_nearest_anchor down
   bind Mod+Shift+j cycle_window false
@@ -43,7 +42,7 @@ key_bindings {
   bind Mod+Shift+k cycle_window true
   bind Mod+l switch_nearest_anchor right
   bind Mod+Shift+l shift_window_in_anchor true
-  bind Mod+Alt+Shift+l cycle_desktop true
+  bind Mod+Ctrl+Shift+l cycle_desktop true
   bind Mod+m,h slide_anchor left
   bind Mod+m,j slide_anchor down
   bind Mod+m,k slide_anchor up
