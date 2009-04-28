@@ -137,6 +137,9 @@ class XServer {
   int screen_num_;
   ::Window root_;
 
+  int damage_event_base_;
+  int damage_error_base_;
+
   Cursor cursor_;
 
   // Dimensions of the root window.

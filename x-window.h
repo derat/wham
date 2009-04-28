@@ -7,6 +7,7 @@
 extern "C" {
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/extensions/Xdamage.h>
 #include <xcb/xcb.h>
 }
 
@@ -23,7 +24,7 @@ class XServer;
 class XWindow {
  public:
   XWindow(::Window id);
-  virtual ~XWindow() {}
+  virtual ~XWindow();
 
   static XWindow* Create(int x, int y, uint width, uint height);
 
@@ -73,6 +74,8 @@ class XWindow {
   uint initial_width() const { return initial_width_; }
   uint initial_height() const { return initial_height_; }
 
+  ::Damage damage() const { return damage_; }
+
  protected:
   int x_;
   int y_;
@@ -114,6 +117,8 @@ class XWindow {
   void SelectInput(uint mask);
 
   ::Window id_;
+
+  ::Damage damage_;
 
   uint input_mask_;
 

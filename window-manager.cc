@@ -264,6 +264,10 @@ void WindowManager::HandleUnmapWindow(XWindow* xwin) {
 }
 
 
+void WindowManager::HandleWindowDamage(XWindow* xwin) {
+}
+
+
 void WindowManager::HandleCommand(const Command &cmd) {
   CHECK(active_desktop_);
 

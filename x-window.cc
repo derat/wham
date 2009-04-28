@@ -29,6 +29,7 @@ static const uint kCreateInputMask =
 XWindow::XWindow(::Window id)
     : parent_(NULL),
       id_(id),
+      damage_(None),
       input_mask_(0) {
   if (!XServer::Testing()) {
     GetGeometry(&x_, &y_, &width_, &height_, NULL);
@@ -36,6 +37,24 @@ XWindow::XWindow(::Window id)
     initial_y_ = y_;
     initial_width_ = width_;
     initial_height_ = height_;
+
+    // FIXME: libxcb-damage0 1.1.93-0ubuntu appears to be broken in Ubuntu
+    // -- I get no events when I use XCB instead of Xlib.
+    damage_ = XDamageCreate(dpy(), id_, XDamageReportNonEmpty);
+    XDamageSubtract(dpy(), damage_, None, None);
+  }
+}
+
+
+XWindow::~XWindow() {
+  if (!XServer::Testing()) {
+    CHECK(damage_ != XCB_NONE);
+    // FIXME: Destroying the damage object here triggers a crash.  I'm
+    // guessing that the server is deleting it for us already, although I
+    // don't see anything explicitly saying that this is the case in the
+    // spec.
+    //xcb_damage_destroy(xcb_conn(), damage_);
+    damage_ = XCB_NONE;
   }
 }
 
@@ -232,7 +251,7 @@ void XWindow::MakeSibling(const XWindow& leader) {
 
 
 void XWindow::Reparent(XWindow* parent, int x, int y) {
-  DEBUG << "Reparent: id=0x" << hex << id_ << " parent=0x" << parent->id();
+  DEBUG << "Reparent: xwin=0x" << hex << id_ << " parent=0x" << parent->id();
   xcb_reparent_window(xcb_conn(), id_,
                       parent ? parent->id() : xcb_screen()->root,
                       x, y);
@@ -241,7 +260,7 @@ void XWindow::Reparent(XWindow* parent, int x, int y) {
 
 
 void XWindow::WarpPointer(int x, int y) {
-  DEBUG << "WarpPointer: id=0x" << hex << id_ << " x=" << x << " y=" << y;
+  DEBUG << "WarpPointer: xwin=0x" << hex << id_ << " x=" << x << " y=" << y;
   xcb_warp_pointer(xcb_conn(),
                    XCB_NONE,  // src_window
                    id_,       // dst_window
@@ -271,7 +290,7 @@ void XWindow::GetGeometry(int* x,
 
 
 void XWindow::Destroy() {
-  DEBUG << "Destroy: id=0x" << hex << id_;
+  DEBUG << "Destroy: xwin=0x" << hex << id_;
   XServer::Get()->DeleteWindow(id_);
   xcb_destroy_window(xcb_conn(), id_);
 }

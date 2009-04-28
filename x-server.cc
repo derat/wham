@@ -13,6 +13,7 @@ extern "C" {
 #include <X11/Xatom.h>
 #include <X11/Xlib-xcb.h>
 #include <X11/cursorfont.h>
+#include <X11/extensions/Xdamage.h>
 }
 
 #include "config.h"
@@ -76,6 +77,8 @@ XServer::XServer()
       xcb_screen_(NULL),
       display_(NULL),
       screen_num_(-1),
+      damage_event_base_(0),
+      damage_error_base_(0),
       width_(0),
       height_(0),
       initialized_(false),
@@ -117,6 +120,11 @@ bool XServer::Init() {
     xcb_screen_iterator_t xcb_screen_iter = xcb_setup_roots_iterator(xcb_setup);
     for (int i = 0; i < screen_num_; ++i) xcb_screen_next(&xcb_screen_iter);
     xcb_screen_ = xcb_screen_iter.data;
+
+    // FIXME: XCB from Jaunty doesn't appear to expose this. :-(
+    CHECK(XDamageQueryExtension(display_,
+                                &damage_event_base_,
+                                &damage_error_base_));
 
     // FIXME: Gotta free this stuff afterwards.
     cursor_ = XCreateFontCursor(display_, XC_left_ptr);
@@ -243,7 +251,7 @@ void XServer::ProcessEvent(WindowManager* window_manager) {
 
   if (event.type == ButtonPress) {
     XButtonEvent& e = event.xbutton;
-    DEBUG << "ButtonPress: window=0x" << hex << e.window << dec
+    DEBUG << "ButtonPress: xwin=0x" << hex << e.window << dec
           << " x=" << e.x_root << " y=" << e.y_root << " button=" << e.button;
     XWindow* xwin = GetWindow(e.window, false);
     if (xwin) {
@@ -251,7 +259,7 @@ void XServer::ProcessEvent(WindowManager* window_manager) {
     }
   } else if (event.type == ButtonRelease) {
     XButtonEvent& e = event.xbutton;
-    DEBUG << "ButtonRelease: window=0x" << hex << e.window << dec
+    DEBUG << "ButtonRelease: xwin=0x" << hex << e.window << dec
           << " x=" << e.x_root << " y=" << e.y_root << " button=" << e.button;
     XWindow* xwin = GetWindow(e.window, false);
     if (xwin) {
@@ -259,14 +267,27 @@ void XServer::ProcessEvent(WindowManager* window_manager) {
     }
   } else if (event.type == ConfigureNotify) {
     // We don't care about these.
+  } else if (event.type == damage_event_base_ + XDamageNotify) {
+    const XDamageNotifyEvent& e =
+        *(reinterpret_cast<XDamageNotifyEvent*>(&event));
+    DEBUG << "DamageNotify: xwin=0x" << hex << e.drawable
+          << " damage=" << dec << e.damage;
+    XWindow* xwin = GetWindow(e.drawable, false);
+    if (xwin) {
+      CHECK_EQ(e.damage, xwin->damage());
+      // FIXME: Pass the damaged region as well, so that the whole window
+      // doesn't need to be repaired?
+      window_manager->HandleWindowDamage(xwin);
+      XDamageSubtract(display_, xwin->damage(), None, None);
+    }
   } else if (event.type == DestroyNotify) {
     XDestroyWindowEvent& e = event.xdestroywindow;
-    DEBUG << "DestroyNotify: window=0x" << hex << e.window;
+    DEBUG << "DestroyNotify: xwin=0x" << hex << e.window;
     XWindow* xwin = GetWindow(e.window, false);
     if (xwin) DeleteWindow(e.window);
   } else if (event.type == EnterNotify) {
     XCrossingEvent& e = event.xcrossing;
-    DEBUG << "Enter: window=0x" << hex << e.window;
+    DEBUG << "Enter: xwin=0x" << hex << e.window;
     XWindow* xwin = GetWindow(e.window, false);
     // This could for a border window that we just deleted.
     if (xwin) window_manager->HandleEnterWindow(xwin);
@@ -279,7 +300,7 @@ void XServer::ProcessEvent(WindowManager* window_manager) {
     set<XWindow*> exposed_windows;
     do {
       XExposeEvent& e = event.xexpose;
-      DEBUG << "Expose: window=0x" << hex << e.window;
+      DEBUG << "Expose: xwin=0x" << hex << e.window;
       XWindow* xwin = GetWindow(e.window, false);
       // This could be for a border window that we just deleted.
       if (xwin == NULL) continue;
@@ -291,12 +312,12 @@ void XServer::ProcessEvent(WindowManager* window_manager) {
     }
   } else if (event.type == KeyPress) {
     XKeyEvent& e = event.xkey;
-    DEBUG << "KeyPress: window=0x" << hex << e.window << dec
+    DEBUG << "KeyPress: xwin=0x" << hex << e.window << dec
           << " keycode=" << e.keycode << " state=" << e.state;
     HandleKeyPress(XLookupKeysym(&e, 0), e.state, window_manager);
   } else if (event.type == KeyRelease) {
     XKeyEvent& e = event.xkey;
-    DEBUG << "KeyRelease: window=0x" << hex << e.window << dec
+    DEBUG << "KeyRelease: xwin=0x" << hex << e.window << dec
           << " keycode=" << e.keycode << " state=" << e.state;
   } else if (event.type == MappingNotify) {
     XMappingEvent& e = event.xmapping;
@@ -304,12 +325,12 @@ void XServer::ProcessEvent(WindowManager* window_manager) {
     XRefreshKeyboardMapping(&e);
   } else if (event.type == MapRequest) {
     XMapRequestEvent& e = event.xmaprequest;
-    DEBUG << "MapRequest: window=0x" << hex << e.window;
+    DEBUG << "MapRequest: xwin=0x" << hex << e.window;
     XWindow* xwin = GetWindow(e.window, true);
     window_manager->HandleMapRequest(xwin);
   } else if (event.type == MotionNotify) {
     XMotionEvent& e = event.xmotion;
-    //DEBUG << "MotionNotify: window=0x" << hex << e.window << dec
+    //DEBUG << "MotionNotify: xwin=0x" << hex << e.window << dec
     //      << " x=" << e.x_root << " y=" << e.y_root;
     XWindow* xwin = GetWindow(e.window, false);
     if (xwin) window_manager->HandleMotion(xwin, e.x_root, e.y_root);
@@ -328,7 +349,7 @@ void XServer::ProcessEvent(WindowManager* window_manager) {
            type = WindowProperties::TRANSIENT_CHANGE; break;
       default: type = WindowProperties::OTHER_CHANGE;
     }
-    DEBUG << "PropertyNotify: window=0x" << hex << e.window << dec
+    DEBUG << "PropertyNotify: xwin=0x" << hex << e.window << dec
           << " atom=" << e.atom
           << " type=" << WindowProperties::ChangeTypeToStr(type)
           << " state=" << (e.state == PropertyNewValue ?
@@ -338,7 +359,7 @@ void XServer::ProcessEvent(WindowManager* window_manager) {
     }
   } else if (event.type == UnmapNotify) {
     XUnmapEvent& e = event.xunmap;
-    DEBUG << "UnmapNotify: window=0x" << hex << e.window;
+    DEBUG << "UnmapNotify: xwin=0x" << hex << e.window;
     XWindow* xwin = GetWindow(e.window, false);
     if (xwin) window_manager->HandleUnmapWindow(xwin);
   } else {
