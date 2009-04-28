@@ -13,6 +13,7 @@ extern "C" {
 #include <X11/Xatom.h>
 #include <X11/Xlib-xcb.h>
 #include <X11/cursorfont.h>
+#include <X11/extensions/Xcomposite.h>
 #include <X11/extensions/Xdamage.h>
 }
 
@@ -79,6 +80,8 @@ XServer::XServer()
       screen_num_(-1),
       damage_event_base_(0),
       damage_error_base_(0),
+      composite_event_base_(0),
+      composite_error_base_(0),
       width_(0),
       height_(0),
       initialized_(false),
@@ -121,10 +124,33 @@ bool XServer::Init() {
     for (int i = 0; i < screen_num_; ++i) xcb_screen_next(&xcb_screen_iter);
     xcb_screen_ = xcb_screen_iter.data;
 
-    // FIXME: XCB from Jaunty doesn't appear to expose this. :-(
+    gc_ = XCreateGC(display_, root_, 0, NULL);
+
+    // FIXME: XCB from Jaunty doesn't appear to expose these. :-(
+    // FIXME: Should also check versions of extensions.
     CHECK(XDamageQueryExtension(display_,
                                 &damage_event_base_,
                                 &damage_error_base_));
+
+    int composite_major_version, composite_minor_version;
+    CHECK(XCompositeQueryVersion(display_,
+                                 &composite_major_version,
+                                 &composite_minor_version));
+    DEBUG << "Server has XComposite " << composite_major_version
+          << "." << composite_minor_version;
+    CHECK((composite_major_version == 0 && composite_minor_version >= 2) ||
+          composite_major_version > 0);
+    CHECK(XCompositeQueryExtension(display_,
+                                   &composite_event_base_,
+                                   &composite_error_base_));
+
+    // FIXME: I'm getting a BadMatch error when calling
+    // XCompositeNameWindowPixmap() later.  This implies that the window
+    // actually isn't getting redirected as a result of this call.  Figure
+    // out what's going on here (for now, I'm just individually redirecting
+    // each window in XWindow's constructor).
+    //XCompositeRedirectSubwindows(display_, root_, CompositeRedirectManual);
+    overlay_ = XCompositeGetOverlayWindow(display_, root_);
 
     // FIXME: Gotta free this stuff afterwards.
     cursor_ = XCreateFontCursor(display_, XC_left_ptr);

@@ -42,6 +42,8 @@ XWindow::XWindow(::Window id)
     // -- I get no events when I use XCB instead of Xlib.
     damage_ = XDamageCreate(dpy(), id_, XDamageReportNonEmpty);
     XDamageSubtract(dpy(), damage_, None, None);
+
+    XCompositeRedirectWindow(dpy(), id_, false);  // update
   }
 }
 
@@ -293,6 +295,37 @@ void XWindow::Destroy() {
   DEBUG << "Destroy: xwin=0x" << hex << id_;
   XServer::Get()->DeleteWindow(id_);
   xcb_destroy_window(xcb_conn(), id_);
+}
+
+
+void XWindow::CopyToOverlay() {
+  DEBUG << "CopyToOverlay: xwin=0x" << hex << id_;
+
+  // FIXME: XCompositeNameWindowPixmap() will fail if the window isn't
+  // viewable (maybe one of its ancestors is unmapped).  Metacity just goes
+  // ahead and calls it and traps the error; I should probably do the same.
+  XWindowAttributes attr;
+  XGrabServer(dpy());
+  XGetWindowAttributes(dpy(), id_, &attr);
+  if (attr.map_state != IsViewable) {
+    XUngrabServer(dpy());
+    DEBUG << "xwin 0x" << hex << id_ << " isn't viewable; not getting pixmap";
+    return;
+  }
+  Pixmap pixmap = XCompositeNameWindowPixmap(dpy(), id_);
+  XUngrabServer(dpy());
+  DEBUG << "Copying pixmap " << pixmap << " with size (" << width_
+        << ", " << height_ << ") to (" << x_ << ", " << y_ << ")";
+  XCopyArea(dpy(),
+            pixmap,
+            XServer::Get()->overlay(),
+            XServer::Get()->gc(),
+            0,    // src_x
+            0,    // src_y
+            width_,
+            height_,
+            x_,   // dest_x
+            y_);  // dest_y
 }
 
 

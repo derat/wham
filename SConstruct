@@ -45,7 +45,8 @@ env = Environment(
     ENV=os.environ)
 env['CCFLAGS'] = '-Wall -Werror -g'
 env.ParseConfig('pkg-config --cflags --libs ' +
-                'x11 libpcrecpp xcb x11-xcb xcb-atom xcb-icccm xdamage')
+                'x11 libpcrecpp xcb x11-xcb xcb-atom xcb-icccm xcomposite ' +
+                'xdamage')
 
 
 srcs = Split('''\

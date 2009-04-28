@@ -91,10 +91,12 @@ class XServer {
   void CancelTimeout(uint id);
 
   xcb_connection_t* xcb_conn() { return xcb_conn_; }
-  const xcb_screen_t* xcb_screen() { return xcb_screen_; }
+  const xcb_screen_t* xcb_screen() const { return xcb_screen_; }
   Display* display() { return display_; }
-  int screen_num() { return screen_num_; }
-  ::Window root() { return root_; }
+  int screen_num() const { return screen_num_; }
+  ::Window root() const { return root_; }
+  ::Window overlay() const { return overlay_; }
+  ::GC gc() const { return gc_; }
   uint width() const { return width_; }
   uint height() const { return height_; }
 
@@ -136,9 +138,14 @@ class XServer {
   Display* display_;
   int screen_num_;
   ::Window root_;
+  ::Window overlay_;  // overlay window used for compositing
+  ::GC gc_;  // random GC used for drawing
 
   int damage_event_base_;
   int damage_error_base_;
+
+  int composite_event_base_;
+  int composite_error_base_;
 
   Cursor cursor_;
 

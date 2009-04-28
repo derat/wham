@@ -265,6 +265,7 @@ void WindowManager::HandleUnmapWindow(XWindow* xwin) {
 
 
 void WindowManager::HandleWindowDamage(XWindow* xwin) {
+  xwin->CopyToOverlay();
 }
 
 

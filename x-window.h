@@ -7,6 +7,7 @@
 extern "C" {
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/extensions/Xcomposite.h>
 #include <X11/extensions/Xdamage.h>
 #include <xcb/xcb.h>
 }
@@ -52,6 +53,8 @@ class XWindow {
                            uint* height,
                            uint* border_width);
   virtual void Destroy();
+
+  virtual void CopyToOverlay();
 
   virtual bool operator<(const XWindow& o) const {
     return id_ < o.id_;
