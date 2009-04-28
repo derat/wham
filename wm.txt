@@ -11,7 +11,7 @@ view code, I'd like the terminal window to be 165 columns; when viewing a
 log file with long lines, I'd like the window to be as wide as possible.  I
 should be able to quickly switch between these different window
 configurations depending on what I'm trying to do at the moment.  I
-envision a configuration format similar to the following:
+envision a configuration format with functionality similar to the following:
 
   window_config {
     criteria {
