@@ -75,6 +75,17 @@ class XServer {
   // Start reading events from the X server and handling them.
   void RunEventLoop(WindowManager* window_manager);
 
+  // Update 'stacked_windows_' in response to a stacking change.
+  // These are called by XWindow::Raise() and XWindow::MakeSibling().
+  void TrackWindowRaise(XWindow* win) {
+    stacked_windows_.Remove(win);
+    stacked_windows_.AddOnTop(win);
+  }
+  void TrackWindowMakeSibling(XWindow* win, XWindow* leader) {
+    stacked_windows_.Remove(win);
+    stacked_windows_.AddUnder(leader, win);
+  }
+
   class TimeoutFunction {
    public:
     virtual ~TimeoutFunction() {}
@@ -160,6 +171,8 @@ class XServer {
 
   typedef map< ::Window, ref_ptr<XWindow> > XWindowMap;
   XWindowMap windows_;
+
+  Stacker<XWindow*> stacked_windows_;
 
   XKeyBindingMap bindings_;
   XKeyBinding* in_progress_binding_;

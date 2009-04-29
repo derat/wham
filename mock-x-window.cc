@@ -57,7 +57,7 @@ void MockXWindow::Raise() {
 }
 
 
-void MockXWindow::MakeSibling(const XWindow& leader) {
+void MockXWindow::MakeSibling(XWindow* leader) {
 }
 
 

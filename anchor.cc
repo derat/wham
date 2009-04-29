@@ -162,7 +162,7 @@ void Anchor::Slide(Command::Direction direction) {
 
 void Anchor::Raise() {
   titlebar_->Raise();
-  if (active_window_) active_window_->MakeSibling(*titlebar_);
+  if (active_window_) active_window_->MakeSibling(titlebar_);
 }
 
 
@@ -206,7 +206,7 @@ bool Anchor::SetActiveWindow(uint index) {
   if (desktop()->visible()) {
     if (old_active_window != NULL) old_active_window->Unmap();
     UpdateWindowPosition(active_window_);
-    active_window_->MakeSibling(*titlebar_);
+    active_window_->MakeSibling(titlebar_);
     active_window_->Map();
     active_window_->TakeFocus();
   }

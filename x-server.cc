@@ -282,11 +282,14 @@ XWindow* XServer::GetWindow(::Window id, bool create) {
   if (!create) return NULL;
   ref_ptr<XWindow> window(testing_ ? new MockXWindow(id) : new XWindow(id));
   windows_.insert(make_pair(id, window));
+  stacked_windows_.AddOnBottom(window.get());
   return window.get();
 }
 
 
 void XServer::DeleteWindow(::Window id) {
+  XWindow* xwin = GetWindow(id, false);  // create
+  if (xwin) stacked_windows_.Remove(xwin);
   windows_.erase(id);
 }
 

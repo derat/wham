@@ -241,14 +241,16 @@ void XWindow::SetBorder(uint size) {
 void XWindow::Raise() {
   static const uint32_t values[] = { XCB_STACK_MODE_ABOVE };
   xcb_configure_window(xcb_conn(), id_, XCB_CONFIG_WINDOW_STACK_MODE, values);
+  XServer::Get()->TrackWindowRaise(this);
 }
 
 
-void XWindow::MakeSibling(const XWindow& leader) {
-  const uint32_t values[] = { leader.id(), XCB_STACK_MODE_BELOW };
+void XWindow::MakeSibling(XWindow* leader) {
+  const uint32_t values[] = { leader->id(), XCB_STACK_MODE_BELOW };
   xcb_configure_window(xcb_conn(), id_,
                        XCB_CONFIG_WINDOW_SIBLING | XCB_CONFIG_WINDOW_STACK_MODE,
                        values);
+  XServer::Get()->TrackWindowMakeSibling(this, leader);
 }
 
 

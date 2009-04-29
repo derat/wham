@@ -85,7 +85,7 @@ void Window::Raise() {
 }
 
 
-void Window::MakeSibling(const XWindow& leader) {
+void Window::MakeSibling(XWindow* leader) {
   frame_->MakeSibling(leader);
 }
 

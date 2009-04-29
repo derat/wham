@@ -37,7 +37,7 @@ class Window {
   void Unmap();
   void TakeFocus();
   void Raise();
-  void MakeSibling(const XWindow& leader);
+  void MakeSibling(XWindow* leader);
 
   // Handle a property change event on this window, reclassifying the
   // window if necessary.
