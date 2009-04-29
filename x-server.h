@@ -141,6 +141,9 @@ class XServer {
   ::Window overlay_;  // overlay window used for compositing
   ::GC gc_;  // random GC used for drawing
 
+  int shape_event_base_;
+  int shape_error_base_;
+
   int damage_event_base_;
   int damage_error_base_;
 

@@ -10,9 +10,10 @@
 #include <sys/time.h>
 
 extern "C" {
+#include <X11/cursorfont.h>
 #include <X11/Xatom.h>
 #include <X11/Xlib-xcb.h>
-#include <X11/cursorfont.h>
+#include <X11/extensions/shape.h>
 #include <X11/extensions/Xcomposite.h>
 #include <X11/extensions/Xdamage.h>
 }
@@ -78,6 +79,8 @@ XServer::XServer()
       xcb_screen_(NULL),
       display_(NULL),
       screen_num_(-1),
+      shape_event_base_(0),
+      shape_error_base_(0),
       damage_event_base_(0),
       damage_error_base_(0),
       composite_event_base_(0),
@@ -126,6 +129,10 @@ bool XServer::Init() {
 
     gc_ = XCreateGC(display_, root_, 0, NULL);
 
+    CHECK(XShapeQueryExtension(display_,
+                               &shape_event_base_,
+                               &shape_error_base_));
+
     // FIXME: XCB from Jaunty doesn't appear to expose these. :-(
     // FIXME: Should also check versions of extensions.
     CHECK(XDamageQueryExtension(display_,
@@ -151,6 +158,19 @@ bool XServer::Init() {
     // each window in XWindow's constructor).
     //XCompositeRedirectSubwindows(display_, root_, CompositeRedirectManual);
     overlay_ = XCompositeGetOverlayWindow(display_, root_);
+    DEBUG << "Overlay window is 0x" << hex << overlay_;
+
+    // Now get rid of the overlay window's input region.
+    // FIXME: There has to be a better way to do this.
+    XShapeCombineRectangles(display_,
+                            overlay_,
+                            ShapeInput,
+                            0,     // x_off
+                            0,     // y_off
+                            NULL,  // rectangles
+                            0,     // n_rects
+                            ShapeSet,
+                            Unsorted);
 
     // FIXME: Gotta free this stuff afterwards.
     cursor_ = XCreateFontCursor(display_, XC_left_ptr);
