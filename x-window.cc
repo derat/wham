@@ -308,7 +308,7 @@ void XWindow::Destroy() {
 
 
 void XWindow::CopyToOverlay() {
-  DEBUG << "CopyToOverlay: xwin=0x" << hex << id_;
+  //DEBUG << "CopyToOverlay: xwin=0x" << hex << id_;
 
   // FIXME: XCompositeNameWindowPixmap() will fail if the window isn't
   // viewable (maybe one of its ancestors is unmapped).  Metacity just goes
@@ -318,13 +318,14 @@ void XWindow::CopyToOverlay() {
   XGetWindowAttributes(dpy(), id_, &attr);
   if (attr.map_state != IsViewable) {
     XUngrabServer(dpy());
-    DEBUG << "xwin 0x" << hex << id_ << " isn't viewable; not getting pixmap";
+    DEBUG << "X window 0x" << hex << id_ << " isn't viewable; aborting copying "
+          << "to overlay";
     return;
   }
   Pixmap pixmap = XCompositeNameWindowPixmap(dpy(), id_);
   XUngrabServer(dpy());
-  DEBUG << "Copying pixmap " << pixmap << " with size (" << width_
-        << ", " << height_ << ") to (" << x_ << ", " << y_ << ")";
+  //DEBUG << "Copying pixmap " << pixmap << " with size (" << width_
+  //      << ", " << height_ << ") to (" << x_ << ", " << y_ << ")";
   XCopyArea(dpy(),
             pixmap,
             XServer::Get()->overlay(),

@@ -63,6 +63,7 @@ void Desktop::AddAnchor(Anchor* anchor) {
 
   if (visible_) {
     anchor->Show();
+    anchor->Raise();
   } else {
     anchor->Hide();
   }

@@ -39,7 +39,6 @@ class WindowManager {
   void HandlePropertyChange(XWindow* xwin,
                             WindowProperties::ChangeType type);
   void HandleUnmapWindow(XWindow* xwin);
-  void HandleWindowDamage(XWindow* xwin);
   void HandleCommand(const Command& cmd);
 
  private:

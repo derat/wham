@@ -128,6 +128,9 @@ bool XServer::Init() {
     xcb_screen_ = xcb_screen_iter.data;
 
     gc_ = XCreateGC(display_, root_, 0, NULL);
+    // Avoid getting GraphicsExpose and NoExpose events when using this GC
+    // -- I don't think that I need them for anything currently.
+    XSetGraphicsExposures(display_, gc_, False);
 
     CHECK(XShapeQueryExtension(display_,
                                &shape_event_base_,
@@ -238,6 +241,10 @@ void XServer::RepaintOverlay() {
        it != windows.rend(); ++it) {
     XWindow* win = *it;
     if (!win->mapped()) continue;
+    // Skip reparented windows, since we should get them (in the correct
+    // position) when we draw their parents.  I'm not sure that this is the
+    // best way to be doing this.
+    if (win->parent()) continue;
     win->CopyToOverlay();
   }
 }
@@ -329,17 +336,19 @@ void XServer::ProcessEvent(WindowManager* window_manager) {
     }
   } else if (event.type == ConfigureNotify) {
     // We don't care about these.
-  } else if (event.type == damage_event_base_ + XDamageNotify) {
+  } else if (event.type == XDamageNotify + damage_event_base_) {
     const XDamageNotifyEvent& e =
         *(reinterpret_cast<XDamageNotifyEvent*>(&event));
     DEBUG << "DamageNotify: xwin=0x" << hex << e.drawable
           << " damage=" << dec << e.damage;
     XWindow* xwin = GetWindow(e.drawable, false);
     if (xwin) {
+      // FIXME: When using Clutter or something similar as a backend, I
+      // should just copy over this particular window's texture (or maybe
+      // just the part of it that was damaged) instead of repainting the
+      // whole screen.
+      RepaintOverlay();
       CHECK_EQ(e.damage, xwin->damage());
-      // FIXME: Pass the damaged region as well, so that the whole window
-      // doesn't need to be repaired?
-      window_manager->HandleWindowDamage(xwin);
       XDamageSubtract(display_, xwin->damage(), None, None);
     }
   } else if (event.type == DestroyNotify) {
@@ -376,6 +385,11 @@ void XServer::ProcessEvent(WindowManager* window_manager) {
     XKeyEvent& e = event.xkey;
     DEBUG << "KeyPress: xwin=0x" << hex << e.window << dec
           << " keycode=" << e.keycode << " state=" << e.state;
+    // FIXME: There's something weird going on here that I don't
+    // understand... XLookupKeysym() seems to sometimes suddenly start
+    // returning NoSymbol for some unknown reason.  Printing all the fields
+    // of the events, I don't see any differences between the ones that
+    // work and the ones that don't.
     HandleKeyPress(XLookupKeysym(&e, 0), e.state, window_manager);
   } else if (event.type == KeyRelease) {
     XKeyEvent& e = event.xkey;

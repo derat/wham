@@ -264,12 +264,6 @@ void WindowManager::HandleUnmapWindow(XWindow* xwin) {
 }
 
 
-void WindowManager::HandleWindowDamage(XWindow* xwin) {
-  //xwin->CopyToOverlay();
-  XServer::Get()->RepaintOverlay();  // FIXME
-}
-
-
 void WindowManager::HandleCommand(const Command &cmd) {
   CHECK(active_desktop_);
 
