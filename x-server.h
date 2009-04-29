@@ -75,6 +75,11 @@ class XServer {
   // Start reading events from the X server and handling them.
   void RunEventLoop(WindowManager* window_manager);
 
+  // Redraw all windows to the overlay.
+  // FIXME: This just an ugly, slow hack for testing.  I should use Xgl or
+  // Clutter or something instead.
+  void RepaintOverlay();
+
   // Update 'stacked_windows_' in response to a stacking change.
   // These are called by XWindow::Raise() and XWindow::MakeSibling().
   void TrackWindowRaise(XWindow* win) {

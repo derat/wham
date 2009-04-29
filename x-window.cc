@@ -28,6 +28,7 @@ static const uint kCreateInputMask =
 
 XWindow::XWindow(::Window id)
     : parent_(NULL),
+      mapped_(false),
       id_(id),
       damage_(None),
       input_mask_(0) {
@@ -37,6 +38,10 @@ XWindow::XWindow(::Window id)
     initial_y_ = y_;
     initial_width_ = width_;
     initial_height_ = height_;
+
+    XWindowAttributes attr;
+    XGetWindowAttributes(dpy(), id_, &attr);
+    mapped_ = (attr.map_state != IsUnmapped);  // FIXME: use IsUnviewable?
 
     // FIXME: libxcb-damage0 1.1.93-0ubuntu appears to be broken in Ubuntu
     // -- I get no events when I use XCB instead of Xlib.
@@ -212,11 +217,13 @@ void XWindow::Unmap() {
   XUnmapWindow(dpy(), id_);
   XSelectInput(dpy(), id_, input_mask_);
   XUngrabServer(dpy());
+  mapped_ = false;
 }
 
 
 void XWindow::Map() {
   xcb_map_window(xcb_conn(), id_);
+  mapped_ = true;
 }
 
 

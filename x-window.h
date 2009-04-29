@@ -61,6 +61,7 @@ class XWindow {
   }
 
   XWindow* parent() const { return parent_; }
+  bool mapped() const { return mapped_; }
 
   int x() const { return x_; }
   int y() const { return y_; }
@@ -80,6 +81,9 @@ class XWindow {
   ::Damage damage() const { return damage_; }
 
  protected:
+  XWindow* parent_;
+  bool mapped_;
+
   int x_;
   int y_;
   uint width_;
@@ -89,8 +93,6 @@ class XWindow {
   int initial_y_;
   uint initial_width_;
   uint initial_height_;
-
-  XWindow* parent_;
 
  private:
   // Convenience methods.

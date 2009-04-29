@@ -265,7 +265,8 @@ void WindowManager::HandleUnmapWindow(XWindow* xwin) {
 
 
 void WindowManager::HandleWindowDamage(XWindow* xwin) {
-  xwin->CopyToOverlay();
+  //xwin->CopyToOverlay();
+  XServer::Get()->RepaintOverlay();  // FIXME
 }
 
 

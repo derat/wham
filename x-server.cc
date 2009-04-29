@@ -159,6 +159,7 @@ bool XServer::Init() {
     //XCompositeRedirectSubwindows(display_, root_, CompositeRedirectManual);
     overlay_ = XCompositeGetOverlayWindow(display_, root_);
     DEBUG << "Overlay window is 0x" << hex << overlay_;
+    XSetWindowBackground(display_, overlay_, BlackPixel(display_, screen_num_));
 
     // Now get rid of the overlay window's input region.
     // FIXME: There has to be a better way to do this.
@@ -226,6 +227,18 @@ void XServer::RunEventLoop(WindowManager* window_manager) {
     FD_ZERO(&fds);
     FD_SET(x11_fd, &fds);
     CHECK(select(x11_fd + 1, &fds, NULL, NULL, timeout_tv) != -1);
+  }
+}
+
+
+void XServer::RepaintOverlay() {
+  XClearWindow(display_, overlay_);
+  const list<XWindow*>& windows = stacked_windows_.items();
+  for (list<XWindow*>::const_reverse_iterator it = windows.rbegin();
+       it != windows.rend(); ++it) {
+    XWindow* win = *it;
+    if (!win->mapped()) continue;
+    win->CopyToOverlay();
   }
 }
 
