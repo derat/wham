@@ -62,6 +62,43 @@ class UtilTestSuite : public CxxTest::TestSuite {
     delete i3;
   }
 
+  // Helper function for testStacker().
+  // 'expected' is a space-separated list of strings in the order in which
+  // they should appear in 'actual'.
+  void CheckStackerOutput(const list<string>& actual,
+                          const string& expected) {
+    vector<string> expected_parts;
+    SplitString(expected, &expected_parts);
+    TS_ASSERT_EQUALS(actual.size(), expected_parts.size());
+
+    int i = 0;
+    for (list<string>::const_iterator it = actual.begin();
+         it != actual.end(); ++it, ++i) {
+      TS_ASSERT_EQUALS(*it, expected_parts[i]);
+    }
+  }
+
+  void testStacker() {
+    Stacker<string> stacker;
+
+    stacker.AddOnTop("b");
+    stacker.AddOnBottom("c");
+    stacker.AddOnTop("a");
+    stacker.AddOnBottom("d");
+    CheckStackerOutput(stacker.items(), "a b c d");
+
+    stacker.AddUnder("a", "a2");
+    stacker.AddUnder("b", "b2");
+    stacker.AddUnder("c", "c2");
+    stacker.AddUnder("d", "d2");
+    CheckStackerOutput(stacker.items(), "a a2 b b2 c c2 d d2");
+
+    stacker.Remove("a");
+    stacker.Remove("c");
+    stacker.Remove("d2");
+    CheckStackerOutput(stacker.items(), "a2 b b2 c2 d");
+  }
+
   void testSplitString() {
     vector<string> expected;
     vector<string> parts;

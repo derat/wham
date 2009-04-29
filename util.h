@@ -6,6 +6,7 @@
 
 #include <ctime>
 #include <iostream>
+#include <list>
 #include <map>
 #include <pcrecpp.h>
 #include <string>
@@ -185,6 +186,80 @@ class ref_ptr {
 
   T* ptr_;
   int* refs_;
+};
+
+
+// Stacker maintains an ordering of objects (e.g. windows) in which changes
+// can be made in faster-than-linear time.
+template<class T>
+class Stacker {
+ public:
+  // Get the ordered list of items.
+  const list<T>& items() const { return items_; }
+
+  // Add an item on the top of the stack.
+  void AddOnTop(T item) {
+    if (index_.find(item) != index_.end()) {
+      ERROR << "Ignoring request to add already-present item "
+            << item << " on top";
+      return;
+    }
+    items_.push_front(item);
+    index_.insert(make_pair(item, items_.begin()));
+  }
+
+  // Add an item on the bottom of the stack.
+  void AddOnBottom(T item) {
+    if (index_.find(item) != index_.end()) {
+      ERROR << "Ignoring request to add already-present item "
+            << item << " on bottom";
+      return;
+    }
+    items_.push_back(item);
+    index_.insert(make_pair(item, --(items_.end())));
+  }
+
+  // Add 'item' under 'under_item'.  'under_item' must already exist on the
+  // stack.
+  void AddUnder(T other_item, T item) {
+    if (index_.find(item) != index_.end()) {
+      ERROR << "Ignoring request to add already-present item "
+            << item << " under item " << other_item;
+      return;
+    }
+    typename IteratorMap::iterator other_it = index_.find(other_item);
+    if (other_it == index_.end()) {
+      ERROR << "Ignoring request to add item " << item
+            << " under not-present item " << other_item;
+      return;
+    }
+    // Lists don't support operator+ or operator-, so we need to use ++.
+    // Make a copy of the iterator before doing this so that we don't screw
+    // up the previous value in the map.
+    typename list<T>::iterator new_it = other_it->second;
+    typename list<T>::iterator it = items_.insert(++new_it, item);
+    index_.insert(make_pair(item, it));
+  }
+
+  // Remove an item from the stack.
+  void Remove(T item) {
+    typename IteratorMap::iterator it = index_.find(item);
+    if (it == index_.end()) {
+      ERROR << "Ignoring request to remove not-present item " << item;
+      return;
+    }
+    items_.erase(it->second);
+    index_.erase(it);
+  }
+
+ private:
+  // Items stacked from top to bottom.
+  list<T> items_;
+
+  typedef map<T, typename list<T>::iterator> IteratorMap;
+
+  // Index into 'items_'.
+  IteratorMap index_;
 };
 
 
