@@ -74,6 +74,13 @@ static const char* XEventTypeToName(int type) {
 }
 
 
+static int HandleXError(Display* display, XErrorEvent* error) {
+  XServer::Get()->set_last_error_code(error->error_code);
+  return 0;
+}
+
+
+
 XServer::XServer()
     : xcb_conn_(NULL),
       xcb_screen_(NULL),
@@ -89,7 +96,9 @@ XServer::XServer()
       height_(0),
       initialized_(false),
       in_progress_binding_(NULL),
-      next_timeout_id_(1) {
+      next_timeout_id_(1),
+      old_error_handler_(NULL),
+      last_error_code_(0) {
 }
 
 
@@ -247,6 +256,26 @@ void XServer::RepaintOverlay() {
     if (win->parent()) continue;
     win->CopyToOverlay();
   }
+}
+
+
+void XServer::TrapErrors() {
+  if (old_error_handler_) {
+    ERROR << "X errors are already trapped; ignoring request to trap them";
+    return;
+  }
+  last_error_code_ = 0;
+  old_error_handler_ = XSetErrorHandler(HandleXError);
+}
+
+
+int XServer::UntrapErrors() {
+  if (!old_error_handler_) {
+    ERROR << "X errors aren't trapped; ignore request to untrap them";
+    return 0;
+  }
+  XSetErrorHandler(old_error_handler_);
+  return last_error_code_;
 }
 
 

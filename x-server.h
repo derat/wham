@@ -80,6 +80,11 @@ class XServer {
   // Clutter or something instead.
   void RepaintOverlay();
 
+  // Start or stop trapping errors from the X server.  UntrapErrors()
+  // returns the code of the last error, if any.
+  void TrapErrors();
+  int UntrapErrors();
+
   // Update 'stacked_windows_' in response to a stacking change.
   // These are called by XWindow::Raise() and XWindow::MakeSibling().
   void TrackWindowRaise(XWindow* win) {
@@ -121,6 +126,8 @@ class XServer {
   // FIXME: clean this up
   static void SetTesting(bool testing) { testing_ = testing; }
   static bool Testing() { return testing_; }
+
+  void set_last_error_code(int code) { last_error_code_ = code; }
 
  private:
   friend class ::XServerTestSuite;
@@ -215,6 +222,9 @@ class XServer {
   uint next_timeout_id_;
 
   vector<Timeout> timeout_heap_;
+
+  int (*old_error_handler_)(Display*, XErrorEvent*);
+  int last_error_code_;
 
   DISALLOW_EVIL_CONSTRUCTORS(XServer);
 };
