@@ -115,7 +115,7 @@ class ref_ptr {
     refs_ = NULL;
   }
   ref_ptr<T>& operator=(const ref_ptr<T>& o) {
-    if (&o != this) {
+    if (ptr_ != o.ptr_) {
       del_ref();
       ptr_ = o.ptr_;
       refs_ = o.refs_;
