@@ -115,10 +115,12 @@ class ref_ptr {
     refs_ = NULL;
   }
   ref_ptr<T>& operator=(const ref_ptr<T>& o) {
-    del_ref();
-    ptr_ = o.ptr_;
-    refs_ = o.refs_;
-    add_ref();
+    if (&o != this) {
+      del_ref();
+      ptr_ = o.ptr_;
+      refs_ = o.refs_;
+      add_ref();
+    }
     return *this;
   }
 
